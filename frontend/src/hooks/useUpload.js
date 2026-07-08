@@ -1,46 +1,76 @@
-import { useCallback, useState } from 'react';
+import { useState, useCallback } from 'react';
+import { openDataLoaderService } from '@/services/opendataloader.service';
 import { toast } from 'sonner';
-import { documentService } from '@/services/documentService';
 
-let queueItemId = 0;
-
-/**
- * Manages the upload queue: validates and stores each selected file,
- * exposing per-file progress for the UI.
- */
 export function useUpload() {
-  const [queue, setQueue] = useState([]);
+  const [file, setFile] = useState(null);
+  const [status, setStatus] = useState('idle'); // idle, processing, success, error
+  const [timelineStep, setTimelineStep] = useState(0); 
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
-  const uploadFiles = useCallback(async (fileList) => {
-    const files = Array.from(fileList);
-
-    for (const file of files) {
-      const itemId = ++queueItemId;
-      setQueue((prev) => [
-        ...prev,
-        { id: itemId, filename: file.name, progress: 0, status: 'uploading', error: null },
-      ]);
-
-      const setItem = (changes) =>
-        setQueue((prev) =>
-          prev.map((item) => (item.id === itemId ? { ...item, ...changes } : item)),
-        );
-
-      try {
-        await documentService.uploadDocument(file, (progress) => setItem({ progress }));
-        setItem({ status: 'done', progress: 100 });
-        toast.success(`Uploaded ${file.name}`);
-      } catch (error) {
-        setItem({ status: 'error', error: error.message });
-        toast.error(`${file.name}: ${error.message}`);
-      }
-    }
-
-    // Clear finished items after a short delay so users see completion.
-    setTimeout(() => {
-      setQueue((prev) => prev.filter((item) => item.status === 'uploading'));
-    }, 2500);
+  const reset = useCallback(() => {
+    setFile(null);
+    setStatus('idle');
+    setTimelineStep(0);
+    setResult(null);
+    setError(null);
   }, []);
 
-  return { queue, uploadFiles };
+  const selectFile = useCallback((selectedFile) => {
+    if (selectedFile?.type !== 'application/pdf') {
+      toast.error("Only PDF files are supported");
+      return;
+    }
+    setFile(selectedFile);
+    setStatus('preview'); // Selected, waiting to process
+  }, []);
+
+  const processFile = useCallback(async () => {
+    if (!file) return;
+
+    try {
+      setStatus('processing');
+      setError(null);
+      
+      // Mocking timeline steps for better UX since upload is fast locally
+      setTimelineStep(1); // Uploading
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setTimelineStep(2); // Sending to Hybrid Server
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setTimelineStep(3); // Extracting Content
+      const data = await openDataLoaderService.uploadPdf(file);
+      
+      setTimelineStep(4); // Preparing Results
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      if (data.success) {
+        setResult(data);
+        setStatus('success');
+        setTimelineStep(5); // Rendering Viewer
+        toast.success("Extraction complete");
+      } else {
+        throw new Error(data.error?.detail?.[0]?.msg || "Failed to process PDF");
+      }
+
+    } catch (err) {
+      console.error(err);
+      setStatus('error');
+      setError(err.message || 'An error occurred during extraction');
+      toast.error("Extraction failed", { description: err.message });
+    }
+  }, [file]);
+
+  return {
+    file,
+    status,
+    timelineStep,
+    result,
+    error,
+    selectFile,
+    processFile,
+    reset,
+  };
 }

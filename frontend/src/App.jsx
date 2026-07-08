@@ -1,13 +1,18 @@
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
-import { AppRoutes } from '@/app/routes';
+import { Home } from '@/pages/Home';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-      <Toaster richColors position="bottom-right" />
-    </BrowserRouter>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster position="bottom-right" richColors />
+    </ThemeProvider>
   );
 }
 

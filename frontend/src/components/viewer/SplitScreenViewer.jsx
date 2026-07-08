@@ -1,21 +1,14 @@
-import { useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { PdfViewer } from './PdfViewer';
 import { DynamicTabs } from './DynamicTabs';
-import { MetadataPanel } from './MetadataPanel';
-import { Toolbar } from './Toolbar';
-import { FileText, Loader2 } from 'lucide-react';
+import { Inspector } from './Inspector';
+import { FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
-
-export function SplitScreenViewer({ file, result, onReset }) {
-  const [numPages, setNumPages] = useState(null);
-
-  function onDocumentLoadSuccess({ numPages }) {
-    setNumPages(numPages);
-  }
+export function SplitScreenViewer({ job }) {
+  const result = job?.metadata;
+  
+  if (!result) return null;
 
   return (
     <motion.div 
@@ -23,66 +16,39 @@ export function SplitScreenViewer({ file, result, onReset }) {
       animate={{ opacity: 1 }}
       className="flex h-full w-full overflow-hidden"
     >
-      {/* Left Panel: PDF Viewer */}
-      <div className="w-1/2 border-r bg-muted/20 flex flex-col h-full relative">
-        <div className="absolute top-0 w-full h-12 bg-gradient-to-b from-background/80 to-transparent z-10 pointer-events-none" />
-        
-        <ScrollArea className="flex-1 w-full h-full">
-          <div className="p-8 flex flex-col items-center min-h-full">
-            {file ? (
-              <Document
-                file={file}
-                onLoadSuccess={onDocumentLoadSuccess}
-                loading={
-                  <div className="flex flex-col items-center justify-center text-muted-foreground p-12">
-                    <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                    <p>Rendering PDF...</p>
-                  </div>
-                }
-                error={
-                  <div className="flex flex-col items-center justify-center text-muted-foreground p-12">
-                    <FileText className="w-8 h-8 mb-4 text-destructive" />
-                    <p>Failed to load PDF</p>
-                  </div>
-                }
-              >
-                {Array.from(new Array(numPages), (el, index) => (
-                  <div key={`page_${index + 1}`} className="mb-6 shadow-md rounded border overflow-hidden">
-                     <Page 
-                      pageNumber={index + 1} 
-                      width={800} 
-                      className="bg-white"
-                      renderTextLayer={true} 
-                      renderAnnotationLayer={true} 
-                    />
-                  </div>
-                ))}
-              </Document>
-            ) : null}
+      <ResizablePanelGroup direction="horizontal">
+        {/* Left Panel: PDF Viewer */}
+        <ResizablePanel defaultSize={35} minSize={20}>
+          <div className="h-full w-full flex flex-col relative bg-muted/20">
+            <PdfViewer job={job} />
           </div>
-        </ScrollArea>
-      </div>
+        </ResizablePanel>
 
-      {/* Right Panel: Data & Metadata */}
-      <div className="w-1/2 flex flex-col h-full bg-background relative">
-        {/* Toolbar */}
-        <div className="h-14 border-b flex items-center px-4 justify-between shrink-0 bg-background z-20">
-          <h2 className="font-semibold text-sm truncate max-w-[50%]">{file?.name}</h2>
-          <Toolbar result={result} onReset={onReset} file={file} />
-        </div>
+        <ResizableHandle withHandle className="w-2 bg-border hover:bg-primary/50 transition-colors cursor-col-resize z-10 group hidden lg:flex" />
 
-        <div className="flex-1 flex overflow-hidden">
-          {/* Main Viewer Area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <DynamicTabs result={result} />
+        {/* Center Panel: Structured Output */}
+        <ResizablePanel defaultSize={45} minSize={25}>
+          <div className="flex flex-col h-full bg-background relative overflow-hidden">
+            {result.artifacts ? (
+              <DynamicTabs job={job} />
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+                <FileText className="w-12 h-12 mb-4 opacity-20" />
+                <p>No structured output available.</p>
+              </div>
+            )}
           </div>
+        </ResizablePanel>
 
-          {/* Sticky Metadata Panel */}
-          <div className="w-64 border-l bg-muted/10 hidden lg:block shrink-0">
-            <MetadataPanel result={result} file={file} />
+        <ResizableHandle withHandle className="w-2 bg-border hover:bg-primary/50 transition-colors cursor-col-resize z-10 group hidden lg:flex" />
+
+        {/* Right Panel: Inspector */}
+        <ResizablePanel defaultSize={20} minSize={20} maxSize={35} collapsible={true} className="hidden lg:block">
+          <div className="h-full w-full bg-muted/10 border-l overflow-hidden">
+            <Inspector job={job} />
           </div>
-        </div>
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </motion.div>
   );
 }

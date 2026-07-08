@@ -1,53 +1,45 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import axios from 'axios';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { StructuredToolbar } from './StructuredToolbar';
-import { Loader2 } from 'lucide-react';
-import axios from 'axios';
 
-export function MarkdownViewer({ url }) {
-  const [markdown, setMarkdown] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [activeId, setActiveId] = useState(null);
-  
-  // View preferences
-  const [fontSize, setFontSize] = useState('text-sm');
-  const [fontFamily, setFontFamily] = useState('font-sans');
-  const [contentWidth, setContentWidth] = useState('max-w-4xl');
+export function AssessmentTab({ job }) {
+  const [assessmentReport, setAssessmentReport] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!url) return;
-    const fetchMarkdown = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(url);
-        setMarkdown(response.data);
-      } catch (err) {
-        console.error('Failed to fetch markdown', err);
-        setMarkdown('Error loading markdown.');
-      } finally {
-        setLoading(false);
+  const generateReport = async () => {
+    if (!job?.jobId) return;
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const res = await axios.post('http://localhost:3000/api/v1/assessment/generate', { jobId: job.jobId });
+      if (res.data?.reportContent) {
+        setAssessmentReport(res.data.reportContent);
       }
-    };
-    fetchMarkdown();
-  }, [url]);
-
-  useEffect(() => {
-    if (activeId) {
-      window.dispatchEvent(new CustomEvent('markdown-scroll', { detail: activeId }));
+    } catch (e) {
+      console.error('Failed to generate report', e);
+      setError('Failed to generate assessment report. Please ensure extraction completed successfully.');
+    } finally {
+      setIsGenerating(false);
     }
-  }, [activeId]);
+  };
 
-  // Memoize markdown components for premium Notion/GitHub style rendering
+  // Memoize markdown components to avoid re-rendering performance hits on huge documents
   const markdownComponents = useMemo(() => ({
+    // Headings
     h1: ({ node, ...props }) => {
       void node;
+      // Detect if this is a major section like "# 1. Student Admission..."
       const isMajorSection = props.children && typeof props.children[0] === 'string' && /^\d+\./.test(props.children[0]);
+      
       if (isMajorSection) {
         return (
           <div className="mt-12 mb-6 border bg-card rounded-xl shadow-sm p-6 sm:p-8">
@@ -59,8 +51,8 @@ export function MarkdownViewer({ url }) {
     },
     h2: ({ node, ...props }) => { void node; return <h2 className="text-xl font-semibold mt-8 mb-4 text-foreground border-b pb-2" {...props} />; },
     h3: ({ node, ...props }) => { void node; return <h3 className="text-lg font-medium mt-6 mb-3 text-foreground" {...props} />; },
-    h4: ({ node, ...props }) => { void node; return <h4 className="text-base font-medium mt-6 mb-2 text-foreground" {...props} />; },
     
+    // Typography
     p: ({ node, ...props }) => { void node; return <p className="leading-relaxed mb-4 text-muted-foreground" {...props} />; },
     blockquote: ({ node, ...props }) => {
       void node;
@@ -71,6 +63,7 @@ export function MarkdownViewer({ url }) {
     ul: ({ node, ...props }) => { void node; return <ul className="list-disc pl-6 mb-4 space-y-1 text-muted-foreground" {...props} />; },
     ol: ({ node, ...props }) => { void node; return <ol className="list-decimal pl-6 mb-4 space-y-1 text-muted-foreground" {...props} />; },
     
+    // Tables
     table: ({ node, ...props }) => {
       void node;
       return (
@@ -85,6 +78,7 @@ export function MarkdownViewer({ url }) {
     th: ({ node, ...props }) => { void node; return <th className="p-3 font-semibold text-foreground align-middle" {...props} />; },
     td: ({ node, ...props }) => { void node; return <td className="p-3 text-muted-foreground align-top" {...props} />; },
     
+    // Media
     img: ({ node, ...props }) => {
       void node;
       return (
@@ -94,6 +88,7 @@ export function MarkdownViewer({ url }) {
       );
     },
     
+    // Code
     code({ inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
       return !inline && match ? (
@@ -112,59 +107,67 @@ export function MarkdownViewer({ url }) {
         </code>
       );
     },
-    pre: ({ node, ...props }) => { void node; return <pre className="p-0 m-0 bg-transparent" {...props} />; }
+    pre: ({ node, ...props }) => { void node; return <pre className="p-0 m-0 bg-transparent" {...props} />; } // The SyntaxHighlighter handles the pre tag style
   }), []);
 
-  if (!url) {
-    return (
-      <div className="flex flex-col items-center justify-center w-full h-full text-muted-foreground p-8 text-center">
-        <p className="mb-2 font-medium text-foreground">Markdown Not Available</p>
-        <p className="text-sm">The backend has not returned a Markdown representation for this document.</p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center w-full h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex w-full h-full relative overflow-hidden bg-background">
-      <div className="flex-1 flex flex-col min-w-0">
-        <StructuredToolbar 
-          markdown={markdown} 
-          onFontSizeChange={setFontSize} 
-          onFontFamilyChange={setFontFamily}
-          onWidthChange={setContentWidth}
-        />
-        
-        <ScrollArea className="flex-1 w-full relative" onScroll={() => {
-          // Highlight active section based on scroll
-          const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-          for (let i = headings.length - 1; i >= 0; i--) {
-            const rect = headings[i].getBoundingClientRect();
-            if (rect.top <= 100) {
-              setActiveId(headings[i].id);
-              break;
-            }
-          }
-        }}>
-          <div className={`p-8 mx-auto ${fontSize} ${fontFamily} ${contentWidth} transition-all duration-200`}>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw, rehypeSlug]}
-              components={markdownComponents}
-            >
-              {markdown}
-            </ReactMarkdown>
-          </div>
-        </ScrollArea>
+    <div className="flex flex-col h-full w-full bg-background p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Assessment Report</h2>
+          <p className="text-muted-foreground mt-1">
+            Generate the official NCISM Assessment Report based on the extracted data from this document.
+          </p>
+        </div>
+        <button
+          onClick={generateReport}
+          disabled={isGenerating}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <FileText className="w-4 h-4" />
+              Generate Report
+            </>
+          )}
+        </button>
       </div>
+
+      {error && (
+        <div className="bg-destructive/10 text-destructive p-4 rounded-md mb-6">
+          {error}
+        </div>
+      )}
+
+      {assessmentReport ? (
+        <div className="flex-1 border rounded-md overflow-hidden bg-background">
+          <ScrollArea className="h-full w-full">
+            <div className="max-w-5xl mx-auto px-4 py-12">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[
+                  rehypeRaw, 
+                  rehypeSlug,
+                  [rehypeAutolinkHeadings, { behavior: 'wrap' }]
+                ]}
+                components={markdownComponents}
+              >
+                {assessmentReport}
+              </ReactMarkdown>
+            </div>
+          </ScrollArea>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground border border-dashed rounded-md bg-muted/5">
+          <FileText className="w-12 h-12 mb-4 opacity-20" />
+          <p>Click "Generate Report" to evaluate the extracted data.</p>
+        </div>
+      )}
     </div>
   );
 }
-

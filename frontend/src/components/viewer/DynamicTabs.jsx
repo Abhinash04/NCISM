@@ -1,61 +1,50 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JsonViewer } from "./JsonViewer";
 import { MarkdownViewer } from "./MarkdownViewer";
-import { HtmlViewer } from "./HtmlViewer";
 import { RawViewer } from "./RawViewer";
+import { AssessmentTab } from "./AssessmentTab";
+import { FileText } from "lucide-react";
 
-export function DynamicTabs({ result }) {
-  const { document, capabilities } = result;
-
+export function DynamicTabs({ job }) {
+  const artifacts = job?.artifacts || {};
+  
   // Determine default tab
-  const defaultTab = capabilities.markdown ? "markdown" : capabilities.json ? "json" : "raw";
+  const defaultTab = artifacts.markdown ? "markdown" : artifacts.json ? "json" : "raw";
 
   return (
     <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col w-full h-full">
-      <div className="px-4 pt-2 border-b bg-muted/10 shrink-0">
-        <TabsList className="bg-transparent space-x-2 h-auto p-0">
-          <TabsTrigger 
-            value="json" 
-            disabled={!capabilities.json}
-            className="data-[state=active]:bg-background data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-2"
-          >
+      <div className="border-b bg-muted/10 shrink-0 px-4 pt-2">
+        <TabsList variant="line" className="h-auto p-0 bg-transparent gap-4">
+          <TabsTrigger value="json" disabled={!artifacts.json} className="px-2 py-2">
             JSON
           </TabsTrigger>
-          <TabsTrigger 
-            value="markdown" 
-            disabled={!capabilities.markdown}
-            className="data-[state=active]:bg-background data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-2"
-          >
-            Markdown
+          <TabsTrigger value="markdown" disabled={!artifacts.markdown} className="px-2 py-2">
+            Structured View
           </TabsTrigger>
-          <TabsTrigger 
-            value="html" 
-            disabled={!capabilities.html}
-            className="data-[state=active]:bg-background data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-2"
-          >
-            HTML
-          </TabsTrigger>
-          <TabsTrigger 
-            value="raw" 
-            className="data-[state=active]:bg-background data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-2"
-          >
+          <TabsTrigger value="raw" className="px-2 py-2">
             Raw Response
+          </TabsTrigger>
+          <div className="w-px h-4 bg-border mx-2 self-center"></div>
+          <TabsTrigger value="assessment" className="px-2 py-2 text-primary data-[state=active]:text-primary flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5" /> Assessment Report
           </TabsTrigger>
         </TabsList>
       </div>
 
       <div className="flex-1 overflow-hidden relative">
         <TabsContent value="json" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
-          <JsonViewer data={document.json} />
+          <JsonViewer url={artifacts.json} />
         </TabsContent>
-        <TabsContent value="markdown" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
-          <MarkdownViewer data={document.markdown} />
+        <TabsContent value="markdown" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex">
+          <MarkdownViewer url={artifacts.markdown} />
         </TabsContent>
-        <TabsContent value="html" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
-          <HtmlViewer data={document.html} />
-        </TabsContent>
+
         <TabsContent value="raw" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
-          <RawViewer data={document.raw} />
+          <RawViewer job={job} />
+        </TabsContent>
+        
+        <TabsContent value="assessment" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
+          <AssessmentTab job={job} />
         </TabsContent>
       </div>
     </Tabs>

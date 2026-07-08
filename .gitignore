@@ -45,8 +45,8 @@ $RECYCLE.BIN/
 .env.production.local
 *.local
 
-# Node (frontend)
-frontend/node_modules/
+# Node
+node_modules/
 frontend/dist/
 frontend/build/
 frontend/.next/

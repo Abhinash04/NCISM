@@ -3,7 +3,7 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { SplitScreenViewer } from '@/components/viewer/SplitScreenViewer';
 import { WorkspaceProvider } from '@/components/viewer/WorkspaceContext';
-import { StorageService } from '@/services/storage.service';
+import { saveDocument, saveFailedUpload, persistJobArtifacts } from '@/lib/db/documents.repository';
 import { extractDocument } from '@/lib/api/endpoints';
 import { useJob } from '@/hooks/useJob';
 import { toast } from 'sonner';
@@ -21,25 +21,21 @@ export function Workspace() {
 
   const uploadMutation = useMutation({
     mutationFn: extractDocument,
-    onSuccess: (job, file) => {
-      StorageService.saveDocument({
-        id: job.jobId,
-        filename: file.name,
-        size: file.size,
-        status: job.status,
-        processingTime: job.processingTimeMs / 1000,
-      });
+    onSuccess: async (job) => {
+      await saveDocument(job);
       toast.success('Extraction completed');
       navigate(`/workspace/${job.jobId}`, { replace: true });
+      // Persist artifacts in the background so the document survives the
+      // backend's retention purge.
+      persistJobArtifacts(job).then(({ pdfSkipped }) => {
+        if (pdfSkipped) {
+          toast.info('PDF too large to store locally — viewable until the server copy expires.');
+        }
+      });
     },
     onError: (error, file) => {
       toast.error('Extraction failed: ' + (error.response?.data?.error?.message || error.message || 'Unknown error'));
-      StorageService.saveDocument({
-        filename: file.name,
-        size: file.size,
-        status: 'failed',
-        processingTime: 0,
-      });
+      saveFailedUpload(file);
       navigate('/dashboard');
     },
   });

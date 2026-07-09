@@ -1,15 +1,14 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropZone } from '@/components/upload/DragDropZone';
 import { SystemHealthWidget } from '@/components/dashboard/SystemHealthWidget';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Clock, FileCheck } from 'lucide-react';
-import { StorageService } from '@/services/storage.service';
+import { useDocuments } from '@/hooks/useDocuments';
 import { formatDistanceToNow } from 'date-fns';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const [documents] = useState(() => StorageService.getAllDocuments());
+  const documents = useDocuments();
 
   const handleFileSelect = (file) => {
     // Navigate to new workspace upload flow, pass file in state or use a store
@@ -20,7 +19,7 @@ export function Dashboard() {
 
   const completedDocs = documents.filter(d => d.status === 'completed');
   const avgProcessingTime = completedDocs.length > 0
-    ? (completedDocs.reduce((acc, d) => acc + (d.processingTime || 0), 0) / completedDocs.length / 1000).toFixed(1)
+    ? (completedDocs.reduce((acc, d) => acc + (d.processingTimeMs || 0), 0) / completedDocs.length / 1000).toFixed(1)
     : 0;
 
   return (

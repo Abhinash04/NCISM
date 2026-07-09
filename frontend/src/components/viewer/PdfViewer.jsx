@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { resolveArtifactUrl } from '@/lib/api/client';
+import { useArtifact } from '@/hooks/useArtifact';
+import { downloadBlob } from '@/lib/download';
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -71,7 +72,9 @@ export function PdfViewer({ job }) {
     return fitMode === 'page' ? containerSize.height - 64 : undefined;
   };
 
-  const pdfUrl = resolveArtifactUrl(job?.artifacts?.pdf);
+  // Blob via the shared artifact cache — also renders from the local copy
+  // when the backend job has expired.
+  const { data: pdfBlob } = useArtifact(job, 'pdf');
 
   const handlePrevPage = () => {
     setCurrentPage(p => Math.max(1, p - 1));
@@ -91,16 +94,11 @@ export function PdfViewer({ job }) {
   };
 
   const handleDownload = () => {
-    if (!pdfUrl) return;
-    const a = document.createElement('a');
-    a.href = pdfUrl;
-    a.download = job.filename || 'document.pdf';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (!pdfBlob) return;
+    downloadBlob(pdfBlob, job.filename || 'document.pdf', 'application/pdf');
   };
 
-  if (!job || !pdfUrl) {
+  if (!job || (!job.artifacts?.pdf && !pdfBlob)) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-12">
         <FileText className="w-12 h-12 mb-4 opacity-20" />
@@ -175,7 +173,7 @@ export function PdfViewer({ job }) {
       }}>
         <div className="p-8 flex flex-col items-center min-h-full">
           <Document
-            file={pdfUrl}
+            file={pdfBlob}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
               <div className="flex flex-col items-center justify-center space-y-4 p-12 w-full max-w-2xl mx-auto">

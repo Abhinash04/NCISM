@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
+import { importLegacyLocalStorage } from '@/lib/db/documents.repository';
 
 import { LandingLayout } from '@/components/layout/LandingLayout';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -19,6 +20,9 @@ const queryClient = new QueryClient({
     queries: { refetchOnWindowFocus: false },
   },
 });
+
+// One-time import of the pre-Dexie localStorage history.
+importLegacyLocalStorage();
 
 function App() {
   return (

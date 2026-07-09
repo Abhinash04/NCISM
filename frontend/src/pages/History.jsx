@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StorageService } from '@/services/storage.service';
+import { useDocuments } from '@/hooks/useDocuments';
+import { deleteDocument } from '@/lib/db/documents.repository';
 import { formatDistanceToNow, format } from 'date-fns';
 import { FileText, Search, MoreVertical, Trash2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,12 +18,11 @@ import { motion } from 'framer-motion';
 
 export function History() {
   const navigate = useNavigate();
-  const [documents, setDocuments] = useState(() => StorageService.getAllDocuments());
+  const documents = useDocuments();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleDelete = (id) => {
-    StorageService.deleteDocument(id);
-    setDocuments(StorageService.getAllDocuments());
+    deleteDocument(id); // live query refreshes the list automatically
   };
 
   const filteredDocs = documents.filter(doc => 

@@ -2,11 +2,15 @@ import { useMutation } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText, Loader2 } from 'lucide-react';
 import { generateAssessment } from '@/lib/api/endpoints';
+import { saveAssessment } from '@/lib/db/documents.repository';
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
 
 export function AssessmentTab({ job }) {
   const mutation = useMutation({
     mutationFn: () => generateAssessment({ jobId: job.jobId }),
+    onSuccess: (data) => {
+      saveAssessment(job.jobId, data.assessment).catch(() => {});
+    },
   });
 
   const reportMarkdown = mutation.data?.assessment?.reportMarkdown ?? null;

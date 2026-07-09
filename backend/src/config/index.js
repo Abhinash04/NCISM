@@ -1,7 +1,7 @@
 const path = require('path');
 
 // Load .env from the backend root regardless of the process CWD.
-require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env'), quiet: true });
 
 function intFromEnv(name, fallback) {
   const raw = process.env[name];

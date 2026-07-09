@@ -1,0 +1,77 @@
+{
+  "description": "Golden ParameterSet for Gaur Brahmin Ayurvedic College & Hospital (AYU0038). Teaching staff compliant; Quality Control Laboratory posts vacant (no seat reduction).",
+  "values": {
+    "institutionName": "Gaur Brahmin Ayurvedic College & Hospital",
+    "institutionId": "AYU0038",
+    "location": "Rohtak, Haryana",
+    "intake": 100,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-Ay.(53)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-05-06",
+    "visitationEndDate": "2026-05-07",
+    "visitors": [
+      { "name": "Dr. Kamlesh Sharma", "id": "V00508" },
+      { "name": "Dr. Sandeep", "id": "V02804" },
+      { "name": "Dr. Naimish Kishor Saraf", "id": "V02821" }
+    ],
+    "constructedAreaCollegeSqm": 4786,
+    "constructedAreaHospitalSqm": 3752,
+    "constructedAreaHerbalSqm": 18207,
+    "lectureHallsAreaSqm": 805,
+    "lectureHallsCount": 5,
+    "librarySittingCapacity": 120,
+    "libraryComputers": 12,
+    "libraryBooks": 13961,
+    "librarySeatingAdequate": true,
+    "herbalSpecies": 290,
+    "aebasImplemented": true,
+    "aebasTeaching": true,
+    "aebasNonTeaching": true,
+    "aebasHospital": true,
+    "websiteFunctional": true,
+    "yogaTeacherAvailable": true,
+    "bioStatisticianAvailable": true,
+    "teachingStaff": {
+      "rows": [],
+      "total": 29,
+      "absent": 0
+    },
+    "nonTeachingStaff": {
+      "rows": [
+        { "dept": "Quality Control Laboratory", "post": "Analytical Chemist", "required": 1, "existing": 0 },
+        { "dept": "Quality Control Laboratory", "post": "Clerk", "required": 1, "existing": 0 },
+        { "dept": "Quality Control Laboratory", "post": "Lab Attendant", "required": 1, "existing": 0 }
+      ],
+      "total": 75,
+      "absent": 8
+    },
+    "hospitalStaff": {
+      "rows": [],
+      "total": 85,
+      "absent": 9
+    },
+    "opdCount": 9,
+    "opdTotalPatients": 68465,
+    "opdAverageDaily": 228.22,
+    "ipdTotalPatients": 1334,
+    "bedOccupancyPercent": 63.27,
+    "deliveries": 2,
+    "operations": 2174,
+    "equipmentMeanPercent": 99.2,
+    "centralRegistrationAvailable": true,
+    "visitorObservations": [
+      "No ICU is available in the hospital.",
+      "Death record and intern duty roasters not available.",
+      "Samhita department does not have a language laboratory."
+    ],
+    "otherObservations": [
+      "Any penalty/legal case pending- No legal case or penalty imposed or pending.",
+      "Rating 2025-26 – not eligible",
+      "Consent of Affiliation 2026-27- Not submitted",
+      "**Compliance report:– Not submitted**",
+      "Visitation fee 2026-27 - Submitted",
+      "Extended Permission & Rating 2026-27 - Not eligible."
+    ]
+  }
+}

@@ -1,5 +1,4 @@
-const fs = require('fs');
-const assessmentService = require('../../services/assessment.service');
+const assessmentService = require('../services/assessment.service');
 const jobService = require('../services/job.service');
 const ApiError = require('../utils/api-error');
 const createLogger = require('../utils/logger');
@@ -8,34 +7,41 @@ const logger = createLogger('AssessmentsController');
 
 class AssessmentsController {
   /**
-   * Generate Assessment Report based on extracted data
-   * POST /api/v1/assessment/generate
-   * Body: { jobId }
+   * POST /api/v1/assessments          (canonical)
+   * POST /api/v1/assessment/generate  (legacy alias)
+   * Body: { jobId, rulesetId?, rulesetVersion? }
    */
   async generateReport(req, res, next) {
     try {
-      const { jobId } = req.body;
+      const { jobId, rulesetId, rulesetVersion } = req.body;
 
       if (!jobId) {
         return next(ApiError.badRequest('VALIDATION_ERROR', 'jobId is required'));
       }
 
-      const mdPath = jobService.getArtifactPath(jobId, 'markdown');
+      const { result, reportMarkdown } = await assessmentService.generate({ jobId, rulesetId, rulesetVersion });
 
-      if (!mdPath || !fs.existsSync(mdPath)) {
-        return next(ApiError.notFound('ARTIFACT_NOT_FOUND', 'Extracted markdown not found for this job'));
-      }
-
-      const { reportMd } = await assessmentService.generateReport(jobId, mdPath);
+      // Refreshed job DTO now carries report/assessment artifact URLs.
+      const manifest = jobService.getManifest(jobId);
+      const job = manifest ? jobService.toJobDto(manifest) : null;
 
       res.json({
         success: true,
-        message: 'Assessment report generated successfully',
-        reportContent: reportMd
+        assessment: {
+          jobId,
+          rulesetId: result.rulesetId,
+          rulesetVersion: result.rulesetVersion,
+          result,
+          reportMarkdown,
+        },
+        job,
+        // Legacy field kept until the frontend migrates (dropped in WS5).
+        reportContent: reportMarkdown,
       });
     } catch (error) {
+      if (error instanceof ApiError) return next(error);
       logger.error('Error generating report:', error);
-      next(ApiError.internal('ASSESSMENT_FAILED', 'Failed to generate assessment report', error.message));
+      next(ApiError.internal('ASSESSMENT_FAILED', error.message));
     }
   }
 }

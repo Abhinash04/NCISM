@@ -1,0 +1,64 @@
+[
+  {
+    "id": "hospital.opd-total-patients",
+    "category": "hospital",
+    "title": "Total OPD patients in the reference year",
+    "regulationRef": "MESAR (UG) Ayurveda 2024 - hospital functionality",
+    "parameter": "opdTotalPatients",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 36000 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Total {actual} no. of patients attended OPD against the minimum requirement of {expected} no. of patients.",
+      "fail": "Total {actual} no. of patients attended OPD against the minimum requirement of {expected} no. of patients - not fulfilling.",
+      "missing": "Total OPD patient count could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.opd-average-daily",
+    "category": "hospital",
+    "title": "Average attendance of patients in OPD per day",
+    "regulationRef": "MESAR (UG) Ayurveda 2024 - hospital functionality",
+    "parameter": "opdAverageDaily",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 120 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "opd-average" },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Average attendance of patient in OPD per day is {actual} against the minimum requirement of {expected}.",
+      "fail": "Average attendance of patient in OPD per day is {actual} against the minimum requirement of {expected} - not fulfilling.",
+      "missing": "Average daily OPD attendance could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.central-registration",
+    "category": "hospital",
+    "title": "Computerized central registration system",
+    "regulationRef": "MESAR (UG) Ayurveda 2024 - hospital functionality",
+    "parameter": "centralRegistrationAvailable",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "central-registration" },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Computerized central registration system is available.",
+      "fail": "Computerized central registration system is not available.",
+      "missing": "Computerized central registration availability could not be determined - manual verification required."
+    }
+  }
+]

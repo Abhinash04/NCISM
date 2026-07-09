@@ -35,8 +35,6 @@ class AssessmentsController {
           reportMarkdown,
         },
         job,
-        // Legacy field kept until the frontend migrates (dropped in WS5).
-        reportContent: reportMarkdown,
       });
     } catch (error) {
       if (error instanceof ApiError) return next(error);

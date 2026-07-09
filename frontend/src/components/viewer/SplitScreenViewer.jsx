@@ -6,9 +6,7 @@ import { FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function SplitScreenViewer({ job }) {
-  const result = job?.metadata;
-  
-  if (!result) return null;
+  if (!job) return null;
 
   return (
     <motion.div 
@@ -29,7 +27,7 @@ export function SplitScreenViewer({ job }) {
         {/* Center Panel: Structured Output */}
         <ResizablePanel defaultSize={45} minSize={25}>
           <div className="flex flex-col h-full bg-background relative overflow-hidden">
-            {result.artifacts ? (
+            {job.artifacts ? (
               <DynamicTabs job={job} />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">

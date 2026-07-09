@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { resolveArtifactUrl } from '@/lib/api/client';
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -70,7 +71,7 @@ export function PdfViewer({ job }) {
     return fitMode === 'page' ? containerSize.height - 64 : undefined;
   };
 
-  const pdfUrl = job ? `${import.meta.env.VITE_API_URL}/jobs/${job.jobId}/artifacts/pdf` : null;
+  const pdfUrl = resolveArtifactUrl(job?.artifacts?.pdf);
 
   const handlePrevPage = () => {
     setCurrentPage(p => Math.max(1, p - 1));
@@ -93,7 +94,7 @@ export function PdfViewer({ job }) {
     if (!pdfUrl) return;
     const a = document.createElement('a');
     a.href = pdfUrl;
-    a.download = job.metadata?.filename || 'document.pdf';
+    a.download = job.filename || 'document.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

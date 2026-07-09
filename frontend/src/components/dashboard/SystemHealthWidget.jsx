@@ -1,30 +1,33 @@
-import { useHealthCheck } from '@/hooks/useHealthCheck';
+import { useQuery } from '@tanstack/react-query';
+import { checkHealth } from '@/lib/api/endpoints';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Server, Database, Globe } from 'lucide-react';
+import { Activity, Server, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function SystemHealthWidget() {
-  const { status } = useHealthCheck();
+  const { data, isPending } = useQuery({
+    queryKey: ['health'],
+    queryFn: checkHealth,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
+
+  const apiStatus = isPending ? 'checking' : (data?.services?.api === 'online' ? 'online' : 'offline');
+  const extractorStatus = isPending ? 'checking' : (data?.services?.extractor ?? 'offline');
 
   const services = [
     {
-      name: 'Frontend',
-      description: 'React UI',
-      icon: Globe,
-      status: 'online',
-    },
-    {
-      name: 'Express Adapter',
-      description: 'API Gateway',
+      name: 'API Server',
+      description: 'Express backend',
       icon: Server,
-      status: status === 'checking' ? 'checking' : 'online', // Assumption: if we can talk to the backend, it is online
+      status: apiStatus,
     },
     {
-      name: 'Hybrid Server',
-      description: 'Java Processing Pipeline',
+      name: 'Extraction Engine',
+      description: 'OpenDataLoader / Docling hybrid',
       icon: Database,
-      status: status, // online, offline, checking, etc.
-    }
+      status: extractorStatus,
+    },
   ];
 
   return (
@@ -38,7 +41,7 @@ export function SystemHealthWidget() {
           {services.map((service, idx) => (
             <div key={idx} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-md", 
+                <div className={cn("p-2 rounded-md",
                   service.status === 'online' ? "bg-emerald-500/10 text-emerald-500" :
                   service.status === 'checking' ? "bg-amber-500/10 text-amber-500 animate-pulse" :
                   "bg-destructive/10 text-destructive"
@@ -54,7 +57,7 @@ export function SystemHealthWidget() {
                 <span className="text-xs text-muted-foreground capitalize">
                   {service.status}
                 </span>
-                <span className={cn("relative flex h-2 w-2")}>
+                <span className="relative flex h-2 w-2">
                   {service.status === 'online' && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
                   <span className={cn("relative inline-flex rounded-full h-2 w-2",
                     service.status === 'online' ? "bg-emerald-500" :

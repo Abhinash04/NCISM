@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
+import { formatBytes } from '@/lib/format';
 import { motion } from 'framer-motion';
 
 export function History() {
@@ -22,14 +23,6 @@ export function History() {
   const handleDelete = (id) => {
     StorageService.deleteDocument(id);
     setDocuments(StorageService.getAllDocuments());
-  };
-
-  const formatSize = (bytes) => {
-    if (!bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
   const filteredDocs = documents.filter(doc => 
@@ -92,7 +85,7 @@ export function History() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {formatSize(doc.size || doc.metadata?.filesize)}
+                      {formatBytes(doc.size)}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
                       <div className="flex flex-col">

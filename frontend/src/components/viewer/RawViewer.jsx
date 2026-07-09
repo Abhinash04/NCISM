@@ -2,6 +2,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Copy, Maximize, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadBlob } from '@/lib/download';
 
 export function RawViewer({ job }) {
   if (!job) {
@@ -20,15 +21,7 @@ export function RawViewer({ job }) {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([payload], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `job_${job.jobId}_raw.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(payload, `job_${job.jobId}_raw.json`, 'application/json');
   };
 
   return (

@@ -1,21 +1,23 @@
 import { cn } from "@/lib/utils";
+import { slugifyHeadings } from "@/lib/slug";
 
 export function DocumentOutline({ markdown, onHeadingClick, activeId }) {
   if (!markdown) return null;
 
-  // Very simple markdown heading parser
-  const headings = [];
+  // Parse headings, then generate ids with the same algorithm rehype-slug
+  // uses so outline clicks always find the rendered heading.
+  const parsed = [];
   const regex = /^(#{1,6})\s+(.+)$/gm;
   let match;
-  let index = 0;
-  
+
   while ((match = regex.exec(markdown)) !== null) {
     const level = match[1].length;
     const text = match[2].replace(/[#*`_]/g, '').trim();
-    // Create an ID that matches what remark-slug or standard github uses
-    const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
-    headings.push({ level, text, id, index: index++ });
+    parsed.push({ level, text });
   }
+
+  const ids = slugifyHeadings(parsed.map((h) => h.text));
+  const headings = parsed.map((h, index) => ({ ...h, id: ids[index], index }));
 
   if (headings.length === 0) {
     return (

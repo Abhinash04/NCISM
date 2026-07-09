@@ -1,45 +1,25 @@
-import { FileText, Clock, Cpu, FileJson, CheckCircle2, List } from 'lucide-react';
+import { FileText, Clock, Cpu, FileJson, CheckCircle2, AlertTriangle, List } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentOutline } from './DocumentOutline';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useArtifact } from '@/hooks/useArtifact';
+import { useWorkspace } from './WorkspaceContext';
+import { formatBytes } from '@/lib/format';
 
 export function Inspector({ job }) {
-  const meta = job?.metadata || {};
-  const artifacts = meta.artifacts || {};
-  const [markdown, setMarkdown] = useState('');
-  const [activeId, setActiveId] = useState(null);
-  const [assessmentReport, setAssessmentReport] = useState(null);
-
-  useEffect(() => {
-    if (artifacts.markdown) {
-      axios.get(artifacts.markdown).then(res => setMarkdown(res.data)).catch(console.error);
-    }
-  }, [artifacts.markdown]);
-
-  useEffect(() => {
-    const handleScroll = (e) => setActiveId(e.detail);
-    window.addEventListener('markdown-scroll', handleScroll);
-    return () => window.removeEventListener('markdown-scroll', handleScroll);
-  }, []);
+  const { data: markdown } = useArtifact(job, 'markdown');
+  const { activeHeadingId, setActiveHeadingId } = useWorkspace();
 
   const handleHeadingClick = (id) => {
-    setActiveId(id);
+    setActiveHeadingId(id);
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  const formatSize = (bytes) => {
-    if (!bytes) return 'Unknown';
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const artifacts = job?.artifacts || {};
+  const isCompleted = job?.status === 'completed';
 
   return (
     <div className="h-full flex flex-col bg-muted/10">
@@ -54,7 +34,7 @@ export function Inspector({ job }) {
             </TabsTrigger>
           </TabsList>
         </div>
-        
+
         <TabsContent value="metadata" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col">
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-6 pb-6">
@@ -64,15 +44,15 @@ export function Inspector({ job }) {
                 <div className="bg-background rounded-md border p-3 space-y-2 text-sm">
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-muted-foreground shrink-0">Filename</span>
-                    <span className="font-medium truncate" title={meta.filename}>{meta.filename}</span>
+                    <span className="font-medium truncate" title={job?.filename}>{job?.filename}</span>
                   </div>
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-muted-foreground shrink-0">Size</span>
-                    <span className="font-medium">{formatSize(meta.filesize)}</span>
+                    <span className="font-medium">{formatBytes(job?.filesize)}</span>
                   </div>
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-muted-foreground shrink-0">Pages</span>
-                    <span className="font-medium">{meta.pageCount || '?'}</span>
+                    <span className="font-medium">{job?.pageCount || '?'}</span>
                   </div>
                 </div>
               </div>
@@ -83,19 +63,25 @@ export function Inspector({ job }) {
                 <div className="bg-background rounded-md border p-3 space-y-2 text-sm">
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-muted-foreground shrink-0">Status</span>
-                    <span className="font-medium text-green-600 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Success
-                    </span>
+                    {isCompleted ? (
+                      <span className="font-medium text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Completed
+                      </span>
+                    ) : (
+                      <span className="font-medium text-amber-600 flex items-center gap-1 capitalize">
+                        <AlertTriangle className="w-3 h-3" /> {job?.status}
+                      </span>
+                    )}
                   </div>
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-muted-foreground shrink-0">Duration</span>
                     <span className="font-medium flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {meta.processingTime}s
+                      <Clock className="w-3 h-3" /> {((job?.processingTimeMs || 0) / 1000).toFixed(2)}s
                     </span>
                   </div>
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-muted-foreground shrink-0">Pipeline</span>
-                    <span className="font-medium text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">docling-fast</span>
+                    <span className="font-medium text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">opendataloader · docling-fast</span>
                   </div>
                 </div>
               </div>
@@ -105,19 +91,21 @@ export function Inspector({ job }) {
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Assets Generated</h4>
                 <div className="bg-background rounded-md border p-3 space-y-3 text-sm">
                   {artifacts.markdown && (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-500" />
-                        <span>Markdown</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-blue-500" />
+                      <span>Markdown</span>
                     </div>
                   )}
                   {artifacts.json && (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileJson className="w-4 h-4 text-yellow-500" />
-                        <span>JSON</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <FileJson className="w-4 h-4 text-yellow-500" />
+                      <span>JSON</span>
+                    </div>
+                  )}
+                  {artifacts.report && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-emerald-500" />
+                      <span>Assessment Report</span>
                     </div>
                   )}
                 </div>
@@ -125,12 +113,12 @@ export function Inspector({ job }) {
             </div>
           </ScrollArea>
         </TabsContent>
-        
+
         <TabsContent value="outline" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col">
-          <DocumentOutline 
+          <DocumentOutline
             markdown={markdown}
             onHeadingClick={handleHeadingClick}
-            activeId={activeId}
+            activeId={activeHeadingId}
           />
         </TabsContent>
       </Tabs>

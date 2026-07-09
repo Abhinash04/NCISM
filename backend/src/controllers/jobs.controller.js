@@ -12,16 +12,9 @@ class JobsController {
       return next(ApiError.notFound('JOB_NOT_FOUND', 'Job not found or expired'));
     }
 
-    const job = jobService.toJobDto(manifest);
-
-    // `job` is the canonical shape; jobId/metadata/artifacts are legacy
-    // fields kept until the frontend migrates (dropped in WS5).
     return res.json({
       success: true,
-      job,
-      jobId: jobId,
-      metadata: manifest,
-      artifacts: job.artifacts
+      job: jobService.toJobDto(manifest)
     });
   }
 

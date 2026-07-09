@@ -33,10 +33,10 @@ export function DynamicTabs({ job }) {
 
       <div className="flex-1 overflow-hidden relative">
         <TabsContent value="json" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
-          <JsonViewer url={artifacts.json} />
+          <JsonViewer job={job} />
         </TabsContent>
         <TabsContent value="markdown" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex">
-          <MarkdownViewer url={artifacts.markdown} />
+          <MarkdownViewer job={job} />
         </TabsContent>
 
         <TabsContent value="raw" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">

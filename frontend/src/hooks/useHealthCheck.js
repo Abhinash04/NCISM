@@ -1,56 +1,20 @@
-import { useState, useEffect } from 'react';
-import { openDataLoaderService } from '@/services/opendataloader.service';
+import { useQuery } from '@tanstack/react-query';
+import { checkHealth } from '@/lib/api/endpoints';
 
+/**
+ * Shared 30s health poll. All consumers subscribe to the same react-query
+ * entry, so mounting this hook in several components runs ONE interval.
+ */
 export function useHealthCheck() {
-  const [status, setStatus] = useState('checking'); // checking, online, offline, timeout, network_error
-  const [message, setMessage] = useState('');
+  const { data, isPending } = useQuery({
+    queryKey: ['health'],
+    queryFn: checkHealth,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
 
-  const checkHealth = async () => {
-    try {
-      const res = await openDataLoaderService.checkHealth();
-      if (res.status === 'online') {
-        setStatus('online');
-      } else {
-        setStatus(res.status || 'offline');
-      }
-      setMessage(res.message || 'Unknown status');
-    } catch (err) {
-      console.error('Unexpected health check error:', err);
-      setStatus('offline');
-      setMessage('Backend Offline');
-    }
-  };
+  const status = isPending ? 'checking' : (data?.status ?? 'offline');
+  const message = isPending ? 'Checking Server...' : (data?.message ?? 'Unknown status');
 
-  useEffect(() => {
-    // Run the health check asynchronously so it doesn't synchronously update state during render
-    let isMounted = true;
-    
-    const runCheck = async () => {
-      try {
-        const res = await openDataLoaderService.checkHealth();
-        if (!isMounted) return;
-        if (res.status === 'online') {
-          setStatus('online');
-        } else {
-          setStatus(res.status || 'offline');
-        }
-        setMessage(res.message || 'Unknown status');
-      } catch (err) {
-        console.error('Unexpected health check error:', err);
-        if (!isMounted) return;
-        setStatus('offline');
-        setMessage('Backend Offline');
-      }
-    };
-    
-    runCheck();
-    const interval = setInterval(runCheck, 30000);
-    
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  return { status, message, checkHealth };
+  return { status, message };
 }

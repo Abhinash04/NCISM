@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
+import { downloadBlob } from "@/lib/download";
 
 export function StructuredToolbar({ 
   markdown, 
@@ -29,15 +30,7 @@ export function StructuredToolbar({
 
   const handleDownload = () => {
     if (!markdown) return;
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'document.md';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(markdown, 'document.md', 'text/markdown');
   };
 
   const handleToggleTheme = () => {

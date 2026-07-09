@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const jobService = require('../../services/job.service');
-const openDataLoaderService = require('../../services/opendataloader.service');
-const fileService = require('../../services/file.service');
+const jobService = require('../services/job.service');
+const extractionService = require('../services/extraction.service');
 const ApiError = require('../utils/api-error');
 const createLogger = require('../utils/logger');
 
@@ -27,13 +26,11 @@ class ExtractController {
     try {
       logger.info(`Started job ${jobId} for ${originalFilename}`);
 
-      const extractionResult = await openDataLoaderService.execute(inputPdfPath, outputDir);
+      const extractionResult = await extractionService.extract(inputPdfPath, outputDir, req.file.mimetype);
       const status = extractionResult?.status || 'success';
       const warnings = extractionResult?.warnings || [];
       const failedPages = extractionResult?.failedPages || [];
-
-      // Collect generated artifacts to know what was generated
-      const artifacts = fileService.collectArtifacts(outputDir);
+      const artifacts = extractionResult?.artifacts || {};
 
       const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 

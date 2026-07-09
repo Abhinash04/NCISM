@@ -1,6 +1,6 @@
-const path = require('path');
 const fs = require('fs');
 const assessmentService = require('../../services/assessment.service');
+const jobService = require('../services/job.service');
 const ApiError = require('../utils/api-error');
 const createLogger = require('../utils/logger');
 
@@ -20,10 +20,9 @@ class AssessmentsController {
         return next(ApiError.badRequest('VALIDATION_ERROR', 'jobId is required'));
       }
 
-      const jobsDir = path.join(__dirname, '..', '..', 'temp');
-      const mdPath = path.join(jobsDir, jobId, 'output', 'input.md');
+      const mdPath = jobService.getArtifactPath(jobId, 'markdown');
 
-      if (!fs.existsSync(mdPath)) {
+      if (!mdPath || !fs.existsSync(mdPath)) {
         return next(ApiError.notFound('ARTIFACT_NOT_FOUND', 'Extracted markdown not found for this job'));
       }
 

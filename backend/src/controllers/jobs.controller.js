@@ -1,5 +1,5 @@
 const fs = require('fs');
-const jobService = require('../../services/job.service');
+const jobService = require('../services/job.service');
 const ApiError = require('../utils/api-error');
 
 class JobsController {

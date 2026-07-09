@@ -2,8 +2,8 @@ import { FileText, Clock, Cpu, FileJson, CheckCircle2, AlertTriangle, List } fro
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentOutline } from './DocumentOutline';
-import { useArtifact } from '@/hooks/useArtifact';
-import { useWorkspace } from './WorkspaceContext';
+import { useArtifact } from '@/features/workspace/hooks/useArtifact';
+import { useWorkspace } from '../context/WorkspaceContext';
 import { formatBytes } from '@/lib/format';
 
 export function Inspector({ job }) {

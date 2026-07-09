@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JsonViewer } from "./JsonViewer";
 import { MarkdownViewer } from "./MarkdownViewer";
 import { RawViewer } from "./RawViewer";
-import { AssessmentTab } from "./AssessmentTab";
+import { AssessmentTab } from "@/features/assessment/components/AssessmentTab";
 import { FileText } from "lucide-react";
 
 export function DynamicTabs({ job }) {

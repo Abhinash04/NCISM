@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocuments } from '@/features/documents/hooks/useDocuments';
 import { deleteDocument } from '@/lib/db/documents.repository';
 import { formatDistanceToNow, format } from 'date-fns';
 import { FileText, Search, MoreVertical, Trash2, ExternalLink } from 'lucide-react';

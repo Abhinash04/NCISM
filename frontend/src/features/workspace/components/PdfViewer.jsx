@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useArtifact } from '@/hooks/useArtifact';
+import { useArtifact } from '@/features/workspace/hooks/useArtifact';
 import { downloadBlob } from '@/lib/download';
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';

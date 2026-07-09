@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Copy, FoldVertical, UnfoldVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useArtifact } from '@/hooks/useArtifact';
+import { useArtifact } from '@/features/workspace/hooks/useArtifact';
 
 export function JsonViewer({ job }) {
   const { resolvedTheme } = useTheme();

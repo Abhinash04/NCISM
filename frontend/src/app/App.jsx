@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { importLegacyLocalStorage } from '@/lib/db/documents.repository';
 
-import { LandingLayout } from '@/components/layout/LandingLayout';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { LandingLayout } from '@/app/layouts/LandingLayout';
+import { DashboardLayout } from '@/app/layouts/DashboardLayout';
 
 import { Landing } from '@/pages/Landing';
 import { Dashboard } from '@/pages/Dashboard';

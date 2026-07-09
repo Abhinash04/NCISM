@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { DragDropZone } from '@/components/upload/DragDropZone';
-import { SystemHealthWidget } from '@/components/dashboard/SystemHealthWidget';
+import { DragDropZone } from '@/features/documents/components/DragDropZone';
+import { SystemHealthWidget } from '@/features/documents/components/SystemHealthWidget';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Clock, FileCheck } from 'lucide-react';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocuments } from '@/features/documents/hooks/useDocuments';
 import { formatDistanceToNow } from 'date-fns';
 
 export function Dashboard() {

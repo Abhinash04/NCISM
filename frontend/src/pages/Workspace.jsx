@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { SplitScreenViewer } from '@/components/viewer/SplitScreenViewer';
-import { WorkspaceProvider } from '@/components/viewer/WorkspaceContext';
+import { SplitScreenViewer } from '@/features/workspace/components/SplitScreenViewer';
+import { WorkspaceProvider } from '@/features/workspace/context/WorkspaceContext';
 import { saveDocument, saveFailedUpload, persistJobArtifacts } from '@/lib/db/documents.repository';
 import { extractDocument } from '@/lib/api/endpoints';
-import { useJob } from '@/hooks/useJob';
+import { useJob } from '@/features/workspace/hooks/useJob';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { StatusBadge } from '@/components/common/StatusBadge';

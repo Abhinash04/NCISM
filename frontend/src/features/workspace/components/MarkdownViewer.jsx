@@ -6,9 +6,9 @@ import rehypeSlug from 'rehype-slug';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { StructuredToolbar } from './StructuredToolbar';
 import { Loader2 } from 'lucide-react';
-import { useArtifact } from '@/hooks/useArtifact';
+import { useArtifact } from '@/features/workspace/hooks/useArtifact';
 import { useMarkdownComponents } from '@/components/markdown/MarkdownRenderer';
-import { useWorkspace } from './WorkspaceContext';
+import { useWorkspace } from '../context/WorkspaceContext';
 
 export function MarkdownViewer({ job }) {
   const { data: markdown, isPending } = useArtifact(job, 'markdown');

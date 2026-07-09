@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const jobService = require('../services/job.service');
 const ApiError = require('../utils/api-error');
 
@@ -11,16 +12,16 @@ class JobsController {
       return next(ApiError.notFound('JOB_NOT_FOUND', 'Job not found or expired'));
     }
 
+    const job = jobService.toJobDto(manifest);
+
+    // `job` is the canonical shape; jobId/metadata/artifacts are legacy
+    // fields kept until the frontend migrates (dropped in WS5).
     return res.json({
       success: true,
+      job,
       jobId: jobId,
       metadata: manifest,
-      artifacts: {
-        pdf: `/api/v1/jobs/${jobId}/artifacts/pdf`,
-        markdown: manifest.artifacts.markdown ? `/api/v1/jobs/${jobId}/artifacts/markdown` : null,
-        json: manifest.artifacts.json ? `/api/v1/jobs/${jobId}/artifacts/json` : null,
-        html: manifest.artifacts.html ? `/api/v1/jobs/${jobId}/artifacts/html` : null
-      }
+      artifacts: job.artifacts
     });
   }
 
@@ -36,13 +37,17 @@ class JobsController {
       pdf: 'application/pdf',
       markdown: 'text/markdown',
       json: 'application/json',
-      html: 'text/html'
+      html: 'text/html',
+      report: 'text/markdown',
+      assessment: 'application/json'
     };
 
     res.setHeader('Content-Type', contentTypes[type] || 'text/plain');
 
-    // For PDF, we want inline rendering
-    if (type === 'pdf') {
+    if (req.query.download === '1') {
+      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(artifactPath)}"`);
+    } else if (type === 'pdf') {
+      // For PDF, we want inline rendering
       res.setHeader('Content-Disposition', 'inline; filename="document.pdf"');
     }
 

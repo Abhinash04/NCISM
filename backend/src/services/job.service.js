@@ -7,7 +7,9 @@ class JobService {
 
   createManifest(jobId, originalFilename, filesize, processingTime, artifacts, status = 'completed', warnings = [], failedPages = []) {
     let pages = 0;
-    if (artifacts.json && artifacts.json.pages) {
+    if (artifacts.json && typeof artifacts.json['number of pages'] === 'number') {
+      pages = artifacts.json['number of pages'];
+    } else if (artifacts.json && Array.isArray(artifacts.json.pages)) {
       pages = artifacts.json.pages.length;
     }
 
@@ -41,6 +43,41 @@ class JobService {
 
   getArtifactPath(jobId, type) {
     return jobRepository.getArtifactPath(jobId, type);
+  }
+
+  saveArtifact(jobId, type, filename, content) {
+    return jobRepository.saveArtifact(jobId, type, filename, content);
+  }
+
+  /**
+   * The ONE place artifact URLs and the canonical job shape are built.
+   * Disk paths from the manifest never leave the server.
+   */
+  toJobDto(manifest) {
+    const { jobId } = manifest;
+    const statusMap = { success: 'completed', partial_success: 'partial' };
+    const artifactUrl = (type) =>
+      manifest.artifacts[type] ? `/api/v1/jobs/${jobId}/artifacts/${type}` : null;
+
+    return {
+      jobId,
+      status: statusMap[manifest.status] || manifest.status,
+      filename: manifest.filename,
+      filesize: manifest.filesize,
+      pageCount: manifest.pageCount,
+      processingTimeMs: Math.round((manifest.processingTime || 0) * 1000),
+      warnings: manifest.warnings || [],
+      failedPages: manifest.failedPages || [],
+      createdAt: manifest.createdAt,
+      artifacts: {
+        pdf: artifactUrl('pdf'),
+        markdown: artifactUrl('markdown'),
+        json: artifactUrl('json'),
+        html: artifactUrl('html'),
+        report: artifactUrl('report'),
+        assessment: artifactUrl('assessment'),
+      },
+    };
   }
 }
 

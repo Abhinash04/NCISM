@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/health', healthController.check);
 router.use('/', extractRoutes);
 router.use('/jobs', jobsRoutes);
-router.use('/assessment', assessmentsRoutes);
+router.use('/assessments', assessmentsRoutes);
+router.use('/assessment', assessmentsRoutes); // legacy alias
 
 module.exports = router;

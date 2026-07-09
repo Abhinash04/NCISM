@@ -45,17 +45,17 @@ class ExtractController {
         failedPages
       );
 
+      const job = jobService.toJobDto(manifest);
+
+      // `job` is the canonical shape; jobId/status/metadata/artifacts are
+      // legacy fields kept until the frontend migrates (dropped in WS5).
       return res.json({
         success: true,
+        job,
         jobId: jobId,
         status: status,
         metadata: manifest,
-        artifacts: {
-          pdf: `/api/v1/jobs/${jobId}/artifacts/pdf`,
-          markdown: manifest.artifacts.markdown ? `/api/v1/jobs/${jobId}/artifacts/markdown` : null,
-          json: manifest.artifacts.json ? `/api/v1/jobs/${jobId}/artifacts/json` : null,
-          html: manifest.artifacts.html ? `/api/v1/jobs/${jobId}/artifacts/html` : null
-        }
+        artifacts: job.artifacts
       });
     } catch (error) {
       logger.error(`Error processing job ${jobId}:`, error);

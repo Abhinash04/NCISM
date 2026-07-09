@@ -20,10 +20,10 @@ export function DashboardLayout() {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-muted/20 hidden md:flex flex-col">
         <div className="h-16 flex items-center px-6 border-b shrink-0">
-          <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
+          <div className="flex items-center gap-2 text-lg tracking-tight">
             <FileText className="w-5 h-5 text-primary" />
-            <span className="text-primary">ODL</span>
-            <span className="text-muted-foreground">PDF</span>
+            <span className="text-primary font-display font-semibold">NCISM</span>
+            <span className="text-muted-foreground text-sm font-medium">Platform</span>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto py-6 px-4">

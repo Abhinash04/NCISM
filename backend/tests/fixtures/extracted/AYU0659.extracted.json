@@ -1,0 +1,611 @@
+{
+  "_note": "Document-true values extracted from the Part-I visitation PDFs (element JSON + reconstructed markdown). Diverges from parameters/*.params.json where MARB visitors amended data in the reference assessment: AYU0659 librarySittingCapacity 120 (params: 56), libraryBooks 10410 (params: 11964), aebasNonTeaching/aebasHospital false (params: true), Kayachikitsa existingProfessor 0 (params: 0+1vo), teachingStaff.total 40 (params: 42). Do NOT sync the two fixture families.",
+  "values": {
+    "institutionName": "Sardar Patel Ayurvedic Medical College & Hospital, Sardar Patel Knowledge City Waraseoni Road, Dongariya, Post Chillod, Tehsil Lalbaurra, Distt. Balaghat, Madhya Balaghat, Madhya Pradesh",
+    "institutionId": "AYU0659",
+    "visitationStartDate": "2025-04-15",
+    "visitationEndDate": "2025-04-16",
+    "academicYear": "2025-26",
+    "intake": 100,
+    "visitors": [
+      {
+        "name": "Dr. AYU0248",
+        "id": "V01408"
+      },
+      {
+        "name": "Dr. AYU0056",
+        "id": "V02688"
+      },
+      {
+        "name": "Dr. AYU0066",
+        "id": "V02693"
+      }
+    ],
+    "constructedAreaCollegeSqm": 4585.59,
+    "constructedAreaHospitalSqm": 3752,
+    "constructedAreaHerbalSqm": 4110,
+    "lectureHallsAreaSqm": 602.52,
+    "lectureHallsCount": 4,
+    "libraryBooks": 10410,
+    "librarySittingCapacity": 120,
+    "libraryComputers": 12,
+    "librarySeatingAdequate": true,
+    "herbalSpecies": 251,
+    "teachingStaff": {
+      "rows": [
+        {
+          "dept": "Ayurved Samhita & Siddhant",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "1",
+          "existingReader": "2",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Rachana Sharir",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "2",
+          "existingReader": "0",
+          "existingLecturer": "3"
+        },
+        {
+          "dept": "Kriya Sharir",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "2",
+          "existingReader": "0",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Dravyaguna Vigyana",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "2",
+          "existingReader": "0",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Rasa Shastra & Bhaisajya Kalpana",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Rog Nidan avum Vikriti Vigyan",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "2",
+          "existingReader": "0",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Swasthavritta & Yoga",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Agad Tantra avum Vidhi Vaidyaka",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "0",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Prasuti & Stri Roga",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "0",
+          "existingReader": "0",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Kaumarbhritya -Bala Roga",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "0",
+          "existingReader": "0",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Kayachikitsa",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "0",
+          "existingReader": "0",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Shalyatantra + (Ksharsutra Lab.)",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "0",
+          "existingLecturer": "3"
+        },
+        {
+          "dept": "Shalakya Tantra",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "0",
+          "existingReader": "0",
+          "existingLecturer": "0"
+        },
+        {
+          "dept": "Panchakarma",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "2",
+          "existingReader": "0",
+          "existingLecturer": "2"
+        }
+      ],
+      "total": 40,
+      "absent": 6
+    },
+    "nonTeachingStaff": {
+      "rows": [
+        {
+          "dept": "Library",
+          "post": "Librarian",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Library",
+          "post": "Assistant Librarian",
+          "required": 1,
+          "existing": 2
+        },
+        {
+          "dept": "Library",
+          "post": "Library Attendant or Peon",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "College Office",
+          "post": "Clerical staff for administrative and accounts services",
+          "required": 4,
+          "existing": 5
+        },
+        {
+          "dept": "Samhita and Siddhanta",
+          "post": "Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Laboratory Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Museum Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Lifter",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Laboratory Assisstant",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Attendant or Peon or Multipurpose Worker",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Kriya Sharir",
+          "post": "Laboratory Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Kriya Sharir",
+          "post": "Museum Keeper",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Kriya Sharir",
+          "post": "Laboratory Assisstant",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Kriya Sharir",
+          "post": "Attendant or Peon or Multipurpose Worker",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Dravyaguna",
+          "post": "Laboratory Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Dravyaguna",
+          "post": "Museum Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Dravyaguna",
+          "post": "Laboratory Assisstant",
+          "required": 0,
+          "existing": 2
+        },
+        {
+          "dept": "Dravyaguna",
+          "post": "Attendant or Peon or Multipurpose Worker",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Rasa ShastraEvam Bhaishajya Kalpana",
+          "post": "Laboratory Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rasa ShastraEvam Bhaishajya Kalpana",
+          "post": "Laboratory Assistant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rasa ShastraEvam Bhaishajya Kalpana",
+          "post": "Attendant or Peon or Multipurpose Worker",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Laboratory Technician",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Laboratory Assisstant",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Attendant or Peon or Multipurpose Worker",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Swasthavritta and Yoga",
+          "post": "Museum Keeper Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Prasuti Tantra and Stri Roga",
+          "post": "Attendant",
+          "required": 2,
+          "existing": 5
+        },
+        {
+          "dept": "Shalya (for PG only)",
+          "post": "Attendant or Peon or Multipurpose Worker",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "dept": "Shalya (for PG only)",
+          "post": "Laboratory Technician",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "dept": "Shalya (for PG only)",
+          "post": "Laboratory Assisstant",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "dept": "Herbal Garden",
+          "post": "Gardener",
+          "required": 1,
+          "existing": 2
+        },
+        {
+          "dept": "Herbal Garden",
+          "post": "Multipurpose worker",
+          "required": 2,
+          "existing": 1
+        },
+        {
+          "dept": "Others",
+          "post": "Others",
+          "required": 0,
+          "existing": 4
+        }
+      ],
+      "total": 45,
+      "absent": 3
+    },
+    "opdCount": 9,
+    "opdTotalPatients": 62434,
+    "opdAverageDaily": 208.11,
+    "ipdTotalPatients": 4737,
+    "bedOccupancyPercent": 57.56,
+    "deliveries": 3,
+    "operations": 4877,
+    "equipmentMeanPercent": 97.59,
+    "hospitalStaff": {
+      "rows": [
+        {
+          "post": "Hospital Superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Deputy Medical Superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Emergency Medical Officers",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Matron or Nursing Superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Assistant Matron",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Staff Nurses for In Patient Department",
+          "required": 10,
+          "existing": 10
+        },
+        {
+          "post": "Ward Boy or Ayah",
+          "required": 5,
+          "existing": 6
+        },
+        {
+          "post": "Pharmacists",
+          "required": 4,
+          "existing": 6
+        },
+        {
+          "post": "Dresser",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Store Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Dark-Room Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Operation Theater Attendant",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Medical Specialist",
+          "required": 1,
+          "existing": 2
+        },
+        {
+          "post": "Surgical Specialist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Obstetrician and Gynecologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Pathologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Anaesthesiologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Opthalmologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Pediatrician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Radiologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Dentist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "X-Ray Technician or Radiographer",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Physiotherepist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Panchkarma Nurse",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Panchkarma Assistant",
+          "required": 4,
+          "existing": 4
+        },
+        {
+          "post": "Operation Theatre Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Nurses",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Midwife",
+          "required": 1,
+          "existing": 2
+        },
+        {
+          "post": "Laboratory Technicians",
+          "required": 2,
+          "existing": 4
+        },
+        {
+          "post": "Peon or Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Microbiologist",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Peon or Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Workers",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Analytical Chemist (Part time)",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Pharmacognosist (Part time)",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Biochemist",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Pharmacologist",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Bone Setter",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Cook/Food Service",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Washerman",
+          "required": 0,
+          "existing": 2
+        },
+        {
+          "post": "Driver",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Electrician",
+          "required": 0,
+          "existing": 2
+        },
+        {
+          "post": "Security Guard",
+          "required": 0,
+          "existing": 3
+        },
+        {
+          "post": "Masseur",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "post": "Others",
+          "required": 0,
+          "existing": 4
+        },
+        {
+          "post": "Resident Medical Officers or Surgical or Medical Officer or Clinical Registrar(RMO or RSO or MO or CR)",
+          "required": 9,
+          "existing": 7
+        },
+        {
+          "post": "Registrar/Senior Resident Doctor (Applicable for PG Clinical Departments only)",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "post": "Office Staff (for registration, record maintenance, data entry etc.)",
+          "required": 2,
+          "existing": 4
+        },
+        {
+          "post": "House Officer or Clinical Registrar or Senior Resident (Ayurvedic)",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Yoga teacher or expert (from Swasthavritta and Yoga Department)",
+          "required": 1,
+          "existing": 1
+        }
+      ],
+      "total": 107,
+      "absent": 22
+    },
+    "aebasTeaching": true,
+    "aebasNonTeaching": false,
+    "aebasHospital": false,
+    "aebasImplemented": false
+  },
+  "missing": [
+    "yogaTeacherAvailable",
+    "bioStatisticianAvailable",
+    "centralRegistrationAvailable",
+    "websiteFunctional"
+  ]
+}

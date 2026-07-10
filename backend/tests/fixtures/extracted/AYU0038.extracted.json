@@ -1,0 +1,759 @@
+{
+  "_note": "Document-true values extracted from the Part-I visitation PDFs (element JSON + reconstructed markdown). Diverges from parameters/*.params.json where MARB visitors amended data in the reference assessment: AYU0659 librarySittingCapacity 120 (params: 56), libraryBooks 10410 (params: 11964), aebasNonTeaching/aebasHospital false (params: true), Kayachikitsa existingProfessor 0 (params: 0+1vo), teachingStaff.total 40 (params: 42). Do NOT sync the two fixture families.",
+  "values": {
+    "institutionName": "Gaur Brahmin Ayurvedic College & Hospital",
+    "institutionId": "AYU0038",
+    "visitationStartDate": "2026-05-06",
+    "visitationEndDate": "2026-05-07",
+    "academicYear": "2026-27",
+    "intake": 100,
+    "visitors": [
+      {
+        "name": "Dr. AYU0226",
+        "id": "V00508"
+      },
+      {
+        "name": "Dr. AYU0036",
+        "id": "V02804"
+      },
+      {
+        "name": "Dr. AYU0151",
+        "id": "V02821"
+      }
+    ],
+    "constructedAreaCollegeSqm": 4786,
+    "constructedAreaHospitalSqm": 3752,
+    "constructedAreaHerbalSqm": 18207,
+    "lectureHallsAreaSqm": 805,
+    "lectureHallsCount": 5,
+    "libraryBooks": 13961,
+    "librarySittingCapacity": 120,
+    "libraryComputers": 12,
+    "librarySeatingAdequate": true,
+    "herbalSpecies": 290,
+    "teachingStaff": {
+      "rows": [
+        {
+          "dept": "Ayurved Samhita & Siddhant",
+          "requirementText": "1P And 1R +3L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Rachana Sharir",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Kriya Sharir",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Dravyaguna Vigyana",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Rasa Shastra & Bhaisajya Kalpana",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "2",
+          "existingLecturer": "0"
+        },
+        {
+          "dept": "Rog Nidan avum Vikriti Vigyan",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Swasthavritta & Yoga",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "2",
+          "existingReader": "0",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Agad Tantra avum Vidhi Vaidyaka",
+          "requirementText": "1P And 1R +1L",
+          "existingProfessor": "1",
+          "existingReader": "2",
+          "existingLecturer": "0"
+        },
+        {
+          "dept": "Prasuti & Stri Roga",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "0",
+          "existingReader": "1",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Kaumarbhritya -Bala Roga",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "0",
+          "existingReader": "2",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Kayachikitsa",
+          "requirementText": "1P And 2R +2L",
+          "existingProfessor": "1",
+          "existingReader": "2",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Shalyatantra + (Ksharsutra Lab.)",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "2"
+        },
+        {
+          "dept": "Shalakya Tantra",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "1"
+        },
+        {
+          "dept": "Panchakarma",
+          "requirementText": "1P And 1R +2L",
+          "existingProfessor": "1",
+          "existingReader": "1",
+          "existingLecturer": "2"
+        }
+      ],
+      "total": 47,
+      "absent": 0
+    },
+    "nonTeachingStaff": {
+      "rows": [
+        {
+          "dept": "Library(Central library)",
+          "post": "Librarian",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Library(Central library)",
+          "post": "Assistant Librarian",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "dept": "Library(Central library)",
+          "post": "Library Attendant",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "dept": "Administrative section",
+          "post": "Clerical staff",
+          "required": 4,
+          "existing": 4
+        },
+        {
+          "dept": "Administrative section",
+          "post": "Personal Assistant or Personal Secretary to Principal",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Administrative section",
+          "post": "Office Superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Administrative section",
+          "post": "Accountants",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Administrative section",
+          "post": "Multi tasking staff",
+          "required": 4,
+          "existing": 4
+        },
+        {
+          "dept": "Administrative section",
+          "post": "Clerk for account section",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "dept": "Samhita and Siddhanta",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Attendant cum museum keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rachna Sharir",
+          "post": "Cadaver lifter",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Kriya Sharir",
+          "post": "Lab Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Kriya Sharir",
+          "post": "Lab Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Dravyaguna (Including Herbal Garden)",
+          "post": "Lab Attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Dravyaguna (Including Herbal Garden)",
+          "post": "Gardener",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Dravyaguna (Including Herbal Garden)",
+          "post": "Pharmacognosist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rasashastra and Bhaishajya kalpana Including teaching pharmacy",
+          "post": "Instructor / Analytical Chemist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Rasashastra and Bhaishajya kalpana Including teaching pharmacy",
+          "post": "Lab Attendant cum Museum Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Lab Technician",
+          "required": 1,
+          "existing": 2
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Clerk",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Lab Attendant cum Museum Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Roga Nidan evam Vikriti Vigyan",
+          "post": "Multi tasking staff",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "dept": "Swasthavritta and Yoga",
+          "post": "Lab Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Swasthavritta and Yoga",
+          "post": "Lab Attendant cum Museum Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Swasthavritta and Yoga",
+          "post": "Yoga Instructor",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "dept": "Agad Tantra evam Vidhi Vaidyaka",
+          "post": "Lab Technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Agad Tantra evam Vidhi Vaidyaka",
+          "post": "Lab Attendant cum Museum Keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Prasuti Tantra and Stri Roga",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Kayachikitsa",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Kaumarbhritya (Balroga)",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Shalya",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Shalakya",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Panchkarma",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Information Technology Cell",
+          "post": "Information Technology Officer",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Information Technology Cell",
+          "post": "Information Technology Assistant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Information Technology Cell",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Yogya–ClinicalSkillorSimulation laboratory",
+          "post": "In-charge",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Yogya–ClinicalSkillorSimulation laboratory",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Human Resource development cell",
+          "post": "In-charge",
+          "required": 0,
+          "existing": 1
+        },
+        {
+          "dept": "Human Resource development cell",
+          "post": "Clerk",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Human Resource development cell",
+          "post": "Multi tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Co and extra-Curricular activities",
+          "post": "Physical Education Instructor",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Co and extra-Curricular activities",
+          "post": "Multi-tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Student support career guidance and placement cell",
+          "post": "Councillor for counselling",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Quality Control Laboratory",
+          "post": "Analytical Chemist",
+          "required": 1,
+          "existing": 0
+        },
+        {
+          "dept": "Quality Control Laboratory",
+          "post": "Clerk",
+          "required": 1,
+          "existing": 0
+        },
+        {
+          "dept": "Quality Control Laboratory",
+          "post": "Lab Attendant",
+          "required": 1,
+          "existing": 0
+        },
+        {
+          "dept": "Internal Quality Assurance Cell",
+          "post": "Coordinator",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Internal Quality Assurance Cell",
+          "post": "Clerk",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Internal Quality Assurance Cell",
+          "post": "Multi-tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Central Workshop or Maintenance cell",
+          "post": "Site Engineer",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Central Workshop or Maintenance cell",
+          "post": "Electrician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Central Workshop or Maintenance cell",
+          "post": "Plumber",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Central Workshop or Maintenance cell",
+          "post": "Carpenter",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Central Workshop or Maintenance cell",
+          "post": "Multi-tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Store(College)",
+          "post": "Clerk",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Store(College)",
+          "post": "Multi-tasking staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "dept": "Teaching departments",
+          "post": "Clerk",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "dept": "Others",
+          "post": "Others",
+          "required": 1,
+          "existing": 8
+        }
+      ],
+      "total": 75,
+      "absent": 8
+    },
+    "opdCount": 9,
+    "opdTotalPatients": 68465,
+    "opdAverageDaily": 228.22,
+    "ipdTotalPatients": 1334,
+    "bedOccupancyPercent": 63.27,
+    "deliveries": 2,
+    "operations": 2174,
+    "hospitalStaff": {
+      "rows": [
+        {
+          "post": "Medical superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Deputy medical superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Consultants",
+          "required": 8,
+          "existing": 26
+        },
+        {
+          "post": "Resident medical officer including emergency medical officer",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "Matron or nursing superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Assistant matron (for day and night shifts)",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Office superintendent",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Clerks and accountants",
+          "required": 2,
+          "existing": 3
+        },
+        {
+          "post": "Store keeper",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Multi tasking Staff",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "Anesthesiologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Pathologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Radiologist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Reception and Registration)Registration and billing clerks",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "(Reception and Registration)Medical record technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Multi tasking Staff",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "(Dispensary)Pharmacist",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Lab technician",
+          "required": 2,
+          "existing": 3
+        },
+        {
+          "post": "Lab attendant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "X-ray technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Dark room assistant",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "ECG (electro-cardio-gram) technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "Microbiologist",
+          "required": 1,
+          "existing": 0
+        },
+        {
+          "post": "Nursing staff",
+          "required": 13,
+          "existing": 11
+        },
+        {
+          "post": "(Medical In-Patients Section)MTS",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "(Medical In-Patients Section)Resident medical officer",
+          "required": 2,
+          "existing": 3
+        },
+        {
+          "post": "(Surgical In-Patients Section)MTS",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "(Surgical In-Patients Section)Resident surgical officer",
+          "required": 2,
+          "existing": 3
+        },
+        {
+          "post": "(Panchakarma)Nursing staff",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Panchakarma)Therapists (male and female)",
+          "required": 10,
+          "existing": 10
+        },
+        {
+          "post": "(Operation Theatre)Nursing staff",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "(Operation Theatre)Operation theatre attendants",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "(Operation Theatre)Anushastra karma technician",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Physiotherapy)Physiotherapist",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Physiotherapy)Attendant or MTS",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Yoga)Yoga demonstrator",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Pathya – Diet Section)Pathya cooks",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "(Pathya – Diet Section)Multi-tasking staff",
+          "required": 2,
+          "existing": 2
+        },
+        {
+          "post": "Physician/ Surgeon/ Ophthalmologist/ Obstetrician/ Pediatrician/ Dentist",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "post": "(Reception and Registration)Receptionist cum telephone operator",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Reception and Registration)Public relation officer for college and hospital",
+          "required": 0,
+          "existing": 0
+        },
+        {
+          "post": "Nursing staff (one each for atyayika, Shalya and Prasuti and Streeroga)",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "(Panchakarma)House officer or clinical registrar or senior resident",
+          "required": 1,
+          "existing": 1
+        },
+        {
+          "post": "(Labour Room including Prasuti and Strirog procedural room)Nursing staff",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "(Labour Room including Prasuti and Strirog procedural room)MTS - preferably Female (one per shift)",
+          "required": 3,
+          "existing": 3
+        },
+        {
+          "post": "(Pathya – Diet Section)In-charge(assign additional charge to a Dietician or any teaching faculty member from Swasthavirtadepartment)",
+          "required": 1,
+          "existing": 1
+        }
+      ],
+      "total": 122,
+      "absent": 20
+    },
+    "aebasTeaching": true,
+    "aebasNonTeaching": true,
+    "aebasHospital": true,
+    "aebasImplemented": true
+  },
+  "missing": [
+    "yogaTeacherAvailable",
+    "bioStatisticianAvailable",
+    "equipmentMeanPercent",
+    "centralRegistrationAvailable",
+    "websiteFunctional"
+  ]
+}

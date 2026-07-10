@@ -6,76 +6,97 @@ const path = require('path');
 const { extractParameters } = require('../src/engines/assessment/extractors');
 
 const fixturesDir = path.join(__dirname, 'fixtures');
+const COLLEGES = ['AYU0659', 'AYU0265', 'AYU0038'];
+
+function runExtraction(id) {
+  const markdown = fs.readFileSync(path.join(fixturesDir, 'markdown', `${id}.baseline.md`), 'utf8');
+  const elements = require(path.join(fixturesDir, 'markdown', `${id}.elements.json`));
+  return extractParameters(markdown, elements);
+}
 
 /**
- * Extraction accuracy is measured against the golden parameters. Fields the
- * extractors cannot find yet are marked `todo` so accuracy improves
- * incrementally without red builds — flipping a todo to a hard assert is the
- * definition of done for each extractor improvement.
+ * Extraction correctness = matches the SOURCE DOCUMENT, captured in
+ * fixtures/extracted/*.extracted.json (document-true). Those deliberately
+ * diverge from fixtures/parameters/*.params.json in a handful of fields the
+ * MARB visitors amended in the reference assessment — see the fixtures'
+ * _note. Never "fix" one family to match the other.
  */
-test('extractors on AYU0659 reconstructed markdown', async (t) => {
+for (const id of COLLEGES) {
+  test(`extraction matches the document-true fixture for ${id}`, () => {
+    const expected = require(path.join(fixturesDir, 'extracted', `${id}.extracted.json`));
+    const params = runExtraction(id);
+
+    for (const [name, value] of Object.entries(expected.values)) {
+      assert.strictEqual(params[name]?.status, 'found', `${name} should be found`);
+      assert.deepStrictEqual(params[name].value, value, `${name} value`);
+    }
+    for (const name of expected.missing) {
+      assert.strictEqual(params[name]?.status, 'missing', `${name} must stay missing (no fabrication)`);
+    }
+  });
+}
+
+test('hand-verified document values for AYU0659 (guards the fixture itself)', () => {
+  const params = runExtraction('AYU0659');
+  const v = (name) => params[name].value;
+
+  // Section 2.1: interleaved label,label,value,value block — y-band association
+  assert.strictEqual(v('constructedAreaCollegeSqm'), 4585.59);
+  assert.strictEqual(v('constructedAreaHospitalSqm'), 3752);
+  assert.strictEqual(v('constructedAreaHerbalSqm'), 4110);
+
+  // List-item and paragraph rows: actual is the value AFTER the requirement
+  assert.strictEqual(v('lectureHallsAreaSqm'), 602.52);
+  assert.strictEqual(v('lectureHallsCount'), 4); // requirement is 5 — must not grab it
+  assert.strictEqual(v('libraryBooks'), 10410);  // document-true; MARB reference says 11964
+  assert.strictEqual(v('librarySittingCapacity'), 120);
+  assert.strictEqual(v('herbalSpecies'), 251);
+
+  // Teaching table: existing counts from columns 8/9/10
+  const teaching = v('teachingStaff');
+  const dept = (re) => teaching.rows.find((r) => re.test(r.dept));
+  assert.deepStrictEqual(
+    [dept(/Agad/).existingProfessor, dept(/Agad/).existingReader, dept(/Agad/).existingLecturer],
+    ['0', '1', '1']
+  );
+  assert.strictEqual(dept(/Shalakya/).existingLecturer, '0'); // zero-faculty department
+  assert.strictEqual(dept(/Agad/).requirementText, '1P And 1R +1L');
+  assert.strictEqual(teaching.total, 40);
+  assert.strictEqual(teaching.absent, 6);
+
+  // Non-teaching + hospital staff
+  const mpw = v('nonTeachingStaff').rows.find((r) => /Herbal Garden/i.test(r.dept || '') && /Multipurpose/i.test(r.post));
+  assert.deepStrictEqual({ required: mpw.required, existing: mpw.existing }, { required: 2, existing: 1 });
+  assert.strictEqual(v('nonTeachingStaff').total, 45); // from the summary paragraph
+  const rmo = v('hospitalStaff').rows.find((r) => /RMO or RSO or MO or CR/i.test(r.post));
+  assert.deepStrictEqual({ required: rmo.required, existing: rmo.existing }, { required: 9, existing: 7 });
+  assert.strictEqual(v('hospitalStaff').total, 107);
+  assert.strictEqual(v('hospitalStaff').absent, 22);
+
+  // AEBAS: document says teaching Yes, non-teaching No, hospital No
+  assert.strictEqual(v('aebasTeaching'), true);
+  assert.strictEqual(v('aebasNonTeaching'), false);
+  assert.strictEqual(v('aebasHospital'), false);
+  assert.strictEqual(v('aebasImplemented'), false);
+});
+
+test('AYU0265 OR-form requirements and authoritative totals', () => {
+  const params = runExtraction('AYU0265');
+  const teaching = params.teachingStaff.value;
+  const agad = teaching.rows.find((r) => /Agad/.test(r.dept));
+  assert.strictEqual(agad.requirementText, '1 HF + 1 LF'); // "1P OR 1R" collapses to 1 HF
+  // Table Total row is a required-column subtotal (67 | 29) — the summary
+  // paragraph (70) must win.
+  assert.strictEqual(params.nonTeachingStaff.value.total, 70);
+});
+
+test('extraction without elements JSON degrades to missing, never fabricates', () => {
   const markdown = fs.readFileSync(path.join(fixturesDir, 'markdown', 'AYU0659.baseline.md'), 'utf8');
-  const golden = require(path.join(fixturesDir, 'parameters', 'AYU0659.params.json')).values;
-  const params = extractParameters(markdown);
-
-  await t.test('institution id', () => {
-    assert.strictEqual(params.institutionId.status, 'found');
-    assert.strictEqual(params.institutionId.value, golden.institutionId);
-  });
-
-  await t.test('institution name', () => {
-    assert.strictEqual(params.institutionName.status, 'found');
-    assert.ok(
-      params.institutionName.value.startsWith(golden.institutionName),
-      `extracted "${params.institutionName.value}" should start with "${golden.institutionName}"`
-    );
-  });
-
-  await t.test('intake capacity', () => {
-    assert.strictEqual(params.intake.status, 'found');
-    assert.strictEqual(params.intake.value, golden.intake);
-  });
-
-  await t.test('visitation dates and academic year', () => {
-    assert.strictEqual(params.visitationStartDate.value, golden.visitationStartDate);
-    assert.strictEqual(params.visitationEndDate.value, golden.visitationEndDate);
-    assert.strictEqual(params.academicYear.value, golden.academicYear);
-  });
-
-  await t.test('hospital functionality figures (verified against all three golden colleges)', () => {
-    assert.strictEqual(params.opdCount.value, golden.opdCount);
-    assert.strictEqual(params.opdTotalPatients.value, golden.opdTotalPatients);
-    assert.strictEqual(params.opdAverageDaily.value, golden.opdAverageDaily);
-    assert.strictEqual(params.ipdTotalPatients.value, golden.ipdTotalPatients);
-    assert.strictEqual(params.bedOccupancyPercent.value, golden.bedOccupancyPercent);
-    assert.strictEqual(params.deliveries.value, golden.deliveries);
-    assert.strictEqual(params.operations.value, golden.operations);
-    assert.strictEqual(params.equipmentMeanPercent.value, golden.equipmentMeanPercent);
-  });
-
-  await t.test('constructed area of college', () => {
-    assert.strictEqual(params.constructedAreaCollegeSqm.value, golden.constructedAreaCollegeSqm);
-  });
-
-  await t.test('staffing parameters are honestly missing (no fabrication)', () => {
-    assert.strictEqual(params.teachingStaff.status, 'missing');
-    assert.strictEqual(params.nonTeachingStaff.status, 'missing');
-    assert.strictEqual(params.hospitalStaff.status, 'missing');
-  });
-
-  await t.test('misparse-prone fields stay missing rather than grabbing requirement values', () => {
-    // These labels sit next to MESAR requirement columns in the proforma;
-    // naive extraction returned 5 lecture halls (golden: 4) and 3500 sq.mt
-    // hospital area (golden: 3752). They must stay missing until
-    // row-context-aware extraction lands.
-    assert.strictEqual(params.lectureHallsCount.status, 'missing');
-    assert.strictEqual(params.constructedAreaHospitalSqm.status, 'missing');
-    assert.strictEqual(params.herbalSpecies.status, 'missing');
-  });
-
-  // Not yet reliably extractable from the reconstructed markdown:
-  t.todo('visitors list matches golden values');
-  t.todo('infrastructure areas beyond college constructed area');
-  t.todo('library figures match golden values');
-  t.todo('teaching/non-teaching/hospital staff tables extracted from element JSON');
+  const params = extractParameters(markdown, null);
+  assert.strictEqual(params.teachingStaff.status, 'missing');
+  assert.strictEqual(params.constructedAreaHospitalSqm.status, 'missing');
+  assert.strictEqual(params.aebasImplemented.status, 'missing');
+  // markdown-only fields still work
+  assert.strictEqual(params.institutionId.value, 'AYU0659');
+  assert.strictEqual(params.opdTotalPatients.value, 62434);
 });

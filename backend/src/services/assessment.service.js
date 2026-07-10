@@ -16,9 +16,21 @@ class AssessmentService {
 
     const markdown = fs.readFileSync(mdPath, 'utf8');
 
+    // Element JSON gives the extractors structured tables and geometry;
+    // markdown-only extraction remains the fallback.
+    let elements = null;
+    const jsonPath = jobService.getArtifactPath(jobId, 'json');
+    if (jsonPath && fs.existsSync(jsonPath)) {
+      try {
+        elements = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+      } catch (error) {
+        console.warn('[AssessmentService] Failed to parse element JSON, proceeding markdown-only:', error.message);
+      }
+    }
+
     let output;
     try {
-      output = assessmentEngine.runAssessment({ markdown, rulesetId, rulesetVersion, jobId });
+      output = assessmentEngine.runAssessment({ markdown, elements, rulesetId, rulesetVersion, jobId });
     } catch (error) {
       throw ApiError.internal('ASSESSMENT_FAILED', error.message);
     }

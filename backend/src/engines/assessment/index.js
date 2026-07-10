@@ -72,10 +72,11 @@ function runFromParameters({ parameters, rulesetId = DEFAULT_RULESET, rulesetVer
 }
 
 /**
- * Live path: extract parameters from the reconstructed markdown, then assess.
+ * Live path: extract parameters from the reconstructed markdown and the
+ * element JSON (structured tables), then assess.
  */
-function runAssessment({ markdown, rulesetId, rulesetVersion, jobId, generatedDate }) {
-  const parameters = extractParameters(markdown);
+function runAssessment({ markdown, elements = null, rulesetId, rulesetVersion, jobId, generatedDate }) {
+  const parameters = extractParameters(markdown, elements);
   return runFromParameters({ parameters, rulesetId, rulesetVersion, jobId, generatedDate });
 }
 

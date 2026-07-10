@@ -1,13 +1,25 @@
-const { missing } = require('./utils');
+const { found, missing } = require('./utils');
+const { textElements, normText, findValueRowForLabel, parseNum } = require('./element-utils');
 
 /**
- * The "number of species" labels in the proforma sit next to MESAR
- * requirement columns and extracted wrong values (e.g. 10 for a garden with
- * 290 species). Stays missing until row-context-aware extraction lands.
+ * Herbal garden species (section 2.6): label "Total Numbers of species
+ * available" pairs with a value row "<required> <actual> - <actual> -" in the
+ * same y-band — the actual is the token after the required one.
  */
-function extract() {
+function extract(markdown, lines, elements) {
+  if (!elements) {
+    return { herbalSpecies: missing() };
+  }
+
+  const els = textElements(elements);
+  const hit = findValueRowForLabel(els, /Total Num(bers)? of species available/i);
+  if (!hit) return { herbalSpecies: missing() };
+
+  const actual = parseNum(hit.tokens[1]);
   return {
-    herbalSpecies: missing(),
+    herbalSpecies: actual !== null
+      ? found(actual, 'herbal-garden-json', `"${normText(hit.label).slice(0, 40)}" -> "${hit.tokens.slice(0, 3).join(' ')}"`)
+      : missing(),
   };
 }
 

@@ -105,8 +105,9 @@ function buildTeachingSection(findings, parameters) {
   section += `| **S. No.** | **Department** | **Minimum Requirement as per Regulations** | **No. Of Existing Teachers** | **Excess** | **Shortcomings of HF and LF** | **Punitive policy** |\n`;
   section += `| --- | --- | --- | --- | --- | --- | --- |\n`;
 
+  const bold = (s) => (s ? `**${s}**` : '');
   finding.rows.forEach((row, idx) => {
-    section += `| ${idx + 1} | ${row.dept} | ${row.requirementText} | ${row.existingDisplay} | ${row.excessText} | **${row.shortText}** | **${row.punitiveText}** |\n`;
+    section += `| ${idx + 1} | ${row.dept} | ${row.requirementText} | ${row.existingDisplay} | ${row.excessText} | ${bold(row.shortText)} | ${bold(row.punitiveText)} |\n`;
   });
 
   return section;

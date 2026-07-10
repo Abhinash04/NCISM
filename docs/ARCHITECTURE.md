@@ -63,12 +63,20 @@ shape are built — manifest-internal disk paths never leave the server.
 images register here later). The PDF pipeline stages:
 
 1. **opendataloader.stage** — spawns the CLI (`-f markdown,json,html --hybrid docling-fast
-   --hybrid-fallback --markdown-with-html`), parses stdout for partial-success/failed pages.
-2. **reconstruction.stage** — rebuilds the markdown from the element JSON: bounding-box
-   key/value detection, form blocks, HTML tables with col/rowspans. Highest-value and most
-   fragile asset; `tests/reconstruction.regression.test.js` pins its output to committed
-   baselines for the three sample colleges.
-3. **collect.stage** — loads produced artifacts from the output dir.
+   --hybrid-fallback --markdown-with-html`), parses stdout for partial-success and derives
+   failed pages from the element JSON's page coverage. Also runs base-engine-only
+   (`{hybrid:false}` drops the hybrid args).
+2. **retry.stage** — when the hybrid (Docling) backend drops pages (e.g. `std::bad_alloc`
+   on memory-heavy pages with constrained GPU/RAM), reruns the CLI with the base Java engine
+   into `output/base-retry/` and splices the missing pages' elements into the primary JSON;
+   status becomes `success` with a warning naming the recovered pages (the HTML artifact
+   stays partial). Server-side mitigations for the OOM itself: cap Docling's max image size,
+   disable OCR for born-digital PDFs — a 4 GB laptop GPU is the usual constraint.
+3. **reconstruction.stage** — rebuilds the markdown from the (merged) element JSON:
+   bounding-box key/value detection, form blocks, HTML tables with col/rowspans. Highest-value
+   and most fragile asset; `tests/reconstruction.regression.test.js` pins its output to
+   committed baselines for the three sample colleges.
+4. **collect.stage** — loads produced artifacts from the output dir.
 
 ### Assessment engine (deterministic — no AI)
 

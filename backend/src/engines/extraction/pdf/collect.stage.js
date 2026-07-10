@@ -27,6 +27,7 @@ function collect(outputDir) {
 
   for (const file of files) {
     const filePath = path.join(outputDir, file);
+    if (!fs.statSync(filePath).isFile()) continue; // e.g. base-retry/ subdir
     const ext = path.extname(file).toLowerCase();
 
     try {

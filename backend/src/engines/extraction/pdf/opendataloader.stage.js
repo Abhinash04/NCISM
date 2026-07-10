@@ -8,21 +8,21 @@ const logger = createLogger('OpenDataLoader');
 
 /**
  * Stage 1 of the PDF pipeline: runs the OpenDataLoader CLI
- * (Python wrapper -> Java core, with Docling hybrid backend) and parses its
- * stdout for partial-success information.
+ * (Python wrapper -> Java core, optionally with the Docling hybrid backend)
+ * and parses its stdout for partial-success information.
  *
  * @param {string} inputPdfPath
  * @param {string} outputDir
+ * @param {{hybrid?: boolean}} [options] - hybrid=false runs the base Java engine only
  * @returns {Promise<{status: string, warnings: string[], failedPages: number[], jsonPath: string, mdPath: string}>}
  */
-function run(inputPdfPath, outputDir) {
+function run(inputPdfPath, outputDir, { hybrid = true } = {}) {
   return new Promise((resolve, reject) => {
     const cliPath = config.openDataLoaderCliPath;
 
     const args = [
       '-f', 'markdown,json,html',
-      '--hybrid', 'docling-fast',
-      '--hybrid-fallback',
+      ...(hybrid ? ['--hybrid', 'docling-fast', '--hybrid-fallback'] : []),
       '--markdown-with-html',
       '-o', outputDir,
       inputPdfPath
@@ -89,15 +89,25 @@ function run(inputPdfPath, outputDir) {
         : mdFallbackPath;
 
       if (code === 0 || status === 'partial_success') {
-        // Detect missing pages from JSON if partial_success
+        // Detect missing pages from JSON if partial_success. The element JSON
+        // has no root `pages` map — derive coverage from the elements' own
+        // 'page number' fields against the document's declared page count.
         if (status === 'partial_success' && fs.existsSync(jsonPath)) {
           try {
             const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             const totalPagesMatch = stdoutLog.match(/Number of pages:\s*(\d+)/);
-            const totalPages = totalPagesMatch ? parseInt(totalPagesMatch[1]) : 0;
+            const totalPages = typeof data['number of pages'] === 'number'
+              ? data['number of pages']
+              : (totalPagesMatch ? parseInt(totalPagesMatch[1]) : 0);
 
-            if (totalPages > 0 && data.pages) {
-              const presentPages = new Set(Object.keys(data.pages).map(Number));
+            const presentPages = new Set(
+              (data.kids || []).map((k) => k['page number']).filter((p) => typeof p === 'number')
+            );
+            if (data.pages) {
+              for (const p of Object.keys(data.pages).map(Number)) presentPages.add(p);
+            }
+
+            if (totalPages > 0) {
               for (let i = 1; i <= totalPages; i++) {
                 if (!presentPages.has(i)) {
                   failedPages.push(i);

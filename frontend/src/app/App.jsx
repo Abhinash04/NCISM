@@ -15,6 +15,15 @@ import { Settings } from '@/pages/Settings';
 import { About } from '@/pages/About';
 import { NotFound } from '@/pages/NotFound';
 
+import { DocumentsList } from '@/pages/documents/DocumentsList';
+import { DocumentDetails } from '@/pages/documents/DocumentDetails';
+import { PdfPage } from '@/pages/documents/PdfPage';
+import { ExtractedTextPage } from '@/pages/documents/ExtractedTextPage';
+import { StructurePage } from '@/pages/documents/StructurePage';
+import { MetadataPage } from '@/pages/documents/MetadataPage';
+import { PipelinePage } from '@/pages/documents/PipelinePage';
+import { ReportPage } from '@/pages/documents/ReportPage';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { refetchOnWindowFocus: false },
@@ -41,9 +50,19 @@ function App() {
               <Route path="/history" element={<History />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/about" element={<About />} />
+
+              {/* Page-based document workflow */}
+              <Route path="/documents" element={<DocumentsList />} />
+              <Route path="/documents/:documentId" element={<DocumentDetails />} />
+              <Route path="/documents/:documentId/pdf" element={<PdfPage />} />
+              <Route path="/documents/:documentId/text" element={<ExtractedTextPage />} />
+              <Route path="/documents/:documentId/structure" element={<StructurePage />} />
+              <Route path="/documents/:documentId/metadata" element={<MetadataPage />} />
+              <Route path="/documents/:documentId/pipeline" element={<PipelinePage />} />
+              <Route path="/documents/:documentId/report" element={<ReportPage />} />
             </Route>
 
-            {/* Fullscreen Workspace (Studio Mode) */}
+            {/* Fullscreen Workspace (legacy — removed after migration) */}
             <Route path="/workspace/new" element={<Workspace />} />
             <Route path="/workspace/:documentId" element={<Workspace />} />
 

@@ -57,7 +57,7 @@ export function DashboardLayout() {
           <header className="h-16 border-b bg-background flex items-center justify-between px-6 shrink-0 z-10">
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-semibold tracking-tight capitalize">
-                {location.pathname.replace('/', '') || 'Dashboard'}
+                {location.pathname.split('/')[1] || 'Dashboard'}
               </h2>
             </div>
             <div className="flex items-center gap-4">

@@ -90,3 +90,22 @@
     @apply font-display;
   }
 }
+
+/* Assessment report printing: only the report body reaches paper. */
+@media print {
+  .print-hide,
+  aside,
+  nav,
+  header {
+    display: none !important;
+  }
+  .print-area {
+    overflow: visible !important;
+    border: none !important;
+  }
+  main,
+  body {
+    overflow: visible !important;
+    background: white !important;
+  }
+}

@@ -18,7 +18,7 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { formatBytes } from '@/lib/format';
 import { downloadBlob } from '@/lib/download';
 
-export function Inspector({ job }) {
+export function Inspector({ job, trailing }) {
   const { data: markdown } = useArtifact(job, 'markdown');
   const { data: pdfBlob } = useArtifact(job, 'pdf');
   const { activeHeadingId, setActiveHeadingId } = useWorkspace();
@@ -62,8 +62,8 @@ export function Inspector({ job }) {
   return (
     <div className="h-full flex flex-col bg-muted/10 min-h-0">
       <Tabs defaultValue="metadata" className="flex-1 flex flex-col min-h-0">
-        <div className="h-10 border-b flex items-center px-4 shrink-0 justify-between bg-muted/5">
-          <TabsList className="bg-transparent h-auto p-0 flex w-full justify-between gap-1 overflow-x-auto custom-scrollbar">
+        <div className="h-10 border-b border-border/60 flex items-center px-3 shrink-0 gap-1 bg-muted/5">
+          <TabsList className="bg-transparent h-auto p-0 flex flex-1 justify-between gap-1 overflow-x-auto custom-scrollbar">
             <TabsTrigger 
               value="metadata" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary text-muted-foreground px-0 rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-2 text-[10px] uppercase tracking-wider font-semibold flex-1 text-center"
@@ -89,6 +89,11 @@ export function Inspector({ job }) {
               <Download className="w-3 h-3 mr-1" /> Downloads
             </TabsTrigger>
           </TabsList>
+          {trailing && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              {trailing}
+            </div>
+          )}
         </div>
 
         {/* Tab contents wrapped in strict min-h-0 flex-1 for independent scroll */}

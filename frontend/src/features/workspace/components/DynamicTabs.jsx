@@ -6,15 +6,15 @@ import { RawViewer } from "./RawViewer";
 import { AssessmentTab } from "@/features/assessment/components/AssessmentTab";
 import { FileText } from "lucide-react";
 
-export function DynamicTabs({ job }) {
+export function DynamicTabs({ job, trailing }) {
   const artifacts = job?.artifacts || {};
-  
+
   // Determine default tab
   const defaultTab = artifacts.markdown ? "markdown" : artifacts.json ? "json" : "raw";
 
   return (
     <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col w-full h-full">
-      <div className="border-b bg-muted/10 shrink-0 px-4 pt-2">
+      <div className="border-b border-border/60 bg-muted/10 shrink-0 px-3 pt-2 flex items-center">
         <TabsList variant="line" className="h-auto p-0 bg-transparent gap-4">
           <TabsTrigger value="json" disabled={!artifacts.json} className="px-2 py-2">
             JSON
@@ -30,6 +30,11 @@ export function DynamicTabs({ job }) {
             <FileText className="w-3.5 h-3.5" /> Assessment Report
           </TabsTrigger>
         </TabsList>
+        {trailing && (
+          <div className="ml-auto flex items-center gap-1 pb-1 shrink-0">
+            {trailing}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-hidden relative">

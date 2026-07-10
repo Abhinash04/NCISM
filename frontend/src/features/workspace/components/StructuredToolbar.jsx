@@ -128,7 +128,7 @@ export function StructuredToolbar({ markdown }) {
   };
 
   return (
-    <div className="h-12 border-b flex items-center justify-between px-3 bg-background shrink-0 z-20 gap-2">
+    <div className="h-11 border-b border-border/60 flex items-center justify-between px-3 bg-background shrink-0 z-20 gap-2">
       
       {/* Left: Search & Clipboard Actions */}
       <div className="flex items-center gap-1">

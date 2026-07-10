@@ -58,7 +58,7 @@ export function JsonViewer({ job }) {
   return (
     <div className="flex flex-col h-full w-full bg-background relative overflow-hidden">
       {/* JSON Toolbar */}
-      <div className="h-12 border-b flex items-center justify-between px-2 bg-background shrink-0 z-20">
+      <div className="h-11 border-b border-border/60 flex items-center justify-between px-3 bg-background shrink-0 z-20">
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={handleCopy} className="text-xs text-muted-foreground hover:text-foreground">
             <Copy className="w-3.5 h-3.5 mr-1.5" /> Copy

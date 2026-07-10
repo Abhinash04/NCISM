@@ -9,6 +9,40 @@ import { extractDocument } from '@/lib/api/endpoints';
 import { useJob } from '@/features/workspace/hooks/useJob';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+/** Placeholder shell mirroring the 3-panel workspace layout while the job loads. */
+function WorkspaceSkeleton() {
+  return (
+    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
+      <header className="h-16 border-b flex items-center justify-between px-6 shrink-0">
+        <div className="flex items-center gap-4">
+          <Skeleton className="w-9 h-9 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-56" />
+            <Skeleton className="h-3 w-36" />
+          </div>
+        </div>
+        <Skeleton className="h-6 w-24 rounded-full" />
+      </header>
+      <div className="flex-1 min-h-0 flex">
+        {[['35%', 6], ['45%', 10], ['20%', 5]].map(([width, lines], panel) => (
+          <div key={panel} className="h-full border-r last:border-r-0 flex flex-col" style={{ width }}>
+            <div className="h-11 border-b flex items-center px-3 gap-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-12 ml-auto" />
+            </div>
+            <div className="flex-1 p-6 space-y-3">
+              {Array.from({ length: lines }).map((_, i) => (
+                <Skeleton key={i} className="h-4" style={{ width: `${90 - (i % 4) * 15}%` }} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function Workspace() {
   const { documentId } = useParams();
@@ -59,9 +93,7 @@ export function Workspace() {
     }
   }, [isError, navigate]);
 
-  const isProcessing = isNewUpload || (!!documentId && isLoadingJob);
-
-  if (isProcessing) {
+  if (isNewUpload) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background space-y-6">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -73,6 +105,10 @@ export function Workspace() {
         </div>
       </div>
     );
+  }
+
+  if (documentId && isLoadingJob) {
+    return <WorkspaceSkeleton />;
   }
 
   if (!job) {

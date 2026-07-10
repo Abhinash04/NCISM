@@ -27,7 +27,7 @@ export function RawViewer({ job }) {
   return (
     <div className="flex flex-col h-full w-full bg-[#1e1e1e] relative overflow-hidden">
       {/* Raw Toolbar */}
-      <div className="h-12 border-b border-white/10 flex items-center justify-between px-2 shrink-0 z-20">
+      <div className="h-11 border-b border-white/10 flex items-center justify-between px-3 shrink-0 z-20">
         <div className="flex items-center gap-1 text-sm font-medium px-2 text-white/50">
           Job API Response
         </div>

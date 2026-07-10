@@ -22,8 +22,6 @@ const WorkspaceLayoutContext = createContext({
   setMatchCount: () => {},
   activeMatchIndex: 0,
   setActiveMatchIndex: () => {},
-  debugMode: false,
-  setDebugMode: () => {},
 });
 
 const STORAGE_KEY = 'ncism-workspace-layout-state';
@@ -49,7 +47,6 @@ export function WorkspaceLayoutProvider({ children }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [matchCount, setMatchCount] = useState(0);
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
-  const [debugMode, setDebugMode] = useState(false);
 
   // Lazy initialize states to avoid calling setState inside useEffect on mount
   const [collapsedPanels, setCollapsedPanels] = useState(() => 
@@ -116,8 +113,6 @@ export function WorkspaceLayoutProvider({ children }) {
         setMatchCount,
         activeMatchIndex,
         setActiveMatchIndex,
-        debugMode,
-        setDebugMode,
       }}
     >
       {children}

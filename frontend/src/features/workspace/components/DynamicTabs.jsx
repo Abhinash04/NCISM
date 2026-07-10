@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { JsonViewer } from "./JsonViewer";
 import { MarkdownViewer } from "./MarkdownViewer";
 import { RawViewer } from "./RawViewer";
@@ -43,8 +44,10 @@ export function DynamicTabs({ job }) {
           <RawViewer job={job} />
         </TabsContent>
         
-        <TabsContent value="assessment" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0">
-          <AssessmentTab job={job} />
+        <TabsContent value="assessment" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex flex-col">
+          <ScrollArea className="flex-1 w-full h-full">
+            <AssessmentTab job={job} />
+          </ScrollArea>
         </TabsContent>
       </div>
     </Tabs>

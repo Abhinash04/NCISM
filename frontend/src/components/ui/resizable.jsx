@@ -1,21 +1,59 @@
+import * as React from "react"
 import { GripVertical } from "lucide-react"
 import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/lib/utils"
 
-const ResizablePanelGroup = ({
+const ResizablePanelGroup = React.forwardRef(({
   className,
+  onLayout,
+  onLayoutChange,
   ...props
-}) => (
+}, ref) => (
   <ResizablePrimitive.Group
+    ref={ref}
     className={cn(
       "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
       className
     )}
+    onLayoutChange={onLayoutChange || onLayout}
     {...props} />
-)
+))
+ResizablePanelGroup.displayName = "ResizablePanelGroup"
 
-const ResizablePanel = ResizablePrimitive.Panel
+const ResizablePanel = React.forwardRef(({
+  onCollapse,
+  onExpand,
+  onResize,
+  ...props
+}, ref) => {
+  const isCollapsedRef = React.useRef(false)
+
+  const handleResize = (size, id, prevSize) => {
+    if (onResize) {
+      onResize(size, id, prevSize)
+    }
+
+    const isCollapsed = size.asPercentage === 0
+    if (isCollapsed !== isCollapsedRef.current) {
+      isCollapsedRef.current = isCollapsed
+      if (isCollapsed) {
+        if (onCollapse) onCollapse()
+      } else {
+        if (onExpand) onExpand()
+      }
+    }
+  }
+
+  return (
+    <ResizablePrimitive.Panel
+      ref={ref}
+      onResize={handleResize}
+      {...props}
+    />
+  )
+})
+ResizablePanel.displayName = "ResizablePanel"
 
 const ResizableHandle = ({
   withHandle,

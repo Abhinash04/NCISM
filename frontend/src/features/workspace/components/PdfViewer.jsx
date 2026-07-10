@@ -11,7 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Expand
+  PanelLeftClose
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,7 +27,13 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-export function PdfViewer({ job }) {
+export function PdfViewer({ 
+  job, 
+  isFullscreen, 
+  onFullscreenToggle, 
+  onCollapseToggle, 
+  onResetWidths 
+}) {
   const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.0);
@@ -51,9 +57,9 @@ export function PdfViewer({ job }) {
     return () => observer.disconnect();
   }, []);
 
-  function onDocumentLoadSuccess({ numPages }) {
+  const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
-  }
+  };
 
   const handleZoomIn = () => setScale(s => Math.min(s + 0.2, 3.0));
   const handleZoomOut = () => setScale(s => Math.max(s - 0.2, 0.5));
@@ -147,8 +153,23 @@ export function PdfViewer({ job }) {
         
         {/* Actions */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" title="Fullscreen">
-            <Expand className="w-4 h-4" />
+          {onResetWidths && (
+            <Button variant="ghost" size="icon" onClick={onResetWidths} title="Reset Panel Widths">
+              <RotateCw className="w-4 h-4" />
+            </Button>
+          )}
+          {onCollapseToggle && (
+            <Button variant="ghost" size="icon" onClick={onCollapseToggle} title="Collapse PDF Viewer">
+              <PanelLeftClose className="w-4 h-4" />
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onFullscreenToggle} 
+            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen PDF"}
+          >
+            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </Button>
           <Button variant="ghost" size="icon" onClick={handleDownload} title="Download Original">
             <Download className="w-4 h-4" />

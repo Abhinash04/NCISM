@@ -18,29 +18,90 @@ workflows and the other platform modules are designed-for extension points (see
 - **Frontend** — React 19 + Vite (`frontend/`): TanStack Query data layer, Dexie (IndexedDB)
   persistence, shadcn/ui + Tailwind with the warm-canvas design system from `DESIGN.md`.
 
-## Prerequisites
+## Running the application
 
-- Node.js 20+
+The full stack is **3 terminals** — one per service. Terminals 2 and 3 are required;
+Terminal 1 is optional (extraction falls back to the base engine without it).
+
+| Terminal | Service | Port | Required |
+| --- | --- | --- | --- |
+| 1 | Docling hybrid server (extraction quality booster) | 5002 | Optional, recommended |
+| 2 | Backend API (Express) | 3000 | Yes |
+| 3 | Frontend (Vite dev server) | 5173 | Yes |
+
+### One-time setup
+
+- **Node.js 20+** and **Java 11+** installed.
 - [OpenDataLoader-PDF](https://github.com/opendataloader-project/opendataloader-pdf) CLI
-  (pip-installed; the CLI wraps a Java 11+ core). Set `OPENDATALOADER_CLI_PATH` if it is not at
-  the default path in `backend/.env.example`.
-- Optional: the Docling hybrid server on port 5002 (`HYBRID_SERVER_URL`). Without it the CLI
-  falls back to the base engine and the health endpoint reports `degraded`.
+  installed via pip (it wraps the Java core).
+- Backend:
+  ```bash
+  cd backend
+  cp .env.example .env     # set OPENDATALOADER_CLI_PATH if the CLI is not at
+                           # D:\opendataloader-pdf\.venv\Scripts\opendataloader-pdf.exe
+  npm install
+  ```
+- Frontend:
+  ```bash
+  cd frontend
+  npm install              # VITE_API_URL is preset in .env.local
+  ```
 
-## Run
+### Terminal 1 — Docling hybrid server (optional)
+
+```powershell
+cd D:\opendataloader-pdf\python\opendataloader-pdf
+.\.venv\Scripts\activate
+opendataloader-pdf-hybrid --port 5002
+```
+
+Wait for `Uvicorn running on http://0.0.0.0:5002`. Without this server, extraction still
+works — the CLI falls back to the base engine and the app's status badge shows **Degraded**.
+With it, extraction quality improves; if it drops pages on large scans (GPU out-of-memory),
+the backend automatically re-extracts those pages with the base engine and merges them in.
+
+### Terminal 2 — Backend API
 
 ```bash
-# backend (http://localhost:3000)
 cd backend
-cp .env.example .env      # adjust paths/ports
-npm install
-npm run dev
-
-# frontend (http://localhost:5173)
-cd frontend
-npm install               # VITE_API_URL is set in .env.local
 npm run dev
 ```
+
+Wait for `[Server] Backend listening at http://localhost:3000`.
+
+### Terminal 3 — Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open **http://localhost:5173**. The status badge in the header shows **Online** when all
+three services are up, or **Degraded** when only the hybrid server is down (fully usable).
+
+## Using the application
+
+1. **Upload** — open the Dashboard and drag-and-drop a PDF inspection report into the
+   upload zone (sample reports live in `All data/Part-3 colleges/`).
+2. **Extraction** — OpenDataLoader extracts the document with structure preserved
+   (headings, tables with merged cells, reading order). Takes a few seconds to about a
+   minute, then the document opens in the 3-panel workspace: original PDF on the left,
+   extracted content in the center, inspector (metadata, outline, stats, downloads) on
+   the right.
+3. **Structured View** — the center panel's default tab renders the extracted document as
+   formatted markdown, with in-document search, font/width controls and reading mode. The
+   JSON and Raw tabs show the machine-readable formats.
+4. **Assessment Report** — switch to the Assessment Report tab and click **Generate
+   Report**. The deterministic rule engine evaluates the extracted parameters against the
+   MESAR (UG) Ayurveda 2024 ruleset and the Board-approved punitive policy, and renders
+   the report in the official MARB-ISM format: institution header, visitors table,
+   numbered compliance findings, teaching/non-teaching/hospital staff shortcoming tables
+   with punitive actions, hospital functionality metrics, and a punitive action summary
+   (seat reductions or denial of permission). Values the system cannot verify from the
+   document are flagged "manual verification required" — never invented.
+5. **Download & history** — download the report and other artifacts from the Inspector's
+   Downloads tab (or the API below). Processed documents persist in the browser's local
+   store, so History keeps working even after the server's 24-hour job retention purge.
 
 ## Test & checks
 

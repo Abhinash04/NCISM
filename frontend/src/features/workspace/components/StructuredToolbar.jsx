@@ -42,7 +42,6 @@ export function StructuredToolbar({ markdown }) {
     setFontFamily,
     searchQuery,
     setSearchQuery,
-    setCollapsedPanels,
   } = useWorkspaceLayout();
 
   const [showSearch, setShowSearch] = useState(false);
@@ -83,14 +82,12 @@ export function StructuredToolbar({ markdown }) {
   };
 
   const handleToggleReadingMode = () => {
+    // PanelGroup reacts to readingMode and collapses/expands the side panels
+    // through the imperative panel API.
     const nextReadingMode = !readingMode;
     setReadingMode(nextReadingMode);
     if (nextReadingMode) {
-      // Collapse sidebars in reading mode
-      setCollapsedPanels({ pdf: true, inspector: true });
       toast.info("Reading mode active (sidebars collapsed)");
-    } else {
-      setCollapsedPanels({ pdf: false, inspector: false });
     }
   };
 

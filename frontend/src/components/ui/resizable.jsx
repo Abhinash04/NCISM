@@ -4,21 +4,32 @@ import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/lib/utils"
 
-const ResizablePanelGroup = React.forwardRef(({
+/**
+ * Shims for react-resizable-panels v4:
+ * - v4 renamed `direction` -> `orientation`
+ * - the imperative handle (resize/collapse/expand/isCollapsed/getSize) is
+ *   exposed ONLY via the `panelRef` prop, so the React `ref` our call sites
+ *   use is forwarded into it
+ * - `onLayoutChanged` (debounced, fires after drag release) is the
+ *   recommended persistence hook; `onLayoutChange` fires per pointer move
+ */
+const ResizablePanelGroup = ({
   className,
+  direction,
   onLayout,
   onLayoutChange,
+  onLayoutChanged,
   ...props
-}, ref) => (
+}) => (
   <ResizablePrimitive.Group
-    ref={ref}
+    orientation={direction || "horizontal"}
     className={cn(
       "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
       className
     )}
-    onLayoutChange={onLayoutChange || onLayout}
+    onLayoutChanged={onLayoutChanged || onLayoutChange || onLayout}
     {...props} />
-))
+)
 ResizablePanelGroup.displayName = "ResizablePanelGroup"
 
 const ResizablePanel = React.forwardRef(({
@@ -29,12 +40,13 @@ const ResizablePanel = React.forwardRef(({
 }, ref) => {
   const isCollapsedRef = React.useRef(false)
 
-  const handleResize = (size, id, prevSize) => {
+  // v4 onResize: (panelSize {asPercentage, inPixels}, id, prevPanelSize)
+  const handleResize = (panelSize, id, prevPanelSize) => {
     if (onResize) {
-      onResize(size, id, prevSize)
+      onResize(panelSize, id, prevPanelSize)
     }
 
-    const isCollapsed = size.asPercentage === 0
+    const isCollapsed = panelSize.asPercentage === 0
     if (isCollapsed !== isCollapsedRef.current) {
       isCollapsedRef.current = isCollapsed
       if (isCollapsed) {
@@ -47,7 +59,7 @@ const ResizablePanel = React.forwardRef(({
 
   return (
     <ResizablePrimitive.Panel
-      ref={ref}
+      panelRef={ref}
       onResize={handleResize}
       {...props}
     />

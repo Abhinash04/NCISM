@@ -32,6 +32,11 @@ function useMediaQuery(query) {
   return matches;
 }
 
+// Layout control precedence: fullscreen > reading mode > manual collapse.
+// Fullscreen unmounts the panel group; on exit the readingMode effect
+// re-applies collapses. collapsedPanels is DERIVED state — only the panels'
+// onCollapse/onExpand callbacks write it; intent goes through the imperative
+// panel API (panelRef.collapse()/expand()/resize()).
 export function PanelGroup({ job }) {
   const {
     isFullscreen,
@@ -39,6 +44,8 @@ export function PanelGroup({ job }) {
     setCollapsedPanels,
     panelSizes,
     setPanelSizes,
+    readingMode,
+    setReadingMode,
   } = useWorkspaceLayout();
 
   // Watch breakpoints
@@ -55,20 +62,27 @@ export function PanelGroup({ job }) {
   const workspacePanelRef = useRef(null);
   const inspectorPanelRef = useRef(null);
 
-  // Store layout settings on drag resize
-  const handleLayoutChange = (sizes) => {
-    if (sizes.length === 3) {
-      setPanelSizes({
-        pdf: sizes[0],
-        workspace: sizes[1],
-        inspector: sizes[2]
-      });
-    } else if (sizes.length === 2 && isTablet) {
-      setPanelSizes(prev => ({
-        ...prev,
-        pdf: sizes[0],
-        workspace: sizes[1]
-      }));
+  // Persist layout after drag release. v4's onLayoutChanged delivers a map
+  // { [panelId]: value } — normalize to percentages by the group sum.
+  const handleLayoutChanged = (layout) => {
+    const sum = Object.values(layout).reduce((a, b) => a + b, 0);
+    if (!sum) return;
+    const pct = (key) => {
+      const entry = Object.entries(layout).find(([id]) => id.startsWith(key));
+      return entry ? (entry[1] / sum) * 100 : null;
+    };
+
+    const pdf = pct('pdf-panel');
+    const workspace = pct('workspace-panel');
+    const inspector = pct('inspector-panel');
+
+    // Don't persist collapsed(0) widths as the new default.
+    if (pdf != null && workspace != null && inspector != null) {
+      if (pdf === 0 || inspector === 0) return;
+      setPanelSizes({ pdf, workspace, inspector });
+    } else if (pdf != null && workspace != null && isTablet) {
+      if (pdf === 0) return;
+      setPanelSizes(prev => ({ ...prev, pdf, workspace }));
     }
   };
 
@@ -96,17 +110,27 @@ export function PanelGroup({ job }) {
   };
 
   const handleResetWidths = () => {
-    if (pdfPanelRef.current) {
-      pdfPanelRef.current.expand();
-    }
-    if (inspectorPanelRef.current) {
-      inspectorPanelRef.current.expand();
-    }
-    setTimeout(() => {
-      pdfPanelRef.current?.resize(35);
-      inspectorPanelRef.current?.resize(20);
-    }, 50);
+    setReadingMode(false); // reset means reset
+    pdfPanelRef.current?.expand();
+    inspectorPanelRef.current?.expand();
+    // Numeric values are pixels in v4 — resize with percent strings.
+    pdfPanelRef.current?.resize('35%');
+    inspectorPanelRef.current?.resize('20%');
+    setPanelSizes({ pdf: 35, workspace: 45, inspector: 20 });
   };
+
+  // Reading mode: collapse both side panels; restore on exit. Manual
+  // expansion of a rail while reading stays allowed (user override).
+  useEffect(() => {
+    if (isMobile || isFullscreen) return;
+    if (readingMode) {
+      pdfPanelRef.current?.collapse();
+      inspectorPanelRef.current?.collapse();
+    } else {
+      pdfPanelRef.current?.expand();
+      inspectorPanelRef.current?.expand();
+    }
+  }, [readingMode, isMobile, isTablet, isFullscreen]);
 
   // Fullscreen Render overrides standard panel groups
   if (isFullscreen === 'pdf') {
@@ -180,18 +204,17 @@ export function PanelGroup({ job }) {
   if (isTablet) {
     return (
       <div className="h-full w-full flex min-h-0 relative bg-background">
-        <ResizablePanelGroup 
-          direction="horizontal" 
-          onLayoutChange={handleLayoutChange} 
+        <ResizablePanelGroup
+          direction="horizontal"
+          onLayoutChanged={handleLayoutChanged}
           id="workspace-layout-group-tablet"
         >
           {/* PDF Panel */}
           <ResizablePanel
             ref={pdfPanelRef}
             id="pdf-panel-tablet"
-            order={1}
-            defaultSize={panelSizes.pdf}
-            minSize={20}
+            defaultSize={`${panelSizes.pdf}%`}
+            minSize="20%"
             collapsible
             onCollapse={() => setCollapsedPanels(prev => ({ ...prev, pdf: true }))}
             onExpand={() => setCollapsedPanels(prev => ({ ...prev, pdf: false }))}
@@ -209,9 +232,8 @@ export function PanelGroup({ job }) {
           <ResizablePanel
             ref={workspacePanelRef}
             id="workspace-panel-tablet"
-            order={2}
-            defaultSize={100 - panelSizes.pdf}
-            minSize={30}
+            defaultSize={`${100 - panelSizes.pdf}%`}
+            minSize="30%"
           >
             <WorkspacePanel 
               job={job}
@@ -275,18 +297,17 @@ export function PanelGroup({ job }) {
 
       {/* Main Resizable Panel Group */}
       <div className="flex-1 min-h-0 h-full overflow-hidden relative">
-        <ResizablePanelGroup 
-          direction="horizontal" 
-          onLayoutChange={handleLayoutChange} 
+        <ResizablePanelGroup
+          direction="horizontal"
+          onLayoutChanged={handleLayoutChanged}
           id="workspace-layout-group-desktop"
         >
           {/* PDF Panel */}
           <ResizablePanel
             ref={pdfPanelRef}
             id="pdf-panel-desktop"
-            order={1}
-            defaultSize={panelSizes.pdf}
-            minSize={15}
+            defaultSize={`${panelSizes.pdf}%`}
+            minSize="15%"
             collapsible
             onCollapse={() => setCollapsedPanels(prev => ({ ...prev, pdf: true }))}
             onExpand={() => setCollapsedPanels(prev => ({ ...prev, pdf: false }))}
@@ -304,9 +325,8 @@ export function PanelGroup({ job }) {
           <ResizablePanel
             ref={workspacePanelRef}
             id="workspace-panel-desktop"
-            order={2}
-            defaultSize={panelSizes.workspace}
-            minSize={30}
+            defaultSize={`${panelSizes.workspace}%`}
+            minSize="30%"
           >
             <WorkspacePanel 
               job={job}
@@ -320,9 +340,8 @@ export function PanelGroup({ job }) {
           <ResizablePanel
             ref={inspectorPanelRef}
             id="inspector-panel-desktop"
-            order={3}
-            defaultSize={panelSizes.inspector}
-            minSize={15}
+            defaultSize={`${panelSizes.inspector}%`}
+            minSize="15%"
             collapsible
             onCollapse={() => setCollapsedPanels(prev => ({ ...prev, inspector: true }))}
             onExpand={() => setCollapsedPanels(prev => ({ ...prev, inspector: false }))}

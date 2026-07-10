@@ -11,10 +11,7 @@ export function Dashboard() {
   const documents = useDocuments();
 
   const handleFileSelect = (file) => {
-    // Navigate to new workspace upload flow, pass file in state or use a store
-    // For now, let's just pass the file to a context or via state. 
-    // Wait, react-router-dom state is good for this.
-    navigate('/workspace/new', { state: { file } });
+    navigate('/documents/new', { state: { file } });
   };
 
   const completedDocs = documents.filter(d => d.status === 'completed');
@@ -89,9 +86,9 @@ export function Dashboard() {
           <Card className="shadow-sm border-0 bg-transparent">
             <div className="space-y-4">
               {documents.slice(0, 5).map(doc => (
-                <div 
+                <div
                   key={doc.id}
-                  onClick={() => navigate(`/workspace/${doc.id}`)}
+                  onClick={() => navigate(`/documents/${doc.id}`)}
                   className="flex items-center p-4 bg-background border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors shadow-sm"
                 >
                   <div className="p-2 bg-primary/10 rounded-md mr-4 text-primary">

@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Home, History, Settings, FileText, Info } from 'lucide-react';
+import { Home, Settings, FileText, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -10,7 +10,7 @@ export function DashboardLayout() {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
-    { name: 'History', path: '/history', icon: History },
+    { name: 'Documents', path: '/documents', icon: FileText },
     { name: 'Settings', path: '/settings', icon: Settings },
     { name: 'About', path: '/about', icon: Info },
   ];
@@ -29,15 +29,17 @@ export function DashboardLayout() {
         <div className="flex-1 overflow-y-auto py-6 px-4">
           <nav className="space-y-1">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive = item.path === '/documents'
+                ? location.pathname.startsWith('/documents')
+                : location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive 
-                      ? "bg-primary/10 text-primary" 
+                    isActive
+                      ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
@@ -53,8 +55,8 @@ export function DashboardLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        {!location.pathname.startsWith('/workspace') && (
-          <header className="h-16 border-b bg-background flex items-center justify-between px-6 shrink-0 z-10">
+        {(
+          <header className="h-16 border-b bg-background flex items-center justify-between px-6 shrink-0 z-10 print-hide">
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-semibold tracking-tight capitalize">
                 {location.pathname.split('/')[1] || 'Dashboard'}

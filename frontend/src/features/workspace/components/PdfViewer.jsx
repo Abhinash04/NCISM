@@ -1,17 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCw, 
-  Maximize, 
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Maximize,
   Minimize,
   FileText,
   ChevronLeft,
   ChevronRight,
-  Download,
-  PanelLeftClose
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,13 +26,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-export function PdfViewer({ 
-  job, 
-  isFullscreen, 
-  onFullscreenToggle, 
-  onCollapseToggle, 
-  onResetWidths 
-}) {
+export function PdfViewer({ job }) {
   const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.0);
@@ -153,24 +146,6 @@ export function PdfViewer({
         
         {/* Actions */}
         <div className="flex items-center gap-1">
-          {onResetWidths && (
-            <Button variant="ghost" size="icon" onClick={onResetWidths} title="Reset Panel Widths">
-              <RotateCw className="w-4 h-4" />
-            </Button>
-          )}
-          {onCollapseToggle && (
-            <Button variant="ghost" size="icon" onClick={onCollapseToggle} title="Collapse PDF Viewer">
-              <PanelLeftClose className="w-4 h-4" />
-            </Button>
-          )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onFullscreenToggle} 
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen PDF"}
-          >
-            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-          </Button>
           <Button variant="ghost" size="icon" onClick={handleDownload} title="Download Original">
             <Download className="w-4 h-4" />
           </Button>

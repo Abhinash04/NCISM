@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useDeferredValue, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -10,56 +10,37 @@ import { useArtifact } from '@/features/workspace/hooks/useArtifact';
 import { useMarkdownComponents } from '@/components/markdown/MarkdownRenderer';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { useWorkspaceLayout } from '../context/WorkspaceLayoutContext';
+import { rehypeSearchHighlight } from '../lib/rehypeSearchHighlight';
 
 export function MarkdownViewer({ job }) {
   const { data: markdown, isPending } = useArtifact(job, 'markdown');
   const { setActiveHeadingId } = useWorkspace();
-  const { 
-    fontSize, 
-    fontFamily, 
-    wordWrap, 
-    readingMode, 
-    searchQuery 
+  const {
+    fontSize,
+    fontFamily,
+    wordWrap,
+    readingMode,
+    searchQuery,
+    setMatchCount,
   } = useWorkspaceLayout();
 
   const contentWidth = readingMode ? 'max-w-3xl' : 'max-w-5xl';
   const markdownComponents = useMarkdownComponents();
 
-  // Extend base markdown components with inline search highlights
-  const components = useMemo(() => {
-    if (!searchQuery) return markdownComponents;
+  // Defer the query so typing stays responsive on large documents (each
+  // keystroke re-renders the whole markdown tree).
+  const deferredQuery = useDeferredValue(searchQuery);
 
-    return {
-      ...markdownComponents,
-      text: ({ children }) => {
-        const textStr = String(children);
-        if (!textStr.trim()) return textStr;
+  const handleCount = useCallback(
+    // The plugin runs during render — defer the state update.
+    (count) => queueMicrotask(() => setMatchCount(count)),
+    [setMatchCount]
+  );
 
-        try {
-          // Escape special regex characters to prevent syntax errors
-          const escapedQuery = searchQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-          const regex = new RegExp(`(${escapedQuery})`, 'gi');
-          const parts = textStr.split(regex);
-
-          return (
-            <>
-              {parts.map((part, i) => 
-                part.toLowerCase() === searchQuery.toLowerCase() ? (
-                  <mark key={i} className="bg-yellow-200 dark:bg-yellow-800 text-foreground px-0.5 rounded">
-                    {part}
-                  </mark>
-                ) : (
-                  part
-                )
-              )}
-            </>
-          );
-        } catch {
-          return textStr;
-        }
-      }
-    };
-  }, [markdownComponents, searchQuery]);
+  const rehypePlugins = useMemo(
+    () => [rehypeRaw, rehypeSlug, [rehypeSearchHighlight, { query: deferredQuery, onCount: handleCount }]],
+    [deferredQuery, handleCount]
+  );
 
   if (!job?.artifacts?.markdown) {
     return (
@@ -83,7 +64,7 @@ export function MarkdownViewer({ job }) {
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <StructuredToolbar markdown={markdown} />
 
-        <ScrollArea className="flex-1 w-full h-full relative" onScroll={(e) => {
+        <ScrollArea className="flex-1 min-h-0 w-full relative" onScroll={(e) => {
           // Highlight active outline section based on scroll
           const target = e.target;
           const headings = Array.from(target.querySelectorAll('h1, h2, h3, h4, h5, h6'));
@@ -95,13 +76,13 @@ export function MarkdownViewer({ job }) {
             }
           }
         }}>
-          <div className={`p-8 mx-auto ${fontSize} ${fontFamily} ${contentWidth} ${
+          <div id="markdown-search-root" className={`p-8 mx-auto ${fontSize} ${fontFamily} ${contentWidth} ${
             wordWrap ? 'break-words whitespace-normal' : 'overflow-x-auto'
           } transition-all duration-200`}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw, rehypeSlug]}
-              components={components}
+              rehypePlugins={rehypePlugins}
+              components={markdownComponents}
             >
               {markdown || ''}
             </ReactMarkdown>

@@ -74,7 +74,7 @@ export function JsonViewer({ job }) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 w-full relative">
+      <ScrollArea className="flex-1 min-h-0 w-full relative">
         <div className="p-6">
           <JsonView
             value={data}

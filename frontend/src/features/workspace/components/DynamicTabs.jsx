@@ -45,7 +45,7 @@ export function DynamicTabs({ job }) {
         </TabsContent>
         
         <TabsContent value="assessment" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex flex-col">
-          <ScrollArea className="flex-1 w-full h-full">
+          <ScrollArea className="flex-1 min-h-0 w-full">
             <AssessmentTab job={job} />
           </ScrollArea>
         </TabsContent>

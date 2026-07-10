@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  Copy, 
-  Download, 
-  Search, 
-  Maximize2, 
+import {
+  Copy,
+  Download,
+  Search,
+  Maximize2,
   Minimize2,
-  Type, 
-  Moon, 
+  Type,
+  Moon,
   Sun,
   Layout,
   WrapText,
   Plus,
   Minus,
-  X
+  X,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -42,9 +44,39 @@ export function StructuredToolbar({ markdown }) {
     setFontFamily,
     searchQuery,
     setSearchQuery,
+    matchCount,
+    activeMatchIndex,
+    setActiveMatchIndex,
   } = useWorkspaceLayout();
 
   const [showSearch, setShowSearch] = useState(false);
+
+  const focusMatch = (index) => {
+    const marks = document.querySelectorAll('#markdown-search-root [data-search-hit]');
+    if (marks.length === 0) return;
+    const target = marks[((index % marks.length) + marks.length) % marks.length];
+    marks.forEach((m) => m.classList.remove('ring-2', 'ring-primary'));
+    target.classList.add('ring-2', 'ring-primary');
+    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+
+  const gotoMatch = (delta) => {
+    if (matchCount === 0) return;
+    const next = (activeMatchIndex + delta + matchCount) % matchCount;
+    setActiveMatchIndex(next);
+    focusMatch(next);
+  };
+
+  const handleQueryChange = (value) => {
+    setSearchQuery(value);
+    setActiveMatchIndex(0);
+  };
+
+  const closeSearch = () => {
+    setShowSearch(false);
+    setSearchQuery('');
+    setActiveMatchIndex(0);
+  };
 
   const handleCopy = () => {
     if (!markdown) return;
@@ -101,29 +133,51 @@ export function StructuredToolbar({ markdown }) {
       {/* Left: Search & Clipboard Actions */}
       <div className="flex items-center gap-1">
         {showSearch ? (
-          <div className="flex items-center gap-1 bg-muted rounded-md px-2 py-0.5 border w-48 sm:w-64 transition-all duration-200">
+          <div className="flex items-center gap-1 bg-muted rounded-md px-2 py-0.5 border w-56 sm:w-80 transition-all duration-200">
             <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <input
               type="text"
               placeholder="Find in document..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') gotoMatch(e.shiftKey ? -1 : 1);
+                if (e.key === 'Escape') closeSearch();
+              }}
               className="bg-transparent border-none text-xs outline-none w-full placeholder:text-muted-foreground"
               autoFocus
             />
             {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0 tabular-nums">
+                {matchCount === 0 ? '0 / 0' : `${activeMatchIndex + 1} / ${matchCount}`}
+              </span>
+            )}
+            <button
+              onClick={() => gotoMatch(-1)}
+              disabled={matchCount === 0}
+              className="text-muted-foreground hover:text-foreground disabled:opacity-30 shrink-0"
+              title="Previous match (Shift+Enter)"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => gotoMatch(1)}
+              disabled={matchCount === 0}
+              className="text-muted-foreground hover:text-foreground disabled:opacity-30 shrink-0"
+              title="Next match (Enter)"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+            {searchQuery && (
+              <button
+                onClick={() => handleQueryChange('')}
                 className="text-muted-foreground hover:text-foreground shrink-0"
               >
                 <X className="w-3 h-3" />
               </button>
             )}
-            <button 
-              onClick={() => {
-                setShowSearch(false);
-                setSearchQuery('');
-              }}
+            <button
+              onClick={closeSearch}
               className="text-muted-foreground hover:text-foreground font-semibold text-[10px] uppercase ml-1 shrink-0"
             >
               Done

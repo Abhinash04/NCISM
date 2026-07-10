@@ -96,7 +96,7 @@ export function Inspector({ job }) {
           
           {/* Metadata Tab */}
           <TabsContent value="metadata" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex flex-col">
-            <ScrollArea className="flex-1 h-full w-full">
+            <ScrollArea className="flex-1 min-h-0 w-full">
               <div className="space-y-6 p-4 pb-6">
                 {/* File Info */}
                 <div className="space-y-3">
@@ -160,7 +160,7 @@ export function Inspector({ job }) {
 
           {/* Statistics Tab */}
           <TabsContent value="stats" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex flex-col">
-            <ScrollArea className="flex-1 h-full w-full">
+            <ScrollArea className="flex-1 min-h-0 w-full">
               <div className="space-y-6 p-4 pb-6">
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Document Statistics</h4>
@@ -195,7 +195,7 @@ export function Inspector({ job }) {
 
           {/* Downloads Tab */}
           <TabsContent value="downloads" className="h-full w-full m-0 p-0 border-none outline-none absolute inset-0 flex flex-col">
-            <ScrollArea className="flex-1 h-full w-full">
+            <ScrollArea className="flex-1 min-h-0 w-full">
               <div className="space-y-6 p-4 pb-6">
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Available Assets</h4>

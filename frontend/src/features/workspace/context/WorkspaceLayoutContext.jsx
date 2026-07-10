@@ -18,6 +18,10 @@ const WorkspaceLayoutContext = createContext({
   setFontFamily: () => {},
   searchQuery: '',
   setSearchQuery: () => {},
+  matchCount: 0,
+  setMatchCount: () => {},
+  activeMatchIndex: 0,
+  setActiveMatchIndex: () => {},
   debugMode: false,
   setDebugMode: () => {},
 });
@@ -43,6 +47,8 @@ function getSavedValue(key, field, defaultValue) {
 export function WorkspaceLayoutProvider({ children }) {
   const [isFullscreen, setIsFullscreen] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [matchCount, setMatchCount] = useState(0);
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const [debugMode, setDebugMode] = useState(false);
 
   // Lazy initialize states to avoid calling setState inside useEffect on mount
@@ -106,6 +112,10 @@ export function WorkspaceLayoutProvider({ children }) {
         setFontFamily,
         searchQuery,
         setSearchQuery,
+        matchCount,
+        setMatchCount,
+        activeMatchIndex,
+        setActiveMatchIndex,
         debugMode,
         setDebugMode,
       }}

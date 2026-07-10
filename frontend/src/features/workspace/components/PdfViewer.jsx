@@ -180,7 +180,7 @@ export function PdfViewer({
       <div className="absolute top-12 w-full h-8 bg-gradient-to-b from-background/80 to-transparent z-10 pointer-events-none" />
 
       {/* PDF Scroll Area */}
-      <ScrollArea className="flex-1 w-full h-full relative" ref={scrollAreaRef} onScroll={(e) => {
+      <ScrollArea className="flex-1 min-h-0 w-full relative" ref={scrollAreaRef} onScroll={(e) => {
         // Very basic scroll tracking to update current page indicator
         const target = e.target;
         const pageElements = target.querySelectorAll('.pdf-page-container');

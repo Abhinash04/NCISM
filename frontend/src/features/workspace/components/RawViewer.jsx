@@ -45,7 +45,7 @@ export function RawViewer({ job }) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 w-full relative">
+      <ScrollArea className="flex-1 min-h-0 w-full relative">
         <pre className="p-6 text-sm text-[#d4d4d4] font-mono whitespace-pre-wrap break-words">
           {payload}
         </pre>

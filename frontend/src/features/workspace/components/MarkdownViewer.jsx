@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { StructuredToolbar } from './StructuredToolbar';
 import { Loader2 } from 'lucide-react';
 import { useArtifact } from '@/features/workspace/hooks/useArtifact';
@@ -64,10 +63,11 @@ export function MarkdownViewer({ job }) {
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <StructuredToolbar markdown={markdown} />
 
-        <ScrollArea className="flex-1 min-h-0 w-full relative" onScroll={(e) => {
+        {/* Native scroller: guaranteed vertical scroll and onScroll fires
+            directly on the scrolling element (outline tracking) */}
+        <div className="flex-1 min-h-0 w-full relative overflow-y-auto custom-scrollbar" onScroll={(e) => {
           // Highlight active outline section based on scroll
-          const target = e.target;
-          const headings = Array.from(target.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+          const headings = Array.from(e.currentTarget.querySelectorAll('h1, h2, h3, h4, h5, h6'));
           for (let i = headings.length - 1; i >= 0; i--) {
             const rect = headings[i].getBoundingClientRect();
             if (rect.top <= 120) {
@@ -87,7 +87,7 @@ export function MarkdownViewer({ job }) {
               {markdown || ''}
             </ReactMarkdown>
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </div>
   );

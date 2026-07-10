@@ -13,7 +13,9 @@ export function DynamicTabs({ job, trailing }) {
   const defaultTab = artifacts.markdown ? "markdown" : artifacts.json ? "json" : "raw";
 
   return (
-    <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col w-full h-full">
+    // min-h-0 is load-bearing: without it this flex item's minimum size is
+    // its content height and no descendant ever gets a bounded scroll box
+    <Tabs defaultValue={defaultTab} className="flex-1 min-h-0 flex flex-col w-full">
       <div className="border-b border-border/60 bg-muted/10 shrink-0 px-3 pt-2 flex items-center">
         <TabsList variant="line" className="h-auto p-0 bg-transparent gap-4">
           <TabsTrigger value="json" disabled={!artifacts.json} className="px-2 py-2">

@@ -81,27 +81,36 @@ three services are up, or **Degraded** when only the hybrid server is down (full
 
 ## Using the application
 
+The flow follows an enterprise document-management pattern:
+**Dashboard → Documents → Document Details → dedicated artifact pages.**
+
 1. **Upload** — open the Dashboard and drag-and-drop a PDF inspection report into the
-   upload zone (sample reports live in `All data/Part-3 colleges/`).
-2. **Extraction** — OpenDataLoader extracts the document with structure preserved
-   (headings, tables with merged cells, reading order). Takes a few seconds to about a
-   minute, then the document opens in the 3-panel workspace: original PDF on the left,
-   extracted content in the center, inspector (metadata, outline, stats, downloads) on
-   the right.
-3. **Structured View** — the center panel's default tab renders the extracted document as
-   formatted markdown, with in-document search, font/width controls and reading mode. The
-   JSON and Raw tabs show the machine-readable formats.
-4. **Assessment Report** — switch to the Assessment Report tab and click **Generate
-   Report**. The deterministic rule engine evaluates the extracted parameters against the
-   MESAR (UG) Ayurveda 2024 ruleset and the Board-approved punitive policy, and renders
-   the report in the official MARB-ISM format: institution header, visitors table,
-   numbered compliance findings, teaching/non-teaching/hospital staff shortcoming tables
-   with punitive actions, hospital functionality metrics, and a punitive action summary
+   upload zone (sample reports live in `All data/Part-3 colleges/`). Extraction takes a
+   few seconds to about a minute; OpenDataLoader preserves structure (headings, tables
+   with merged cells, reading order).
+2. **Document Details** — after processing you land on `/documents/:id`: summary cards
+   (status, pages, engine, processing time, validation, assessment status), any
+   extraction warnings, and an **artifacts table** with an Open button per artifact.
+3. **Artifact pages** — each artifact opens on its own full-width page with breadcrumbs:
+   - **Original PDF** — pagination, zoom, rotate, download.
+   - **Extracted Text** — the raw markdown source with copy/download and word wrap.
+   - **Structure View** — the rendered document with in-document search (match counter,
+     next/previous), font size, markdown/PDF downloads and a table of contents.
+   - **Metadata** — file details plus the element JSON produced by the engine.
+   - **Pipeline** — processing stage timeline, execution time, validation warnings,
+     extraction statistics and artifact downloads.
+4. **Assessment Report** — open the report page and click **Generate Report**. The
+   deterministic rule engine evaluates the extracted parameters against the MESAR (UG)
+   Ayurveda 2024 ruleset and the Board-approved punitive policy, and renders the report
+   in the official MARB-ISM format: institution header, visitors table, numbered
+   compliance findings, teaching/non-teaching/hospital staff shortcoming tables with
+   punitive actions, hospital functionality metrics, and a punitive action summary
    (seat reductions or denial of permission). Values the system cannot verify from the
-   document are flagged "manual verification required" — never invented.
-5. **Download & history** — download the report and other artifacts from the Inspector's
-   Downloads tab (or the API below). Processed documents persist in the browser's local
-   store, so History keeps working even after the server's 24-hour job retention purge.
+   document are flagged "manual verification required" — never invented. Download the
+   report as markdown or print it directly from the page.
+5. **Documents & persistence** — the Documents page lists every processed document.
+   Artifacts persist in the browser's local store, so documents remain viewable even
+   after the server's 24-hour job retention purge.
 
 ## Test & checks
 

@@ -134,14 +134,25 @@ Errors: `{success:false, error:{code, message, details?}}` with codes like
 
 ## Frontend (`frontend/src/`)
 
+Page-based document workflow (enterprise-DMS pattern):
+`/documents` (list) → `/documents/:id` (Details: summary cards + artifacts table) →
+dedicated pages `/pdf`, `/text`, `/structure`, `/metadata`, `/pipeline`, `/report`.
+Upload runs through the transient `/documents/new` route and lands on Details.
+Legacy `/history` and `/workspace/*` routes redirect.
+
 ```
-app/                router root, providers (react-query, theme), layouts
-pages/              thin route components (Landing, Dashboard, History, Workspace, …)
+app/                router root, providers (react-query, theme), DashboardLayout (sidebar:
+                    Dashboard / Documents / Settings / About)
+pages/              Landing, Dashboard, Settings, About, NotFound
+pages/documents/    DocumentsList, DocumentDetails, PdfPage, ExtractedTextPage,
+                    StructurePage (search + TOC), MetadataPage, PipelinePage,
+                    ReportPage (generate/download/print), UploadProcessing
 features/
-├── documents/      upload zone, health widget, useDocuments (Dexie live query)
-├── workspace/      split viewer, PDF/markdown/JSON viewers, inspector, outline,
-│                   WorkspaceContext (scroll sync), useJob / useArtifact
-└── assessment/     AssessmentTab + generate mutation
+├── documents/      DocumentPageLayout (breadcrumb + job resolution + skeleton),
+│                   ArtifactsTable, WarningsBanner, upload zone, health widget,
+│                   useDocuments (Dexie live query), doc stats util
+└── workspace/      reusable viewers: PdfViewer, JsonViewer, DocumentOutline,
+                    useJob / useArtifact, search-highlight rehype plugin
 components/         shared: ui/ (shadcn), common/, markdown/MarkdownRenderer (THE one
                     markdown render map)
 lib/                api client + endpoints, Dexie schema + documents repository,
@@ -150,12 +161,13 @@ hooks/              cross-feature hooks (useHealthCheck)
 ```
 
 - **Data layer**: TanStack Query. `['artifact', jobId, type]` shares one fetch across all
-  panels; `['health']` collapses every status indicator into one 30s poll; upload/assessment
+  pages; `['health']` collapses every status indicator into one 30s poll; upload/assessment
   are mutations.
 - **Persistence**: Dexie db `ncism-platform` (`documents`, `artifacts` `[documentId+type]`,
   `assessments`). After extraction, artifacts persist in the background (PDF Blob capped at
-  50 MB). `useJob`/`useArtifact` are network-first with local fallback, so History keeps
-  working after the backend's 24h purge. Deletes cascade document → artifacts → assessments.
+  50 MB). `useJob`/`useArtifact` are network-first with local fallback, so Documents keeps
+  working after the backend's 24h purge (artifact availability on the Details page also
+  checks the local store). Deletes cascade document → artifacts → assessments.
 - **Theme**: shadcn HSL variables carry the DESIGN.md warm-canvas system (cream/coral/ink,
   warm dark surfaces); fonts self-hosted via @fontsource (Cormorant Garamond display, Inter
   body, JetBrains Mono code). Brand-literal tokens (`coral`, `cream`, `surface-dark`, …) exist

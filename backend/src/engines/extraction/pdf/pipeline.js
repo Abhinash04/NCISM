@@ -1,3 +1,4 @@
+const config = require('../../../config');
 const opendataloaderStage = require('./opendataloader.stage');
 const retryStage = require('./retry.stage');
 const reconstructionStage = require('./reconstruction.stage');
@@ -18,10 +19,17 @@ const logger = createLogger('PdfPipeline');
  * @returns {Promise<{status: string, warnings: string[], failedPages: number[], artifacts: Object}>}
  */
 async function run(inputPath, outputDir) {
+  // Default 'fast': native Java engine only — calibrated output shape for
+  // born-digital NCISM reports (all fixtures/extractors verified against it).
+  // 'hybrid' opt-in routes complex pages through Docling, protected by the
+  // base-engine retry below.
+  const useHybrid = config.extractionMode === 'hybrid';
+
   let stageResult;
   try {
-    stageResult = await opendataloaderStage.run(inputPath, outputDir);
+    stageResult = await opendataloaderStage.run(inputPath, outputDir, { hybrid: useHybrid });
   } catch (hybridError) {
+    if (!useHybrid) throw hybridError;
     // CLI-level crash of the hybrid pass — one full base-engine pass.
     logger.error('Hybrid extraction pass failed, falling back to base engine:', hybridError.message);
     stageResult = await opendataloaderStage.run(inputPath, outputDir, { hybrid: false });
@@ -30,7 +38,7 @@ async function run(inputPath, outputDir) {
 
   let { status, warnings, failedPages, jsonPath, mdPath } = stageResult;
 
-  if (status === 'partial_success' && failedPages.length > 0) {
+  if (useHybrid && status === 'partial_success' && failedPages.length > 0) {
     try {
       const { recoveredPages, warning } = await retryStage.recoverFailedPages({
         inputPath, outputDir, jsonPath, failedPages,

@@ -20,14 +20,15 @@ workflows and the other platform modules are designed-for extension points (see
 
 ## Running the application
 
-The full stack is **3 terminals** — one per service. Terminals 2 and 3 are required;
-Terminal 1 is optional (extraction falls back to the base engine without it).
+The default stack is **2 terminals** — backend and frontend. The Docling hybrid server is
+only needed when `EXTRACTION_MODE=hybrid` (scanned or borderless documents; see
+[Extraction modes](#extraction-modes)).
 
 | Terminal | Service | Port | Required |
 | --- | --- | --- | --- |
-| 1 | Docling hybrid server (extraction quality booster) | 5002 | Optional, recommended |
-| 2 | Backend API (Express) | 3000 | Yes |
-| 3 | Frontend (Vite dev server) | 5173 | Yes |
+| 1 | Backend API (Express) | 3000 | Yes |
+| 2 | Frontend (Vite dev server) | 5173 | Yes |
+| 3 | Docling hybrid server | 5002 | Only for `EXTRACTION_MODE=hybrid` |
 
 ### One-time setup
 
@@ -47,20 +48,7 @@ Terminal 1 is optional (extraction falls back to the base engine without it).
   npm install              # VITE_API_URL is preset in .env.local
   ```
 
-### Terminal 1 — Docling hybrid server (optional)
-
-```powershell
-cd D:\opendataloader-pdf\python\opendataloader-pdf
-.\.venv\Scripts\activate
-opendataloader-pdf-hybrid --port 5002
-```
-
-Wait for `Uvicorn running on http://0.0.0.0:5002`. Without this server, extraction still
-works — the CLI falls back to the base engine and the app's status badge shows **Degraded**.
-With it, extraction quality improves; if it drops pages on large scans (GPU out-of-memory),
-the backend automatically re-extracts those pages with the base engine and merges them in.
-
-### Terminal 2 — Backend API
+### Terminal 1 — Backend API
 
 ```bash
 cd backend
@@ -69,15 +57,40 @@ npm run dev
 
 Wait for `[Server] Backend listening at http://localhost:3000`.
 
-### Terminal 3 — Frontend
+### Terminal 2 — Frontend
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open **http://localhost:5173**. The status badge in the header shows **Online** when all
-three services are up, or **Degraded** when only the hybrid server is down (fully usable).
+Open **http://localhost:5173**. The status badge in the header shows **Online**.
+
+### Terminal 3 — Docling hybrid server (only for `EXTRACTION_MODE=hybrid`)
+
+```powershell
+cd D:\opendataloader-pdf\python\opendataloader-pdf
+.\.venv\Scripts\activate
+opendataloader-pdf-hybrid --port 5002
+```
+
+Wait for `Uvicorn running on http://0.0.0.0:5002`. In hybrid mode the badge shows
+**Degraded** while this server is down (extraction still works via base-engine fallback,
+and pages the hybrid backend drops are automatically re-extracted and merged).
+
+## Extraction modes
+
+`EXTRACTION_MODE` in `backend/.env` selects the pipeline:
+
+- **`fast` (default)** — the native OpenDataLoader Java engine only. Benchmarked on the
+  AYU0659 sample (`npm run check:benchmark`): **3.2s, 20/20 pages, 32/32 assessment
+  parameters extracted correctly**. Born-digital NCISM reports have ruled, bordered vector
+  tables — exactly what the deterministic border-analysis engine handles; every golden test
+  and extractor in this repo is calibrated against this output.
+- **`hybrid`** — routes complex pages through the Docling AI backend. Intended for scanned
+  or borderless documents. On the same sample: 34s, 15/20 pages (GPU memory failures on
+  background-image-heavy pages), 16/32 parameters — do not enable it for standard NCISM
+  reports. If enabled, re-validate extraction quality with `npm run check:benchmark`.
 
 ## Using the application
 

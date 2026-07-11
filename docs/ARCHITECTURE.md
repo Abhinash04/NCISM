@@ -62,16 +62,23 @@ shape are built — manifest-internal disk paths never leave the server.
 `engines/extraction/index.js` maps mimetype → pipeline (`application/pdf` today; DOCX/XLSX/
 images register here later). The PDF pipeline stages:
 
-1. **opendataloader.stage** — spawns the CLI (`-f markdown,json,html --hybrid docling-fast
-   --hybrid-fallback --markdown-with-html`), parses stdout for partial-success and derives
-   failed pages from the element JSON's page coverage. Also runs base-engine-only
-   (`{hybrid:false}` drops the hybrid args).
-2. **retry.stage** — when the hybrid (Docling) backend drops pages (e.g. `std::bad_alloc`
-   on memory-heavy pages with constrained GPU/RAM), reruns the CLI with the base Java engine
-   into `output/base-retry/` and splices the missing pages' elements into the primary JSON;
-   status becomes `success` with a warning naming the recovered pages (the HTML artifact
-   stays partial). Server-side mitigations for the OOM itself: cap Docling's max image size,
-   disable OCR for born-digital PDFs — a 4 GB laptop GPU is the usual constraint.
+**Extraction mode** (`EXTRACTION_MODE`, default `fast`): the native Java engine is the
+default and recommended path for born-digital NCISM reports. Evidence
+(`npm run check:benchmark`, AYU0659): fast = 3.2s, 20/20 pages, **32/32 assessment
+parameters** vs the document-true fixture; hybrid = 34s, 15/20 pages (Docling *preprocess*
+`std::bad_alloc` — every NCISM page carries a full-page background image, so triage routes
+ALL pages to Docling and rasterization exhausts a 4 GB GPU), 16/32 parameters (its element
+segmentation also differs from what the extractors are calibrated on). All fixtures,
+reconstruction baselines and extractors are base-engine-calibrated — enabling hybrid for a
+new document class requires re-validating via the benchmark check.
+
+1. **opendataloader.stage** — spawns the CLI (`-f markdown,json,html --markdown-with-html`,
+   plus `--hybrid docling-fast --hybrid-fallback` in hybrid mode), parses stdout for
+   partial-success and derives failed pages from the element JSON's page coverage.
+2. **retry.stage** (hybrid mode only) — when the Docling backend drops pages, reruns the CLI
+   with the base Java engine into `output/base-retry/` and splices the missing pages'
+   elements into the primary JSON; status becomes `success` with a warning naming the
+   recovered pages (the HTML artifact stays partial).
 3. **reconstruction.stage** — rebuilds the markdown from the (merged) element JSON:
    bounding-box key/value detection, form blocks, HTML tables with col/rowspans. Highest-value
    and most fragile asset; `tests/reconstruction.regression.test.js` pins its output to

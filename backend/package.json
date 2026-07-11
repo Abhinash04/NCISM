@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test \"tests/**/*.test.js\""
+    "test": "node --test \"tests/**/*.test.js\"",
+    "check:extraction": "node tests/checks/extract.check.js",
+    "check:assessment": "node tests/checks/assessment.check.js",
+    "check:benchmark": "node tests/checks/benchmark-extraction.check.js"
   },
   "keywords": [],
   "author": "",

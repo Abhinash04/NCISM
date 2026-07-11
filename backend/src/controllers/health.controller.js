@@ -3,11 +3,20 @@ const config = require('../config');
 
 class HealthController {
   /**
-   * The API itself answering means it is online; the extractor (hybrid
-   * server) being down degrades service but is not a 503 — extraction can
-   * still fall back to the base engine.
+   * In 'fast' extraction mode the engine is the local Java CLI — nothing to
+   * probe, the API answering means extraction works. In 'hybrid' mode the
+   * Docling server being down degrades service (extraction still falls back
+   * to the base engine, so it is not a 503).
    */
   async check(req, res) {
+    if (config.extractionMode !== 'hybrid') {
+      return res.json({
+        status: 'ok',
+        message: 'All services online',
+        services: { api: 'online', extractor: 'online' },
+      });
+    }
+
     let extractor = 'offline';
     try {
       const response = await axios.get(`${config.hybridServerUrl}/health`, { timeout: 5000 });

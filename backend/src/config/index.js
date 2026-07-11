@@ -15,8 +15,17 @@ function intFromEnv(name, fallback) {
 
 const backendRoot = path.join(__dirname, '..', '..');
 
+const extractionMode = process.env.EXTRACTION_MODE || 'fast';
+if (!['fast', 'hybrid'].includes(extractionMode)) {
+  throw new Error(`[config] EXTRACTION_MODE must be "fast" or "hybrid", got "${extractionMode}"`);
+}
+
 const config = Object.freeze({
   port: intFromEnv('PORT', 3000),
+  // 'fast' = native Java engine only (default — calibrated for born-digital
+  // NCISM reports); 'hybrid' = Docling backend for complex/scanned pages,
+  // requires the hybrid server at hybridServerUrl.
+  extractionMode,
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   hybridServerUrl: process.env.HYBRID_SERVER_URL || 'http://localhost:5002',
   openDataLoaderCliPath:

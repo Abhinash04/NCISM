@@ -79,11 +79,26 @@ new document class requires re-validating via the benchmark check.
    with the base Java engine into `output/base-retry/` and splices the missing pages'
    elements into the primary JSON; status becomes `success` with a warning naming the
    recovered pages (the HTML artifact stays partial).
-3. **reconstruction.stage** — rebuilds the markdown from the (merged) element JSON:
-   bounding-box key/value detection, form blocks, HTML tables with col/rowspans. Highest-value
-   and most fragile asset; `tests/reconstruction.regression.test.js` pins its output to
-   committed baselines for the three sample colleges.
-4. **collect.stage** — loads produced artifacts from the output dir.
+3. **reconstruction.stage** — legacy markdown rebuild from the element JSON (kept for the
+   regression baselines and `CDM_RENDERER=legacy`).
+4. **cdm.stage** — builds the **Canonical Document Model** (`engines/extraction/cdm/`) and,
+   by default (`CDM_RENDERER=cdm`), renders the structured markdown from it. The CDM is the
+   semantic contract between extraction and the renderers/extractors — markdown/HTML are
+   *views* of it, not the canonical format. Builder sub-stages (all generic, no NCISM
+   specifics): **noise filter** (drops repeated page furniture and decorative duplicate
+   headings — e.g. the off-page `3 T hi t ff` fragment that shadows `3. Teaching staff
+   (Schedule-V)`), **section tree** (numbering-grammar hierarchy), **row regrouper**
+   (flattened blocks → forms / pseudo-tables by y-band; refuses low-confidence
+   reconstructions so pathological interleaved blocks render as readable paragraphs rather
+   than garbage tables), **table normalizer** (expand row/colspans to a logical grid, flatten
+   header paths to column names, cross-page stitching with rowspan carry-forward, note
+   attachment). Persisted as the `cdm.json` artifact.
+5. **collect.stage** — loads produced artifacts (`cdm.json` handled by name — it is also a
+   `.json`).
+
+Assessment extractors read structured data (element-JSON tables, functioning-table rows,
+section-2.8/2.9 form fields, the assessment-parameter table for document-derived observations)
+rather than regexing markdown, so the renderer choice never changes extracted values.
 
 ### Assessment engine (deterministic — no AI)
 

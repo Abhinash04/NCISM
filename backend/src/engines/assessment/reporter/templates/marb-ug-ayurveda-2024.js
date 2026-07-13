@@ -262,8 +262,9 @@ function build(result, options = {}) {
     ? `Total Area of Lecture Halls is ${fmt(lectureArea.actual)}, against the minimum requirement of ${fmt(lectureArea.expected)}. So, there is a **${lectureArea.renderedText}**.`
     : (lectureArea ? lectureArea.renderedText : MANUAL);
 
-  const fileNo = institution.fileNo || `— (${MANUAL})`;
-  const location = institution.location || `— (${MANUAL})`;
+  // Optional clauses render blank/omitted rather than an inline placeholder.
+  const fileNo = institution.fileNo || '____';
+  const locationClause = institution.location ? `, ${institution.location}` : '';
   const visitDates = `${institution.visitDates.start || '—'} and ${institution.visitDates.end || '—'}`;
 
   return `**Medical Assessment and Rating Board for Indian System of Medicine**
@@ -276,7 +277,7 @@ function build(result, options = {}) {
 
 **Dated:-${generatedDate}**
 
-It is submitted that **${institution.name}, ${location} (Inst. ID-${institution.id})** was visited on **${visitDates}** to assess the available facilities of teaching and practical training for **${institution.purpose} with intake capacity of ${institution.intake} seats in ${institution.course} course for the academic session ${institution.academicYear} under section 28/29 of NCISM Act, 2020** by the visitors namely:-
+It is submitted that **${institution.name}${locationClause} (Inst. ID-${institution.id})** was visited on **${visitDates}** to assess the available facilities of teaching and practical training for **${institution.purpose} with intake capacity of ${institution.intake} seats in ${institution.course} course for the academic session ${institution.academicYear} under section 28/29 of NCISM Act, 2020** by the visitors namely:-
 
 ${buildVisitorsTable(institution.visitors)}
 

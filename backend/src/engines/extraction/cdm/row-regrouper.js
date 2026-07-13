@@ -576,9 +576,99 @@ function reconstructVisitorDetails(blocks) {
 }
 
 /**
+ * Reconstructs a "verification matrix" block — the NCISM proforma shape where
+ * a band of column-header paragraphs sits above data rows, and each data row
+ * is a left-aligned label paragraph (x-left) optionally paired with a
+ * right-aligned value paragraph (x-right) on a nearby y-band. Generic: keys on
+ * geometry (header band + label/value x-split), not on any section name.
+ *
+ * Returns { table, consumed:Set } or null when the block isn't this shape.
+ */
+function reconstructVerificationMatrix(paragraphs) {
+  const withBox = paragraphs.filter((p) => p['bounding box'] && (p.content || '').trim());
+  if (withBox.length < 6) return null;
+
+  const yTop = (p) => Math.max(p['bounding box'][1], p['bounding box'][3]);
+  const xLeftOf = (p) => p['bounding box'][0];
+  const startsWithNumber = (t) => /^[\d.,]+(\s|$)/.test(t.trim());
+  const isShortHeader = (t) => t.trim().length > 0 && t.trim().length < 55 && !startsWithNumber(t) && !/^-+$/.test(t.trim());
+
+  // Header band: the highest-y cluster of short non-numeric paragraphs.
+  const sorted = [...withBox].sort((a, b) => yTop(b) - yTop(a));
+  const headerBandY = yTop(sorted[0]);
+  const headers = sorted.filter((p) => headerBandY - yTop(p) <= 30 && isShortHeader(p.content));
+  if (headers.length < 4) return null;
+  headers.sort((a, b) => xLeftOf(a) - xLeftOf(b));
+
+  const dataEls = withBox.filter((p) => !headers.includes(p) && headerBandY - yTop(p) > 30);
+  if (dataEls.length < 2) return null;
+
+  // A "value" paragraph starts with a number and sits right of the left margin;
+  // a "label" paragraph is text at the left margin.
+  const minX = Math.min(...dataEls.map(xLeftOf));
+  const labels = dataEls.filter((p) => xLeftOf(p) <= minX + 25 && /[A-Za-z]/.test(p.content));
+  const values = dataEls.filter((p) => !labels.includes(p) && startsWithNumber(p.content));
+  if (labels.length < 2) return null;
+
+  const rows = [];
+  for (const label of labels) {
+    const labelText = label.content.replace(/\s+/g, ' ').trim();
+    const { values: inlineVals } = splitInlineRow(labelText);
+    let cells;
+    if (inlineVals.length >= 2) {
+      // Self-contained row: "Total Land Area(in acres) 5 5.285 Yes Yes Verified-Correct"
+      const { label: lbl, values: vs } = splitInlineRow(labelText);
+      cells = [lbl, ...vs];
+    } else {
+      // Pair with the nearest value paragraph within a small y-gap.
+      const paired = values
+        .filter((v) => Math.abs(yTop(v) - yTop(label)) <= 20)
+        .sort((a, b) => Math.abs(yTop(a) - yTop(label)) - Math.abs(yTop(b) - yTop(label)))[0];
+      if (!paired) continue;
+      cells = [labelText, ...paired.content.replace(/\s+/g, ' ').trim().split(' ')];
+    }
+    rows.push(cells);
+  }
+  if (rows.length < 2) return null;
+
+  const headerTexts = headers.map((h) => h.content.replace(/\s+/g, ' ').trim());
+  const colCount = Math.max(headerTexts.length, ...rows.map((r) => r.length));
+  while (headerTexts.length < colCount) headerTexts.push('');
+  const tableRows = [
+    { cells: headerTexts.map((h) => ({ pdfua_tag: 'TH', content: h })) },
+    ...rows.map((cells) => {
+      const c = [...cells];
+      while (c.length < colCount) c.push('-');
+      return { cells: c.slice(0, colCount).map((x) => ({ pdfua_tag: 'TD', content: String(x) })) };
+    }),
+  ];
+
+  return { table: { type: 'table', rows: tableRows, page: withBox[0]['page number'] || 1 }, consumed: new Set([...headers, ...labels, ...values]) };
+}
+
+/**
  * Main entry point for table reconstruction in a section.
  */
 function reconstructSectionTables(blocks, sectionTitle) {
+  // Verification-matrix blocks first (header band + label/value split).
+  const matrix = reconstructVerificationMatrix(blocks.filter((b) => b.type === 'paragraph'));
+  if (matrix) {
+    const out = [];
+    let inserted = false;
+    for (const b of blocks) {
+      if (matrix.consumed.has(b)) {
+        if (!inserted) { out.push(matrix.table); inserted = true; }
+        continue;
+      }
+      out.push(b);
+    }
+    return out;
+  }
+
+  return reconstructSectionTablesInline(blocks, sectionTitle);
+}
+
+function reconstructSectionTablesInline(blocks, sectionTitle) {
   if (!blocks || blocks.length === 0) return [];
 
   // First, check if there is a 'Visitor Details' heading/paragraph block

@@ -32,7 +32,9 @@ function renderSections(sections, parts) {
     // Render section heading (skip the synthetic root "Preamble")
     if (section.id !== '0' && section.title) {
       const prefix = '#'.repeat(Math.min(section.level + 1, 6));
-      parts.push(`${prefix} ${section.id} ${section.title}`);
+      // Restore the numbering dot (id "3" / "2.1" -> "3." / "2.1").
+      const num = /\.\d/.test(section.id) ? section.id : `${section.id}.`;
+      parts.push(`${prefix} ${num} ${section.title}`);
     }
 
     // Render blocks

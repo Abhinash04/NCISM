@@ -2,6 +2,7 @@ const config = require('../../../config');
 const opendataloaderStage = require('./opendataloader.stage');
 const retryStage = require('./retry.stage');
 const reconstructionStage = require('./reconstruction.stage');
+const cdmStage = require('./cdm.stage');
 const collectStage = require('./collect.stage');
 const createLogger = require('../../../utils/logger');
 
@@ -60,6 +61,15 @@ async function run(inputPath, outputDir) {
     reconstructionStage.reconstruct(jsonPath, mdPath); // runs on the MERGED json
   } catch (e) {
     logger.error('Semantic reconstruction failed:', e);
+  }
+
+  // Build the Canonical Document Model and (by default) render the structured
+  // markdown from it; falls back to the reconstruction output on failure.
+  try {
+    logger.info('Building Canonical Document Model...');
+    cdmStage.build(jsonPath, mdPath, outputDir, { renderer: config.cdmRenderer });
+  } catch (e) {
+    logger.error('CDM build failed; keeping reconstruction markdown:', e);
   }
 
   const artifacts = collectStage.collect(outputDir);

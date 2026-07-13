@@ -31,6 +31,7 @@ class JobsController {
       markdown: 'text/markdown',
       json: 'application/json',
       html: 'text/html',
+      cdm: 'application/json',
       report: 'text/markdown',
       assessment: 'application/json'
     };

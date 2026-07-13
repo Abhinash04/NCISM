@@ -26,6 +26,9 @@ const config = Object.freeze({
   // NCISM reports); 'hybrid' = Docling backend for complex/scanned pages,
   // requires the hybrid server at hybridServerUrl.
   extractionMode,
+  // 'cdm' (default) renders the structured markdown from the Canonical
+  // Document Model; 'legacy' keeps the old reconstruction output.
+  cdmRenderer: process.env.CDM_RENDERER === 'legacy' ? 'legacy' : 'cdm',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   hybridServerUrl: process.env.HYBRID_SERVER_URL || 'http://localhost:5002',
   openDataLoaderCliPath:

@@ -30,7 +30,8 @@ class JobService {
         pdf: 'input.pdf',
         markdown: artifacts.markdown ? 'output/input.md' : null,
         json: artifacts.json ? 'output/input.json' : null,
-        html: artifacts.html ? 'output/input.html' : null
+        html: artifacts.html ? 'output/input.html' : null,
+        cdm: artifacts.cdm ? 'output/cdm.json' : null
       }
     };
 
@@ -74,6 +75,7 @@ class JobService {
         markdown: artifactUrl('markdown'),
         json: artifactUrl('json'),
         html: artifactUrl('html'),
+        cdm: artifactUrl('cdm'),
         report: artifactUrl('report'),
         assessment: artifactUrl('assessment'),
       },

@@ -1,21 +1,56 @@
 const { found, missing, findNumber } = require('./utils');
-const { textElements, normText, yOverlaps, findNumberAfter } = require('./element-utils');
+const { walk, textElements, textOf, normText, yOverlaps, findNumberAfter } = require('./element-utils');
 
 /**
- * Hospital functionality metrics stay on the markdown path — the structured
- * "Required | Available | Short comings" tables flatten cleanly and the
- * markdown extraction is verified against all three golden colleges.
+ * Hospital functionality metrics read directly from the "Functionality of the
+ * Hospital" element table (section 5.2). Each row is
+ * [label | (required/formula) | Available | Short] with a variable number of
+ * leading columns; the actual value is always the LAST purely-numeric cell of
+ * the row. Reading the element table (not the rendered markdown) keeps these
+ * robust regardless of how the renderer lays the table out.
  */
+// Each field: element functioning-table row label first, then a markdown
+// label as fallback (row wording varies between colleges; the markdown path
+// was verified across all three golden colleges).
 const FIELDS = [
-  { param: 'opdCount', label: /total number of OPD\b/i },
-  { param: 'opdTotalPatients', label: /total number of patients attended OPD/i },
-  { param: 'opdAverageDaily', label: /average attendance of patients? in OPD per day/i },
-  { param: 'ipdTotalPatients', label: /(total )?(number|no\.?) of patients admitted/i },
-  { param: 'bedOccupancyPercent', label: /average bed occupancy/i },
-  { param: 'deliveries', label: /(number|no\.?) of deliveries/i },
-  { param: 'operations', label: /(number|no\.?) of operations/i },
-  { param: 'equipmentMeanPercent', label: /mean of general and essential equipment/i },
+  { param: 'opdCount', tableLabel: null, mdLabel: /total number of OPD\b/i },
+  { param: 'opdTotalPatients', tableLabel: /attended OPD/i, mdLabel: /total number of patients attended OPD/i },
+  { param: 'opdAverageDaily', tableLabel: /average attendance of patient/i, mdLabel: /average attendance of patients? in OPD per day/i },
+  { param: 'ipdTotalPatients', tableLabel: /patients admitted/i, mdLabel: /(total )?(number|no\.?) of patients admitted/i },
+  { param: 'bedOccupancyPercent', tableLabel: /average bed occupancy/i, mdLabel: /average bed occupancy/i },
+  { param: 'deliveries', tableLabel: /deliveries conducted/i, mdLabel: /(number|no\.?) of deliveries/i },
+  { param: 'operations', tableLabel: /^total number of operations/i, mdLabel: /(number|no\.?) of operations/i },
+  { param: 'equipmentMeanPercent', tableLabel: null, mdLabel: /mean of general and essential equipment/i },
 ];
+
+const PURE_NUMBER = /^-?\d[\d,]*(\.\d+)?$/;
+
+const FUNCTIONING_ROW_RE = /attended OPD|OPD per day|patients admitted|bed occupancy|deliveries conducted|operations|number of OPD/i;
+
+/**
+ * Collects rows from every functioning-table fragment (the table is split
+ * across pages for some colleges) into one row list.
+ */
+function functioningRows(elements) {
+  const rows = [];
+  for (const t of [...walk(elements)]) {
+    if (t.type !== 'table') continue;
+    const isFunctioning = (t.rows || []).some((r) => FUNCTIONING_ROW_RE.test((r.cells || []).map(textOf).join(' ')));
+    if (isFunctioning) rows.push(...(t.rows || []));
+  }
+  return rows;
+}
+
+/** Last purely-numeric cell in the first row whose label cell matches. */
+function rowValue(rows, labelRegex) {
+  for (const row of rows) {
+    const cells = (row.cells || []).map(textOf);
+    if (!labelRegex.test(cells[0] || '')) continue;
+    const nums = cells.slice(1).filter((c) => PURE_NUMBER.test(c.replace(/,/g, '')));
+    if (nums.length) return parseFloat(nums[nums.length - 1].replace(/,/g, ''));
+  }
+  return null;
+}
 
 /**
  * Hospital staff (section 6.1 of the proforma) is NOT detected as a table —
@@ -76,12 +111,21 @@ function parseHospitalStaff(els) {
 
 function extract(markdown, lines, elements) {
   const params = {};
+
+  // Element functioning-table first, markdown fallback (row wording varies).
+  const rows = elements ? functioningRows(elements) : [];
   for (const field of FIELDS) {
-    const hit = findNumber(markdown, lines, field.label);
+    const tableValue = rows.length && field.tableLabel ? rowValue(rows, field.tableLabel) : null;
+    if (tableValue !== null) {
+      params[field.param] = found(tableValue, 'hospital-json', `functioning table row "${field.tableLabel}"`);
+      continue;
+    }
+    const hit = findNumber(markdown, lines, field.mdLabel);
     params[field.param] = hit && hit.value !== null
       ? found(hit.value, 'hospital', hit.evidence)
       : missing();
   }
+
   params.centralRegistrationAvailable = missing();
   params.hospitalStaff = missing();
 

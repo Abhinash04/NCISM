@@ -8,6 +8,10 @@ const { found, missing } = require('./utils');
 function extract(markdown, lines) {
   const params = {};
 
+  // The CDM renderer emits some blocks as HTML tables; strip tags so the
+  // line-based lookups below see plain text regardless of the renderer.
+  lines = lines.map((l) => l.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+
   // Institution Name
   let institutionName = '';
   const instNameLine = lines.find((l) => l.includes('Institution Name :') || l.includes('Institution Name:'));

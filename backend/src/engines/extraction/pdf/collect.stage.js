@@ -16,7 +16,8 @@ function collect(outputDir) {
     json: null,
     html: null,
     text: null,
-    raw: null
+    raw: null,
+    cdm: null
   };
 
   if (!fs.existsSync(outputDir)) {
@@ -33,10 +34,12 @@ function collect(outputDir) {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
 
-      if (ext === '.md') {
+      if (file === 'cdm.json') {
+        artifacts.cdm = JSON.parse(content); // handled by name — also a .json
+      } else if (ext === '.md') {
         artifacts.markdown = content;
       } else if (ext === '.json') {
-        artifacts.json = JSON.parse(content);
+        artifacts.json = JSON.parse(content); // element JSON (input.json)
       } else if (ext === '.html') {
         artifacts.html = content;
       } else if (ext === '.txt') {

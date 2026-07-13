@@ -402,6 +402,14 @@ function buildTableFromInlineRows(headerBlocks, dataRowBlocks) {
 
   const maxDataCols = Math.max(...parsedRows.map(r => r.length), 1);
 
+  // Refuse low-confidence reconstruction: a single non-"Sr.No" header that
+  // would have to be word-chopped into 3+ columns is almost always a
+  // mislabeled value/label paragraph (e.g. the interleaved §2.1 area block).
+  // Rendering readable paragraphs beats emitting garbage split-word headers.
+  if (headers.length === 1 && maxDataCols >= 3 && !/sr\.?\s*no|section/i.test(headers[0])) {
+    return null;
+  }
+
   if (headers.length < maxDataCols && headers.length > 0) {
     if (headers.length === 1) {
       headers = splitHeaderString(headers[0], maxDataCols);
@@ -634,15 +642,17 @@ function reconstructSectionTables(blocks, sectionTitle) {
       }
 
       if (headers.length >= 1) {
-        const headerCount = i - 1 - k;
-        for (let hc = 0; hc < headerCount; hc++) {
-          result.pop();
-        }
-
         const tableBlock = buildTableFromInlineRows(headers, dataRowBlocks);
-        result.push(tableBlock);
-        i = j;
-        continue;
+        if (tableBlock) {
+          // Only consume the header blocks once we know reconstruction succeeded.
+          const headerCount = i - 1 - k;
+          for (let hc = 0; hc < headerCount; hc++) {
+            result.pop();
+          }
+          result.push(tableBlock);
+          i = j;
+          continue;
+        }
       }
     }
 

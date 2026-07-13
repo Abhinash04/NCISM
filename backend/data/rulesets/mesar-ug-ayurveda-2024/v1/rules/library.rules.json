@@ -1,0 +1,85 @@
+[
+  {
+    "id": "library.books",
+    "category": "library",
+    "title": "Central Library - total number of books",
+    "regulationRef": "Regulation 17(3), MESAR (UG) Ayurveda 2024",
+    "parameter": "libraryBooks",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "50": 8000, "60": 8000, "100": 10000 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Total number of books is {actual} against the requirement of {expected}.",
+      "fail": "Total number of books is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Total number of library books could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.sitting-capacity",
+    "category": "library",
+    "title": "Central Library - sitting capacity",
+    "regulationRef": "Regulation 17(3), MESAR (UG) Ayurveda 2024",
+    "parameter": "librarySittingCapacity",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "50": 75, "60": 75, "100": 120 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Sitting capacity is {actual} against the requirement of {expected}.",
+      "fail": "Sitting capacity is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Library sitting capacity could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.computers",
+    "category": "library",
+    "title": "Central Library - computers with internet facility",
+    "regulationRef": "Regulation 17(3), MESAR (UG) Ayurveda 2024",
+    "parameter": "libraryComputers",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "50": 6, "60": 6, "100": 10 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "No. of computers available is {actual} against the requirement of {expected}.",
+      "fail": "No. of computers available is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Number of library computers could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.seating-arrangement",
+    "category": "library",
+    "title": "Central Library - seating arrangement adequacy",
+    "regulationRef": "Regulation 17(3), MESAR (UG) Ayurveda 2024",
+    "parameter": "librarySeatingAdequate",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Sitting arrangement - adequate.",
+      "fail": "Sitting arrangement - Non-adequate.",
+      "missing": "Library seating arrangement adequacy could not be determined - manual verification required."
+    }
+  }
+]

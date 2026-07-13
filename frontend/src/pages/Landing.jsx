@@ -6,23 +6,23 @@ import { motion } from 'framer-motion';
 export function Landing() {
   const features = [
     {
-      title: "Semantic Extraction",
-      description: "Extract structured tables, lists, and paragraphs with high fidelity using our hybrid AI pipeline.",
+      title: "Structure-Preserving Extraction",
+      description: "Inspection reports become structured Markdown and JSON — headings, tables, merged cells and reading order intact.",
       icon: <FileText className="h-6 w-6 text-primary" />,
     },
     {
-      title: "Lightning Fast",
-      description: "Process massive documents in seconds with our optimized Java-based OpenDataLoader engine.",
+      title: "Deterministic Assessment",
+      description: "Versioned MESAR rulesets and the Board-approved punitive policy drive every finding. No AI judgement, no hallucinations.",
       icon: <Zap className="h-6 w-6 text-primary" />,
     },
     {
-      title: "Markdown Native",
-      description: "Outputs are rendered natively in Markdown, preserving reading order and semantic hierarchy.",
+      title: "MARB-Format Reports",
+      description: "Shortcomings, staff tables and punitive summaries rendered in the official MARB-ISM assessment report format.",
       icon: <Database className="h-6 w-6 text-primary" />,
     },
     {
-      title: "Enterprise Ready",
-      description: "Secure, local processing ensures your sensitive documents never leave your infrastructure.",
+      title: "Local & Auditable",
+      description: "Documents process on your infrastructure; every finding carries its regulation reference and evidence trail.",
       icon: <Shield className="h-6 w-6 text-primary" />,
     },
   ];
@@ -39,11 +39,12 @@ export function Landing() {
               transition={{ duration: 0.5 }}
               className="space-y-2"
             >
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none">
-                AI Document Intelligence
+              <h1 className="font-display font-medium tracking-tight text-4xl sm:text-5xl md:text-6xl lg:text-7xl/none">
+                Deterministic document assessment
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Transform unstructured PDFs into pristine, structured Markdown and JSON using OpenDataLoader.
+                Upload inspection reports, preserve their structure, and generate MARB-format
+                compliance assessments against NCISM regulations.
               </p>
             </motion.div>
             <motion.div 
@@ -78,7 +79,7 @@ export function Landing() {
                 <div className="p-4 bg-background rounded-full shadow-sm border">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold">{feature.title}</h3>
+                <h3 className="text-xl font-sans font-medium">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">
                   {feature.description}
                 </p>

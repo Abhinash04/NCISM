@@ -1,0 +1,73 @@
+{
+  "id": "punitive-2026",
+  "title": "Punitive policy adopted to be imposed on the ASU colleges for the academic session 2026-27",
+  "approvedBy": "160th Board meeting, MARB-ISM",
+  "session": "2026-27",
+  "entries": {
+    "aebas": {
+      "type": "denial",
+      "description": "AEBAS not implemented, partially implemented or improperly functional -> denial of permission for the concerned academic year"
+    },
+    "teaching-faculty": {
+      "type": "seat-reduction-percent-per-deficient",
+      "percentPerDeficient": 5,
+      "description": "For each deficient teaching faculty, reduce intake strength by 5% of total intake capacity"
+    },
+    "teaching-department-empty": {
+      "type": "denial",
+      "description": "Denial of permission if any teaching department has not even a single teaching faculty during assessment"
+    },
+    "non-teaching": {
+      "type": "seat-reduction-table",
+      "description": "Seat reduction for deficiency in non-teaching staff (excluding Group D staff)",
+      "table": [
+        { "postMatch": "Librarian", "seats": 1, "perDeficient": 1 },
+        { "postMatch": "Laboratory Technician", "seats": 1, "perDeficient": 2 }
+      ],
+      "default": { "seats": 0 }
+    },
+    "hospital-staff": {
+      "type": "seat-reduction-table",
+      "description": "Seat reduction for deficiency in hospital staff (excluding Group D staff)",
+      "table": [
+        { "postMatch": "DMS", "seats": 1, "perDeficient": 1 },
+        { "postMatch": "Matron", "seats": 1, "perDeficient": 1 },
+        { "postMatch": "EMO", "seats": 1, "perDeficient": 1 },
+        { "postMatch": "RMO", "seats": 1, "perDeficient": 2 },
+        { "postMatch": "RSO", "seats": 1, "perDeficient": 2 },
+        { "postMatch": "MO", "seats": 1, "perDeficient": 2 },
+        { "postMatch": "Staff Nurse", "seats": 1, "perDeficient": 3 },
+        { "postMatch": "Pharmacist", "seats": 1, "perDeficient": 2 },
+        { "postMatch": "Lab Technician", "seats": 1, "perDeficient": 2 }
+      ],
+      "default": { "seats": 0 }
+    },
+    "central-registration": {
+      "type": "seat-reduction-fixed",
+      "seats": 1,
+      "description": "Non-availability of Computerized Central Registration system -> reduce intake strength by one seat"
+    },
+    "opd-average": {
+      "type": "seat-reduction-per-deficiency-percent",
+      "seats": 1,
+      "perDeficiencyPercent": 10,
+      "description": "For every 10% deficiency in average attendance of patients in OPD per day -> one seat"
+    },
+    "bed-occupancy": {
+      "type": "seat-reduction-per-deficiency-percent",
+      "seats": 1,
+      "perDeficiencyPercent": 1,
+      "description": "For every 1% deficiency in bed occupancy -> one seat"
+    },
+    "hospital-functionality": {
+      "type": "seat-reduction-percent-of-intake",
+      "percent": 30,
+      "description": "Deficiency in functionality of hospital -> reduce intake strength by 30%"
+    }
+  },
+  "aggregation": {
+    "combine": "sum",
+    "denialThresholdPercentOfIntake": 50,
+    "description": "All deficiencies are added; if the calculated seat reduction exceeds 50% of intake the college is denied permission for the academic session"
+  }
+}

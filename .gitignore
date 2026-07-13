@@ -47,6 +47,8 @@ $RECYCLE.BIN/
 
 # Node
 node_modules/
+backend/temp/
+backend/uploads/
 frontend/dist/
 frontend/build/
 frontend/.next/

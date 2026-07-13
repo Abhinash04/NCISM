@@ -1,0 +1,18 @@
+{
+  "id": "mesar-ug-ayurveda-2024",
+  "version": "v1",
+  "title": "Minimum Essential Standards, Assessment and Rating for Undergraduate Ayurveda Colleges and Attached Teaching Hospitals Regulations, 2024",
+  "system": "Ayurveda",
+  "course": "UG (BAMS)",
+  "supportedIntakes": [50, 60, 100],
+  "ruleFiles": [
+    "rules/infrastructure.rules.json",
+    "rules/library.rules.json",
+    "rules/herbal-garden.rules.json",
+    "rules/compliance.rules.json",
+    "rules/staffing.rules.json",
+    "rules/hospital.rules.json"
+  ],
+  "punitivePolicy": "punitive-policy-2026.json",
+  "notes": "Threshold values for the 100-seat intake come from MESAR (UG) Ayurveda 2024 checks already encoded in the legacy demo. Values for other intakes seed from the legacy demo's non-100 branch pending dual-entry re-keying of the MESAR schedules (handoff gap HG-04)."
+}

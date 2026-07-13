@@ -1,0 +1,67 @@
+[
+  {
+    "id": "infra.lecture-hall-area",
+    "category": "infrastructure",
+    "title": "Area of the Common Departments - Lecture Halls",
+    "regulationRef": "Table-1, MESAR (UG) Ayurveda 2024",
+    "parameter": "lectureHallsAreaSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "50": 400, "60": 400, "100": 800 } },
+      "tolerance": { "type": "percentOfExpected", "value": 20 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "common-departments-area",
+      "order": 2,
+      "pass": "fulfilling the criteria.",
+      "fail": "shortcoming of {shortfall} and not fulfilling the criteria and all other departments are fulfilling the required area.",
+      "missing": "Total Area of Lecture Halls could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "infra.lecture-hall-count",
+    "category": "infrastructure",
+    "title": "Lecture Halls",
+    "regulationRef": "Table-1, MESAR (UG) Ayurveda 2024",
+    "parameter": "lectureHallsCount",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 5 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "lecture-halls",
+      "order": 3,
+      "pass": "No. of lecture hall are {actual} against the requirement of {expected} and fulfilling the criteria as per Table-1 of MESAR UG Ayurveda 2024.",
+      "fail": "No. of lecture hall are {actual} against the requirement of {expected} and not fulfilling the criteria as per Table-1 of MESAR UG Ayurveda 2024.",
+      "missing": "Number of lecture halls could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "infra.hospital-constructed-area",
+    "category": "infrastructure",
+    "title": "Constructed area of the hospital",
+    "regulationRef": "Schedule III, MESAR (UG) Ayurveda 2024",
+    "parameter": "constructedAreaHospitalSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "50": 2000, "60": 2000, "100": 3500 } },
+      "tolerance": { "type": "percentOfExpected", "value": 20 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-constructed-area",
+      "order": 14,
+      "pass": "**Constructed area of the hospital is fulfilling the requirement as per MESAR UG Ayurveda 2024**",
+      "fail": "**Constructed area of the hospital is not fulfilling the requirement as per MESAR UG Ayurveda 2024**",
+      "missing": "Constructed area of the hospital could not be determined from the visitation report - manual verification required."
+    }
+  }
+]

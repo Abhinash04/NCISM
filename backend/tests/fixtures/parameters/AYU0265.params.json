@@ -1,0 +1,81 @@
+{
+  "description": "Golden ParameterSet for Raghunath Ayurved Mahavidyalaya & Hospital (AYU0265). Library books/seating fail; every clinical department is short one HF.",
+  "values": {
+    "institutionName": "Raghunath Ayurved Mahavidyalaya & Hospital",
+    "institutionId": "AYU0265",
+    "location": "Contai, West Bengal",
+    "intake": 50,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-Ay.(53)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-05-11",
+    "visitationEndDate": "2026-05-12",
+    "visitors": [
+      { "name": "Dr. Akhilesh Kumar Singh", "id": "V01713" },
+      { "name": "Dr. Ramnihor Tapsi Jaiswal", "id": "V02899" },
+      { "name": "Dr. Pankaj Kumar Singh", "id": "V03315" }
+    ],
+    "constructedAreaCollegeSqm": 3092,
+    "constructedAreaHospitalSqm": 1980,
+    "constructedAreaHerbalSqm": 8093,
+    "lectureHallsAreaSqm": 500,
+    "lectureHallsCount": 5,
+    "librarySittingCapacity": 40,
+    "libraryComputers": 4,
+    "libraryBooks": 7931,
+    "librarySeatingAdequate": false,
+    "herbalSpecies": 250,
+    "aebasImplemented": true,
+    "aebasTeaching": true,
+    "aebasNonTeaching": true,
+    "aebasHospital": true,
+    "websiteFunctional": true,
+    "yogaTeacherAvailable": true,
+    "bioStatisticianAvailable": true,
+    "teachingStaff": {
+      "rows": [
+        { "dept": "Agad Tantra avum Vidhi Vaidyaka", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Prasuti & Stri Roga", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Kaumarbhritya-Bala Roga", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Kayachikitsa", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Shalyatantra", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Shalakya Tantra", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Panchakarma", "requirementText": "1 HF + 1 LF", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" }
+      ],
+      "total": 29,
+      "absent": 0
+    },
+    "nonTeachingStaff": {
+      "rows": [],
+      "total": 70,
+      "absent": 15
+    },
+    "hospitalStaff": {
+      "rows": [],
+      "total": 103,
+      "absent": 34
+    },
+    "opdCount": 9,
+    "opdTotalPatients": 41848,
+    "opdAverageDaily": 139.49,
+    "ipdTotalPatients": 1324,
+    "bedOccupancyPercent": 69.27,
+    "deliveries": 11,
+    "operations": 30,
+    "equipmentMeanPercent": 98.4,
+    "centralRegistrationAvailable": true,
+    "visitorObservations": [
+      "No ICU is available in the hospital.",
+      "Death record and intern duty roasters not available.",
+      "Samhita department does not have a language laboratory."
+    ],
+    "otherObservations": [
+      "Any penalty/legal case pending- No legal case or penalty imposed or pending.",
+      "Rating 2025-26 – not eligible",
+      "Consent of Affiliation 2026-27- Not submitted",
+      "**Compliance report:– Not submitted**",
+      "Visitation fee 2026-27 - Submitted",
+      "Extended Permission & Rating 2026-27 - Not eligible."
+    ]
+  }
+}

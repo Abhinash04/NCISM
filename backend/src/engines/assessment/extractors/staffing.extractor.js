@@ -112,11 +112,23 @@ function extract(markdown, lines, elements) {
 
   const els = textElements(elements);
 
+  // "No of Yoga Teacher : 1" / "No of Biostatistician : 1" — >0 means present.
+  const yoga = findNumberAfter(els, /No of Yoga Teacher\s*:?\s*(\d+)/i);
+  if (yoga) params.yogaTeacherAvailable = found(yoga.value > 0, 'staffing-json', yoga.evidence);
+  const bio = findNumberAfter(els, /No of Bio.?statistician\s*:?\s*(\d+)/i);
+  if (bio) params.bioStatisticianAvailable = found(bio.value > 0, 'staffing-json', bio.evidence);
+
   const teaching = parseTeachingTable(elements);
   if (teaching) {
     const absent = findNumberAfter(els, /teaching staff absent on the visitation day\s+(\d+)/i);
+    // Total from the observation block ("listed by the college"), consistent
+    // with the non-teaching/hospital totals; the table Total row counts only
+    // eligible teachers.
+    const total = findNumberAfter(els, /teaching staff listed by the college\s+(\d+)/i)?.value
+      ?? teaching.total
+      ?? null;
     params.teachingStaff = found(
-      { rows: teaching.rows, total: teaching.total, absent: absent ? absent.value : null },
+      { rows: teaching.rows, total, absent: absent ? absent.value : null },
       'staffing-json',
       `teaching table, ${teaching.rows.length} departments`
     );

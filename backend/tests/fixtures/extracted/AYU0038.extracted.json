@@ -132,7 +132,7 @@
           "existingLecturer": "2"
         }
       ],
-      "total": 47,
+      "total": 49,
       "absent": 0
     },
     "nonTeachingStaff": {
@@ -501,6 +501,8 @@
       "total": 75,
       "absent": 8
     },
+    "yogaTeacherAvailable": true,
+    "bioStatisticianAvailable": true,
     "opdCount": 9,
     "opdTotalPatients": 68465,
     "opdAverageDaily": 228.22,
@@ -508,6 +510,7 @@
     "bedOccupancyPercent": 63.27,
     "deliveries": 2,
     "operations": 2174,
+    "centralRegistrationAvailable": true,
     "hospitalStaff": {
       "rows": [
         {
@@ -747,13 +750,17 @@
     "aebasTeaching": true,
     "aebasNonTeaching": true,
     "aebasHospital": true,
-    "aebasImplemented": true
+    "aebasImplemented": true,
+    "websiteFunctional": true,
+    "visitorObservations": [
+      "There is shortcoming(s) in individual components of constructed area of college. Please refer to Table no. 2.2 or 2.3.",
+      "College's Total eligible HF 30 and eligible LF 17. Shortcoming of HF 1 and LF 3.",
+      "1. null is short by null. 2. null is short by null. 3. Nursing staff is short by 2.",
+      "There is shortcoming in constitution of College Council. Please refer section 2.9 further details."
+    ]
   },
   "missing": [
-    "yogaTeacherAvailable",
-    "bioStatisticianAvailable",
     "equipmentMeanPercent",
-    "centralRegistrationAvailable",
-    "websiteFunctional"
+    "otherObservations"
   ]
 }

@@ -61,7 +61,7 @@ test('hand-verified document values for AYU0659 (guards the fixture itself)', ()
   );
   assert.strictEqual(dept(/Shalakya/).existingLecturer, '0'); // zero-faculty department
   assert.strictEqual(dept(/Agad/).requirementText, '1P And 1R +1L');
-  assert.strictEqual(teaching.total, 40);
+  assert.strictEqual(teaching.total, 42); // "listed by the college" (table Total row counts eligible only = 40)
   assert.strictEqual(teaching.absent, 6);
 
   // Non-teaching + hospital staff

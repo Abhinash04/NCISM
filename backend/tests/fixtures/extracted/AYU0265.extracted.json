@@ -132,7 +132,7 @@
           "existingLecturer": "1"
         }
       ],
-      "total": 29,
+      "total": 38,
       "absent": 8
     },
     "nonTeachingStaff": {
@@ -501,6 +501,8 @@
       "total": 70,
       "absent": 15
     },
+    "yogaTeacherAvailable": true,
+    "bioStatisticianAvailable": false,
     "opdCount": 9,
     "opdTotalPatients": 41848,
     "opdAverageDaily": 139.49,
@@ -508,6 +510,7 @@
     "bedOccupancyPercent": 69.27,
     "deliveries": 11,
     "operations": 30,
+    "centralRegistrationAvailable": true,
     "hospitalStaff": {
       "rows": [
         {
@@ -747,13 +750,24 @@
     "aebasTeaching": true,
     "aebasNonTeaching": false,
     "aebasHospital": false,
-    "aebasImplemented": false
+    "aebasImplemented": false,
+    "websiteFunctional": true,
+    "visitorObservations": [
+      "There is shortcoming(s) in individual components of constructed area of college. Please refer to Table no. 2.2 or 2.3.",
+      "Shortcoming of 20.0",
+      "There is shortcoming(s) in individual components of constructed area of hospital. Please refer to Table no. 5.1.",
+      "College's Total eligible HF 18 and eligible LF 11. Shortcoming of HF 2 and LF 7.",
+      "There is a shortcoming of 1 Biostatisticians.",
+      "1. (Medical In-Patients Section)MTS is short by 1. 2. (Surgical In-Patients Section)MTS is short by 1. 3. Nursing staff (one each for atyayika, Shalya and Prasuti and Streeroga) is short by 1. 4. (Pathya – Diet Section)Incharge(assign additional charge to a Dietician or any teaching faculty member from Swasthavirtadepartment) is short by 1. 5. null is short by null. 6. Multi tasking Staff is short by 1. 7. Lab technician is short by 1. 8. null is short by null.",
+      "Shortcoming of 69 no of books",
+      "Multi tasking Staff,Nursing staff (one each for atyayika, Shalya and Prasuti and Streeroga) Not Available",
+      "There is shortcoming in tracking attendance of Hospital and Non Teaching staff.",
+      "There is shortcoming in constitution of College Council. Please refer section 2.9 further details.",
+      "Updated details of non-teaching staff not available in the website"
+    ]
   },
   "missing": [
-    "yogaTeacherAvailable",
-    "bioStatisticianAvailable",
     "equipmentMeanPercent",
-    "centralRegistrationAvailable",
-    "websiteFunctional"
+    "otherObservations"
   ]
 }

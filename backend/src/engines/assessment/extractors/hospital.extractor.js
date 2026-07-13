@@ -126,7 +126,12 @@ function extract(markdown, lines, elements) {
       : missing();
   }
 
-  params.centralRegistrationAvailable = missing();
+  // "Computerized Central Registration | | Available |" (functioning table)
+  const crRow = rows.find((r) => /central registration/i.test((r.cells || []).map(textOf).join(' ')));
+  params.centralRegistrationAvailable = crRow
+    ? found(/available|yes|functional/i.test((crRow.cells || []).map(textOf).join(' ')), 'hospital-json', 'central registration row')
+    : missing();
+
   params.hospitalStaff = missing();
 
   if (elements) {

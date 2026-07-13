@@ -132,7 +132,7 @@
           "existingLecturer": "2"
         }
       ],
-      "total": 40,
+      "total": 42,
       "absent": 6
     },
     "nonTeachingStaff": {
@@ -333,6 +333,8 @@
       "total": 45,
       "absent": 3
     },
+    "yogaTeacherAvailable": true,
+    "bioStatisticianAvailable": true,
     "opdCount": 9,
     "opdTotalPatients": 62434,
     "opdAverageDaily": 208.11,
@@ -341,6 +343,7 @@
     "deliveries": 3,
     "operations": 4877,
     "equipmentMeanPercent": 97.59,
+    "centralRegistrationAvailable": true,
     "hospitalStaff": {
       "rows": [
         {
@@ -600,12 +603,21 @@
     "aebasTeaching": true,
     "aebasNonTeaching": false,
     "aebasHospital": false,
-    "aebasImplemented": false
+    "aebasImplemented": false,
+    "websiteFunctional": true,
+    "visitorObservations": [
+      "There is shortcoming(s) in individual components of constructed area of college. Please refer to Table no. 2.2 or 2.3.",
+      "shortcoming of 1 Lecture halls.",
+      "College's Total eligible HF 19 and eligible LF 21. Shortcoming of HF 10 and LF 1.",
+      "Required staff is not available in every department. Please refer to table no 3.1.",
+      "1. Herbal Garden has 1 less Multipurpose worker Please refer to table 4.1 for more details.",
+      "1. Resident Medical Officers or Surgical or Medical Officer or Clinical Registrar(RMO or RSO or MO or CR) is short by 2.",
+      "Instruments/Equipments are not available in some sections. Please refer Table 7.1.",
+      "There is shortcoming in tracking attendance of Hospital and Non Teaching staff.",
+      "There is shortcoming in constitution of College Council. Please refer section 2.9 further details."
+    ]
   },
   "missing": [
-    "yogaTeacherAvailable",
-    "bioStatisticianAvailable",
-    "centralRegistrationAvailable",
-    "websiteFunctional"
+    "otherObservations"
   ]
 }

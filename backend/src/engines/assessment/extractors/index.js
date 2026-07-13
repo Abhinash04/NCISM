@@ -5,8 +5,9 @@ const herbalGarden = require('./herbal-garden.extractor');
 const staffing = require('./staffing.extractor');
 const hospital = require('./hospital.extractor');
 const aebas = require('./aebas.extractor');
+const observations = require('./observations.extractor');
 
-const extractors = [institution, infrastructure, library, herbalGarden, staffing, hospital, aebas];
+const extractors = [institution, infrastructure, library, herbalGarden, staffing, hospital, aebas, observations];
 
 /**
  * Runs every extractor over the reconstructed markdown and the element JSON

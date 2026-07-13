@@ -50,6 +50,13 @@ function extract(markdown, lines, elements) {
     params.aebasImplemented = found(implemented, 'aebas-json', 'derived from the three section-2.8 answers');
   }
 
+  // "Is the College Website Functional : Yes" (section 2.9)
+  const site = els.find((e) => /Is the College Website Functional/i.test(normText(e)));
+  if (site) {
+    const yes = /:\s*Yes/i.test(normText(site));
+    params.websiteFunctional = found(yes, 'aebas-json', normText(site).slice(0, 60));
+  }
+
   return params;
 }
 

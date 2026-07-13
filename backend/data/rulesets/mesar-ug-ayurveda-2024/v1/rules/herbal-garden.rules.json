@@ -1,0 +1,23 @@
+[
+  {
+    "id": "herbal.species",
+    "category": "herbal-garden",
+    "title": "Herbal Garden - number of species",
+    "regulationRef": "Sub-regulation 6(C) of regulation 19, MESAR (UG) Ayurveda 2024",
+    "parameter": "herbalSpecies",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 200 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "herbal-garden",
+      "order": 7,
+      "pass": "Number of species is {actual} and fulfilling the criteria as per sub-regulation 6 (C) of regulation 19 of MESAR (UG) Ayurveda 2024.",
+      "fail": "Number of species is {actual} against the requirement of {expected} and not fulfilling the criteria as per sub-regulation 6 (C) of regulation 19 of MESAR (UG) Ayurveda 2024.",
+      "missing": "Number of herbal garden species could not be determined - manual verification required."
+    }
+  }
+]

@@ -1,0 +1,84 @@
+{
+  "description": "Golden ParameterSet for Sardar Patel Ayurvedic Medical College (AYU0659), transcribed from the MARB reference assessment. Keys omitted from 'values' are treated as missing parameters.",
+  "values": {
+    "institutionName": "Sardar Patel Ayurvedic Medical College & Hospital",
+    "institutionId": "AYU0659",
+    "location": "Sardar Patel Knowledge City Waraseoni Road, Dongariya, Post Chillod, Tehsil Lalbaurra, Distt. Balaghat, Madhya Pradesh",
+    "intake": 100,
+    "academicYear": "2025-26",
+    "fileNo": "3-4/MARB/2025-Ay.(53)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2025-04-15",
+    "visitationEndDate": "2025-04-16",
+    "visitors": [
+      { "name": "Dr. Monika Asthana", "id": "V01408" },
+      { "name": "Dr. Srihari S", "id": "V02688" },
+      { "name": "Dr. Shobha Ramappa Ithal", "id": "V02693" }
+    ],
+    "constructedAreaCollegeSqm": 4585.59,
+    "constructedAreaHospitalSqm": 3752,
+    "constructedAreaHerbalSqm": 4110,
+    "lectureHallsAreaSqm": 602.52,
+    "lectureHallsCount": 4,
+    "librarySittingCapacity": 56,
+    "libraryComputers": 12,
+    "libraryBooks": 11964,
+    "librarySeatingAdequate": true,
+    "herbalSpecies": 251,
+    "aebasImplemented": true,
+    "aebasTeaching": true,
+    "aebasNonTeaching": true,
+    "aebasHospital": true,
+    "websiteFunctional": true,
+    "yogaTeacherAvailable": true,
+    "bioStatisticianAvailable": true,
+    "teachingStaff": {
+      "rows": [
+        { "dept": "Agad Tantra avum Vidhi Vaidyaka", "requirementText": "1P And 1R +1L", "existingProfessor": "0", "existingReader": "1", "existingLecturer": "1" },
+        { "dept": "Prasuti & Stri Roga", "requirementText": "1P And 1R +2L", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "2" },
+        { "dept": "Kaumarbhritya-Bala Roga", "requirementText": "1P And 1R +1L", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "1" },
+        { "dept": "Kayachikitsa", "requirementText": "1P And 1R +2L", "existingProfessor": "0+1vo", "existingReader": "0", "existingLecturer": "2" },
+        { "dept": "Shalyatantra", "requirementText": "1P And 1R +1L", "existingProfessor": "1", "existingReader": "0", "existingLecturer": "3" },
+        { "dept": "Shalakya Tantra", "requirementText": "1P And 1R +1L", "existingProfessor": "0", "existingReader": "0", "existingLecturer": "0" }
+      ],
+      "total": 42,
+      "absent": 6
+    },
+    "nonTeachingStaff": {
+      "rows": [
+        { "dept": "Herbal Garden", "post": "Multipurpose Worker", "required": 2, "existing": 1 }
+      ],
+      "total": 45,
+      "absent": 3
+    },
+    "hospitalStaff": {
+      "rows": [
+        { "post": "RMO or RSO or MO or CR", "required": 9, "existing": 7 }
+      ],
+      "total": 107,
+      "absent": 22
+    },
+    "opdCount": 9,
+    "opdTotalPatients": 62434,
+    "opdAverageDaily": 208.11,
+    "ipdTotalPatients": 4737,
+    "bedOccupancyPercent": 57.56,
+    "deliveries": 3,
+    "operations": 4877,
+    "equipmentMeanPercent": 97.59,
+    "centralRegistrationAvailable": true,
+    "visitorObservations": [
+      "No ICU is available in the hospital.",
+      "Death record and intern duty roasters not available.",
+      "Samhita department does not have a language laboratory."
+    ],
+    "otherObservations": [
+      "Any penalty/legal case pending- No legal case or penalty imposed or pending.",
+      "Rating 2025-26 – not eligible",
+      "Consent of Affiliation 2026-27- Not submitted",
+      "**Compliance report:– Not submitted**",
+      "Visitation fee 2026-27 - Submitted",
+      "Extended Permission & Rating 2026-27 - Not eligible."
+    ]
+  }
+}

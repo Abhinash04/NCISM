@@ -1,50 +1,161 @@
-# NCISM Document Intelligence — Phase 1
+# NCISM Assessment Platform
 
-Base document-intelligence platform for the MARB-ISM assessment workflow:
-upload NCISM visitation documents (PDF, DOCX, XLSX), run a staged extraction
-pipeline (classification → pdfplumber + PyMuPDF → normalization → merge →
-MarkItDown → structurer → OpenDataLoader-PDF → validation), and inspect the
-results — including every preserved intermediate artifact — in a two-pane
-document workspace.
+Document assessment platform for the **Medical Assessment and Rating Board (MARB-ISM)** of the
+National Commission for Indian System of Medicine. Upload a college inspection report (PDF),
+extract it with structure preserved, and generate a deterministic MARB-format compliance
+assessment against NCISM MESAR regulations.
 
-Phase 1 scope only — no rule engine, no assessment generation, no
-authentication, no OCR (extension points exist for all of them).
-Full documentation: [docs/phase1/](docs/phase1/).
+This is the **foundation release**: extraction pipeline, rule-engine skeleton with versioned
+rulesets, MARB report generation, and a document workspace UI. Authentication, organizations,
+workflows and the other platform modules are designed-for extension points (see
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)).
 
-## Architecture
+## Stack
 
-- **frontend/** — React 19 + JavaScript + Vite + shadcn/ui + Tailwind.
-  All persistence is client-side in IndexedDB via Dexie (POC decision):
-  document records, extraction results and the PDF blobs themselves.
-- **python-service/** — stateless FastAPI extraction service. Receives a
-  PDF, runs the pipeline, returns the extraction JSON (with every preserved
-  stage artifact); stores nothing.
+- **Backend** — Node.js / Express 5 (`backend/`): clean-architecture layers, disk-backed job
+  repository, staged extraction engine (OpenDataLoader-PDF CLI + Docling hybrid + semantic
+  reconstruction), deterministic assessment engine (rules-as-data).
+- **Frontend** — React 19 + Vite (`frontend/`): TanStack Query data layer, Dexie (IndexedDB)
+  persistence, shadcn/ui + Tailwind with the warm-canvas design system from `DESIGN.md`.
 
-## Prerequisites
+## Running the application
 
-- Node 18+ and Python 3.10+.
-- **Java 11+** (a JRE/JDK on `PATH`) — required by the OpenDataLoader-PDF
-  stage. If Java is absent the pipeline still runs and degrades gracefully:
-  the validation stage falls back to the structurer / MarkItDown markdown.
+The default stack is **2 terminals** — backend and frontend. The Docling hybrid server is
+only needed when `EXTRACTION_MODE=hybrid` (scanned or borderless documents; see
+[Extraction modes](#extraction-modes)).
 
-## Running locally
+| Terminal | Service | Port | Required |
+| --- | --- | --- | --- |
+| 1 | Backend API (Express) | 3000 | Yes |
+| 2 | Frontend (Vite dev server) | 5173 | Yes |
+| 3 | Docling hybrid server | 5002 | Only for `EXTRACTION_MODE=hybrid` |
 
-### 1. Extraction service (port 8000)
+### One-time setup
 
-```powershell
-cd python-service
-python -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000
-```
+- **Node.js 20+** and **Java 11+** installed.
+- [OpenDataLoader-PDF](https://github.com/opendataloader-project/opendataloader-pdf) CLI
+  installed via pip (it wraps the Java core).
+- Backend:
+  ```bash
+  cd backend
+  cp .env.example .env     # set OPENDATALOADER_CLI_PATH if the CLI is not at
+                           # D:\opendataloader-pdf\.venv\Scripts\opendataloader-pdf.exe
+  npm install
+  ```
+- Frontend:
+  ```bash
+  cd frontend
+  npm install              # VITE_API_URL is preset in .env.local
+  ```
 
-### 2. Frontend (port 5173)
+### Terminal 1 — Backend API
 
-```powershell
-cd frontend
-npm install
+```bash
+cd backend
 npm run dev
 ```
 
-Open http://localhost:5173, upload a PDF from `All data/Part-3 colleges/`
-(or a DOCX/XLSX from `All data/`), open it and click **Process document**.
+Wait for `[Server] Backend listening at http://localhost:3000`.
+
+### Terminal 2 — Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open **http://localhost:5173**. The status badge in the header shows **Online**.
+
+### Terminal 3 — Docling hybrid server (only for `EXTRACTION_MODE=hybrid`)
+
+```powershell
+cd D:\opendataloader-pdf\python\opendataloader-pdf
+.\.venv\Scripts\activate
+opendataloader-pdf-hybrid --port 5002
+```
+
+Wait for `Uvicorn running on http://0.0.0.0:5002`. In hybrid mode the badge shows
+**Degraded** while this server is down (extraction still works via base-engine fallback,
+and pages the hybrid backend drops are automatically re-extracted and merged).
+
+## Extraction modes
+
+`EXTRACTION_MODE` in `backend/.env` selects the pipeline:
+
+- **`fast` (default)** — the native OpenDataLoader Java engine only. Benchmarked on the
+  AYU0659 sample (`npm run check:benchmark`): **3.2s, 20/20 pages, 32/32 assessment
+  parameters extracted correctly**. Born-digital NCISM reports have ruled, bordered vector
+  tables — exactly what the deterministic border-analysis engine handles; every golden test
+  and extractor in this repo is calibrated against this output.
+- **`hybrid`** — routes complex pages through the Docling AI backend. Intended for scanned
+  or borderless documents. On the same sample: 34s, 15/20 pages (GPU memory failures on
+  background-image-heavy pages), 16/32 parameters — do not enable it for standard NCISM
+  reports. If enabled, re-validate extraction quality with `npm run check:benchmark`.
+
+## Using the application
+
+The flow follows an enterprise document-management pattern:
+**Dashboard → Documents → Document Details → dedicated artifact pages.**
+
+1. **Upload** — open the Dashboard and drag-and-drop a PDF inspection report into the
+   upload zone (sample reports live in `All data/Part-3 colleges/`). Extraction takes a
+   few seconds to about a minute; OpenDataLoader preserves structure (headings, tables
+   with merged cells, reading order).
+2. **Document Details** — after processing you land on `/documents/:id`: summary cards
+   (status, pages, engine, processing time, validation, assessment status), any
+   extraction warnings, and an **artifacts table** with an Open button per artifact.
+3. **Artifact pages** — each artifact opens on its own full-width page with breadcrumbs:
+   - **Original PDF** — pagination, zoom, rotate, download.
+   - **Extracted Text** — the raw markdown source with copy/download and word wrap.
+   - **Structure View** — the rendered document with in-document search (match counter,
+     next/previous), font size, markdown/PDF downloads and a table of contents.
+   - **Metadata** — file details plus the element JSON produced by the engine.
+   - **Pipeline** — processing stage timeline, execution time, validation warnings,
+     extraction statistics and artifact downloads.
+4. **Assessment Report** — open the report page and click **Generate Report**. The
+   deterministic rule engine evaluates the extracted parameters against the MESAR (UG)
+   Ayurveda 2024 ruleset and the Board-approved punitive policy, and renders the report
+   in the official MARB-ISM format: institution header, visitors table, numbered
+   compliance findings, teaching/non-teaching/hospital staff shortcoming tables with
+   punitive actions, hospital functionality metrics, and a punitive action summary
+   (seat reductions or denial of permission). Values the system cannot verify from the
+   document are flagged "manual verification required" — never invented. Download the
+   report as markdown or print it directly from the page.
+5. **Documents & persistence** — the Documents page lists every processed document.
+   Artifacts persist in the browser's local store, so documents remain viewable even
+   after the server's 24-hour job retention purge.
+
+## Test & checks
+
+```bash
+cd backend
+npm test                     # golden assessment + extractor + reconstruction regression suites
+npm run check:extraction     # full pipeline on a sample PDF (accepts a path argument)
+npm run check:assessment     # engine on golden parameters or a markdown file
+```
+
+Golden fixtures live in `backend/tests/fixtures/` — three real colleges (AYU0659, AYU0265,
+AYU0038) with hand-verified parameters, expected reports, and pre-refactor extraction baselines.
+
+## API (`/api/v1`)
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /health` | `{status: ok\|degraded, services:{api, extractor}}` |
+| `POST /extract` | multipart `file` (PDF) → `{success, job}` |
+| `GET /jobs/:jobId` | canonical job DTO with artifact URLs |
+| `GET /jobs/:jobId/artifacts/:type` | `pdf\|markdown\|json\|html\|report\|assessment`; `?download=1` for attachment |
+| `POST /assessments` | `{jobId, rulesetId?, rulesetVersion?}` → `{assessment:{result, reportMarkdown}, job}` |
+
+## Repository map
+
+```
+backend/            Express API, engines, rulesets (see docs/ARCHITECTURE.md)
+frontend/           React SPA
+docs/ARCHITECTURE.md   authoritative architecture reference
+docs/srs/           domain SRS suite (entities, workflows, roles, gap analysis)
+docs/archive/       superseded planning/handoff documents
+All data/           source domain documents (regulations, filled reports, formats)
+markdown/           extracted counterparts of All data/ (regulations, target report format)
+DESIGN.md           visual design system the frontend theme derives from
+```

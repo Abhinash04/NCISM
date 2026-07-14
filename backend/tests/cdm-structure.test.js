@@ -33,6 +33,13 @@ const mdWB = render(buildCdm(
   JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'markdown', 'AYUWB.elements.json'), 'utf8'))
 ));
 
+// A live AYU0659 extraction whose §3.3–3.6 are list items with the data list
+// NESTED inside the title item — the shape that duplicated (bbox-less headings)
+// and dropped the §3.4 data.
+const mdLive = render(buildCdm(
+  JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'markdown', 'AYU0659-live.elements.json'), 'utf8'))
+));
+
 test('sub-heading renders before its table (no block displacement)', () => {
   const h21 = md.indexOf('2.1 Constructed Area College Details');
   const table21 = md.indexOf('Total Land Area', h21);
@@ -112,6 +119,17 @@ test('§3.6 board value sits under its own header, Central-Reg column reserved (
   // "Central Registration Number" keeps its own (empty) trailing column.
   assert.ok(/colspan="\d+">Name of Teacher.*State Board<\/th>\s*<th>Central Registration Number<\/th>/s.test(region),
     'merged name/state/board header colspans; Central-Reg header is a separate trailing column');
+});
+
+test('live doc: §3.3–3.6 render exactly once (no duplication) and §3.4 data survives', () => {
+  for (const h of ['3.3 Visitor', '3.4 Visitors', '3.5 Reasons for Ineligibility', '3.6 Discrepancy']) {
+    const n = (mdLive.match(new RegExp(h.replace(/[.]/g, '\\.').replace(/ /g, '\\s'), 'g')) || []).length;
+    assert.strictEqual(n, 1, `${h} must appear exactly once, got ${n}`);
+  }
+  // §3.4 absence rows are nested inside the title item — must be recovered + tabled.
+  const region = sliceIn(mdLive, '3.4 Visitors', '3.5 Reasons');
+  assert.ok(region.includes('<table>') && /AMOL R\. RAJENIMBALKAR/.test(region) && /Informed Leave/.test(region),
+    '§3.4 nested absence data is recovered into a table');
 });
 
 test('§4.2 non-teaching observation is a single-value occurrence table', () => {

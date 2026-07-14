@@ -164,9 +164,13 @@ function classifyTextBlock(elements) {
   const withBbox = elements.filter((e) => e['bounding box']);
   if (withBbox.length < 2) return elements; // Not enough for regrouping
 
-  // Group elements by page first
+  // Group elements by page first. Only elements WITH a bounding box are
+  // clustered here; bbox-less elements are emitted once via `noBbox` below.
+  // (Including them here too double-emitted every bbox-less block — e.g. the
+  // numbered-title heading blocks produced by the spatial table builder.)
   const byPage = new Map();
   for (const el of elements) {
+    if (!el['bounding box']) continue;
     const page = el['page number'] || 1;
     if (!byPage.has(page)) byPage.set(page, []);
     byPage.get(page).push(el);

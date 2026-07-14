@@ -110,18 +110,34 @@ function toLines(blocks) {
     } else if (block.type === 'list') {
       const items = block['list items'] || block.items || [];
       if (!items.length || !items.every((it) => bboxOf(it))) { lines.push({ passthrough: block, oi }); return; }
-      for (const it of items) {
-        lines.push({
-          text: (it.content || '').replace(/\s+/g, ' ').trim(),
-          x: xLeft(it), yT: yTop(it), yB: yBot(it),
-          page: block['page number'] || 1, kind: 'item', oi,
-        });
-      }
+      pushNodeLines(items, block['page number'] || 1, oi, 'item', lines);
     } else {
       lines.push({ passthrough: block, oi });
     }
   });
   return lines;
+}
+
+/**
+ * Emits a positioned line per list item and RECURSES into each item's nested
+ * kids (a sub-list or trailing paragraphs). NCISM proformas nest a table's
+ * data list inside the title's list-item (§3.4 absence rows live under the
+ * "3.4 … Sr. No. …" item); without recursion that data is silently dropped.
+ */
+function pushNodeLines(nodes, page, oi, kind, lines) {
+  for (const node of nodes) {
+    const box = bboxOf(node);
+    if ((node.content || '').trim() && box) {
+      lines.push({
+        text: node.content.replace(/\s+/g, ' ').trim(),
+        x: xLeft(node), yT: yTop(node), yB: yBot(node), page, kind, oi,
+      });
+    }
+    for (const kid of node.kids || []) {
+      if (kid.type === 'list') pushNodeLines(kid['list items'] || kid.items || [], page, oi, 'item', lines);
+      else pushNodeLines([kid], page, oi, kid.type === 'heading' ? 'heading' : 'para', lines);
+    }
+  }
 }
 
 /**
@@ -380,17 +396,20 @@ function reconstructTables(blocks) {
     byPage.get(line.page).push(line);
   }
 
-  // One reading-order stream of rows AND pass-throughs (a real table / image
-  // between two inline regions must reset the current region — otherwise the
-  // §4.1 title + tables would bleed into §4.2's header band).
+  // One reading-order stream of rows AND pass-throughs, ordered by (page, then
+  // y top-down). Geometry — not document/block index — is reading order: two
+  // spatially-overlapping lists (a §3.4 title list + its data list) interleave
+  // correctly by y, and a real table / image between two inline regions still
+  // resets the current region.
+  const ptYTop = (b) => { const bb = b['bounding box']; return bb ? Math.max(bb[1], bb[3]) : Infinity; };
   const stream = [];
-  for (const page of [...byPage.keys()].sort((a, b) => a - b)) {
+  for (const page of byPage.keys()) {
     for (const row of clusterLinesIntoRows(byPage.get(page))) {
-      stream.push({ row, oi: Math.min(...row.cells.map((c) => c.oi)) });
+      stream.push({ row, page, y: row.yT });
     }
   }
-  for (const pt of passthroughs) stream.push({ passthrough: pt.block, oi: pt.oi });
-  stream.sort((a, b) => a.oi - b.oi);
+  for (const pt of passthroughs) stream.push({ passthrough: pt.block, page: pt.block['page number'] || 1, y: ptYTop(pt.block) });
+  stream.sort((a, b) => (a.page - b.page) || (b.y - a.y));
 
   const emitted = [];
   let headerCells = [];
@@ -426,14 +445,23 @@ function reconstructTables(blocks) {
       continue;
     }
     const row = item.row;
-    // A numbered sub-section title emitted as a paragraph ("4.2 Non-Teaching
-    // Staff … - Observation by the visitors") is a heading, not a table header:
-    // break the region and render it as a heading.
+    // A numbered sub-section title emitted as a paragraph/list-item ("4.2 Non-
+    // Teaching Staff …", or "3.4 … Absence Sr. No. Name of Absent Teacher …")
+    // is a heading, not a table header: break the region and render it as a
+    // heading. If a table header is concatenated into it, split that out as a
+    // header line so the following serial rows reconstruct into a table.
     if (row.cells.length === 1 && /^\d+(?:\.\d+)+[\s.):-]/.test(rowText(row).trim())) {
       flush();
       const c = row.cells[0];
-      const level = Math.min(rowText(row).trim().match(/^\d+(?:\.\d+)+/)[0].split('.').length + 1, 6);
-      emitted.push({ block: { type: 'heading', level, content: c.text, 'page number': c.page }, oi: c.oi });
+      const full = c.text.trim();
+      const embedded = full.match(/^(.*?\S)\s+(Sr\.?\s*No\.?\b.*)$/i);
+      const titleText = embedded ? embedded[1] : full;
+      const level = Math.min(titleText.match(/^\d+(?:\.\d+)+/)[0].split('.').length + 1, 6);
+      emitted.push({
+        block: { type: 'heading', level, content: titleText, 'bounding box': [c.x, c.yB, c.x, c.yT], 'page number': c.page },
+        oi: c.oi,
+      });
+      if (embedded) headerCells.push({ text: embedded[2], x: c.x, yT: c.yT, yB: c.yB, page: c.page, oi: c.oi });
       continue;
     }
     if (isDataRow(row)) {
@@ -468,7 +496,8 @@ function reconstructTables(blocks) {
   }
   flush();
 
-  return emitted.sort((a, b) => a.oi - b.oi).map((e) => e.block);
+  // Emitted in the reading order the stream was processed in — no re-sort.
+  return emitted.map((e) => e.block);
 }
 
 /** Turns a leftover line back into a paragraph block. */

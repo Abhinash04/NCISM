@@ -101,11 +101,14 @@ function expandToGrid(rows) {
       // Place the cell
       for (let cs = 0; cs < colSpan && cellIdx + cs < maxCols; cs++) {
         gridRow[cellIdx + cs] = {
-          text: cs === 0 ? text : text, // All spanning cells get the text
+          text, // all spanning columns carry the text
           rowSpan,
           colSpan,
           isHeader,
-          isCarryForward: false,
+          // The origin column (cs === 0) owns the span; continuation columns
+          // are carry-forwards so the renderer can skip them and emit a single
+          // <th/td colspan=N> instead of N duplicated cells.
+          isCarryForward: cs !== 0,
           originalCell: cell,
         };
 
@@ -233,6 +236,17 @@ function normalizeTable(tableElement) {
     headerTree: headerGrid.map((row) => row.map((c) => c?.text || '')),
     columns,
     grid: grid.map((row) => row.map((c) => c?.text || '')),
+    // Span-aware grid + header-row count: lets the renderer emit proper
+    // rowspan/colspan HTML (merged multi-row headers) instead of duplicating
+    // spanned cells. Stripped of originalCell refs to stay JSON-portable.
+    gridCells: grid.map((row) => row.map((c) => ({
+      text: c?.text || '',
+      rowSpan: c?.rowSpan || 1,
+      colSpan: c?.colSpan || 1,
+      isHeader: !!c?.isHeader,
+      isCarryForward: !!c?.isCarryForward,
+    }))),
+    headerRowCount,
     rows: dataRows,
     notes: [],
     page: tableElement['page number'] || 1,
@@ -297,9 +311,12 @@ function stitchTables(blocks) {
       pendingTable.rows = [...pendingTable.rows, ...block.rows];
       pendingTable.stitchedFrom.push(block.page);
       // Extend the grid (skip header rows of the continuation)
-      const contHeaderCount = block.headerTree?.length || 1;
+      const contHeaderCount = block.headerRowCount || block.headerTree?.length || 1;
       const contDataGrid = block.grid.slice(contHeaderCount);
       pendingTable.grid = [...pendingTable.grid, ...contDataGrid];
+      if (pendingTable.gridCells && block.gridCells) {
+        pendingTable.gridCells = [...pendingTable.gridCells, ...block.gridCells.slice(contHeaderCount)];
+      }
     } else {
       result.push(pendingTable);
       pendingTable = { ...block, stitchedFrom: [block.page] };

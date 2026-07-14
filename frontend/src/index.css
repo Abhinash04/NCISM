@@ -93,19 +93,74 @@
 
 /* Assessment report printing: only the report body reaches paper. */
 @media print {
+  /* Hide UI elements */
   .print-hide,
   aside,
   nav,
   header {
     display: none !important;
   }
-  .print-area {
-    overflow: visible !important;
-    border: none !important;
-  }
+
+  /* Unconstrain heights and overflows on all layout ancestors of print-area */
+  html,
+  body,
+  #root,
+  #root > div,
   main,
-  body {
+  .relative,
+  .flex-1,
+  .h-screen,
+  .h-full,
+  .overflow-hidden,
+  .overflow-auto,
+  .overflow-y-auto {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
-    background: white !important;
+    position: relative !important;
+  }
+
+  /* Format print-area specifically */
+  .print-area {
+    position: relative !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  /* Force all children inside print-area to have visible overflow */
+  .print-area * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* High contrast colors for print */
+  :root, .dark {
+    --background: 0 0% 100% !important;
+    --foreground: 0 0% 0% !important;
+    --card: 0 0% 100% !important;
+    --muted: 0 0% 95% !important;
+    --muted-foreground: 0 0% 20% !important;
+    --border: 0 0% 80% !important;
+  }
+
+  /* Avoid page breaks inside tables, rows, images and headers */
+  tr {
+    page-break-inside: avoid !important;
+  }
+  thead {
+    display: table-header-group !important;
+  }
+  img {
+    page-break-inside: avoid !important;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
+

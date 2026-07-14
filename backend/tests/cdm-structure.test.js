@@ -17,11 +17,21 @@ const md = render(buildCdm(
 
 /** Returns the substring of the render between two section anchors. */
 function slice(startAnchor, endAnchor) {
-  const s = md.indexOf(startAnchor);
-  assert.ok(s >= 0, `anchor not found: ${startAnchor}`);
-  const e = endAnchor ? md.indexOf(endAnchor, s + startAnchor.length) : md.length;
-  return md.slice(s, e < 0 ? md.length : e);
+  return sliceIn(md, startAnchor, endAnchor);
 }
+
+function sliceIn(text, startAnchor, endAnchor) {
+  const s = text.indexOf(startAnchor);
+  assert.ok(s >= 0, `anchor not found: ${startAnchor}`);
+  const e = endAnchor ? text.indexOf(endAnchor, s + startAnchor.length) : text.length;
+  return text.slice(s, e < 0 ? text.length : e);
+}
+
+// A second college (West Bengal) whose proforma merges the table header INTO
+// the section heading (§3.3/§3.4) — a shape the AYU0659 fixture never has.
+const mdWB = render(buildCdm(
+  JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'markdown', 'AYUWB.elements.json'), 'utf8'))
+));
 
 test('sub-heading renders before its table (no block displacement)', () => {
   const h21 = md.indexOf('2.1 Constructed Area College Details');
@@ -84,6 +94,24 @@ test('§3.6 splits Institute State from Name of State Board', () => {
   const region = slice('3.6 Discrepancy of Teaching', 'Hospital staff');
   assert.ok(/<td>SHRADHA BHARDWAJ<\/td>\s*<td>AYSS01576<\/td>\s*<td>Madhya Pradesh<\/td>\s*<td>Chhattisgarh/.test(region),
     'name | id | state | board are four separate cells (per-cell split, not merged)');
+});
+
+test('§3.3/§3.4 header merged into the heading is split into a table (WB doc)', () => {
+  for (const [head, next] of [['3.3 Visitor', '3.4 Visitors'], ['3.4 Visitors', '3.5 Reasons']]) {
+    const region = sliceIn(mdWB, head, next);
+    const headingLine = region.slice(0, region.indexOf('\n'));
+    assert.ok(!/Sr\.?\s*No/i.test(headingLine), `${head} heading dropped the embedded column header: ${headingLine}`);
+    assert.ok(region.includes('<table>') && /<th[^>]*>\s*Sr\.?\s*No/i.test(region),
+      `${head} reconstructs into a table with a serial column`);
+  }
+});
+
+test('§3.6 board value sits under its own header, Central-Reg column reserved (WB doc)', () => {
+  const region = sliceIn(mdWB, '3.6 Discrepancy of Teaching', '## 4');
+  // The merged "Name … State Board" header colspans across the data columns and
+  // "Central Registration Number" keeps its own (empty) trailing column.
+  assert.ok(/colspan="\d+">Name of Teacher.*State Board<\/th>\s*<th>Central Registration Number<\/th>/s.test(region),
+    'merged name/state/board header colspans; Central-Reg header is a separate trailing column');
 });
 
 test('§4.2 non-teaching observation is a single-value occurrence table', () => {

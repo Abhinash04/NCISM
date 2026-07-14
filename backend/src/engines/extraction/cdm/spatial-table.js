@@ -297,23 +297,44 @@ function buildTable(headerCells, dataRows, page) {
   const arrays = cellRows.filter(Array.isArray);
   const maxDataCols = Math.max(...arrays.map((r) => r.length), 0);
   if (maxDataCols < 2) return null;
-  const colCount = Math.max(headers.length, maxDataCols);
+
+  // Trailing empty columns: when the data's values are separate elements (a
+  // multi-cell row), a header sitting to the RIGHT of every data cell is a
+  // column with no data (§3.6 "Central Registration Number"). Reserve a column
+  // for each so the merged middle header's colspan reaches the last data column
+  // instead of leaving the last value under the trailing header.
+  const dataXs = dataRows.flatMap((r) => (r.cells || []).map((c) => c.x)).filter((x) => typeof x === 'number');
+  const multiCell = dataRows.some((r) => (r.cells || []).length >= 2);
+  // A value-blob cell ("- 7 -") packs several columns at ONE x, so its x under-
+  // reads the real column spread — disable the geometric trailing-empty check
+  // for such tables (§6.1). It only applies to all-text-cell rows (§3.6).
+  const hasValueBlobData = dataRows.some((r) => (r.cells || []).some((c) => c.text && isValueBlob(c.text.trim())));
+  let trailingEmpty = 0;
+  if (multiCell && !hasValueBlobData && dataXs.length > 0 && headerCells.length >= 2) {
+    const maxDataX = Math.max(...dataXs);
+    for (let i = headerCells.length - 1; i >= 1; i--) {
+      if (typeof headerCells[i].x === 'number' && headerCells[i].x > maxDataX + 20) trailingEmpty++;
+      else break;
+    }
+  }
+  const colCount = Math.max(headers.length, maxDataCols + trailingEmpty);
 
   // Header row: pad/absorb. When there are fewer header cells than columns the
-  // leftmost header spans the deficit (merged "Sr.No + Name" / single heading
-  // header over N columns) — honest, invents no column boundaries.
+  // merged header (the one packing several logical columns into one element)
+  // spans the deficit; trailing single-column headers keep their own column.
   const headerRow = [];
   if (headers.length === 0) {
     for (let c = 0; c < colCount; c++) headerRow.push({ content: '', 'column span': 1, pdfua_tag: 'TH' });
   } else {
     const deficit = colCount - headers.length;
-    // The deficit column(s) belong to the merged header — the one that packs
-    // several logical columns into one element (usually the longest text, e.g.
-    // "Name of Teacher Teacher Id Institute State Name of State Board"). Give it
-    // the colspan so the remaining single-column headers stay aligned.
+    // Pick the merged header among the NON-trailing headers (usually the
+    // longest text, e.g. "Name of Teacher Teacher Id Institute State Name of
+    // State Board"), so the trailing headers stay aligned to the right.
     let mergeIdx = 0;
     if (deficit > 0) {
-      headers.forEach((h, i) => { if (h.length > headers[mergeIdx].length) mergeIdx = i; });
+      for (let i = 0; i < headers.length - trailingEmpty; i++) {
+        if (headers[i].length > headers[mergeIdx].length) mergeIdx = i;
+      }
     }
     headers.forEach((h, idx) => {
       headerRow.push({ content: h, 'column span': idx === mergeIdx && deficit > 0 ? deficit + 1 : 1, pdfua_tag: 'TH' });

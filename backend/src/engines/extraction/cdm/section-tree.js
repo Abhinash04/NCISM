@@ -65,7 +65,22 @@ function buildSectionTree(elements) {
 
       if (parsed) {
         const level = levelFromNumber(parsed.number);
-        const section = createSection(parsed.number, parsed.title, level, page);
+        // Some proformas concatenate a table's header row INTO the section
+        // heading ("… Absence Sr. No. Name of Absent Teacher Department …").
+        // Split it: the section keeps the clean title, the "Sr. No. …" part
+        // becomes a synthetic header block so its serial rows reconstruct into
+        // a table. Keyed on the serial-column marker, not on any section name.
+        let title = parsed.title;
+        const embedded = title.match(/^(.*?\S)\s+(Sr\.?\s*No\.?\b.*)$/i);
+        const section = createSection(parsed.number, embedded ? embedded[1] : title, level, page);
+        if (embedded) {
+          section.blocks.push({
+            type: 'paragraph',
+            content: embedded[2],
+            'bounding box': el['bounding box'],
+            'page number': page,
+          });
+        }
         flatSections.push(section);
         currentSection = section;
       } else {

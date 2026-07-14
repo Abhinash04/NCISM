@@ -162,33 +162,60 @@ function rowText(row) {
   return row.cells.map((c) => c.text).filter(Boolean).join(' ');
 }
 
-// An identifier token like "AYSS01576" / "AYPS01794" (≥2 letters + ≥3 digits).
-const ID_TOKEN = /^[A-Za-z]{2,}\d{3,}$/;
+/** A cell whose every token is a value token — "3", "- 7 -", "5 5.285 Yes". */
+function isValueBlob(text) {
+  const toks = text.trim().split(/\s+/).filter(Boolean);
+  return toks.length > 0 && toks.every(isDataToken);
+}
 
-/** Extracts a data row's cells: leading label + trailing value tokens. */
+/**
+ * Extracts a data row's cells, PRESERVING source element boundaries so columns
+ * that arrive as separate elements stay separate (§3.6 "Institute State" at x73
+ * vs "Name of State Board" at x354). Processes cells left→right:
+ *   - value-blob cell → each token is its own column;
+ *   - first text cell → leading serial + ID-anchored name|id|after split, then
+ *     any trailing value tokens within the cell;
+ *   - later text cell → its own column (+ trailing values peeled).
+ */
 function dataCells(row, hasSerialHeader) {
-  const { label, values } = splitInlineRow(rowText(row));
-  const cells = [];
-  let rest = label;
-  const serial = label.match(/^(\d+)[.)]?\s+(.*)$/);
-  if (hasSerialHeader && serial) {
-    cells.push(serial[1]);
-    rest = serial[2];
+  const out = [];
+  let seenText = false;
+  // When the row already carries its values in a separate value-blob cell
+  // ("250 251 - 251 -"), a keyword-only tail on a text cell ("… species
+  // available") is label text, not a value. When the text cell is on its own,
+  // that tail IS the value ("… Both available").
+  const hasSeparateValueCell = row.cells.some((c) => c.text && isValueBlob(c.text.trim()));
+  for (const cell of row.cells) {
+    const text = (cell.text || '').trim();
+    if (!text) continue;
+    if (isValueBlob(text)) {
+      for (const t of text.split(/\s+/)) out.push(t);
+      continue;
+    }
+    let { label: labelPart, values } = splitInlineRow(text);
+    if (hasSeparateValueCell && !values.some((v) => /^-?\d+(?:\.\d+)?%?$/.test(v))) {
+      labelPart = text; values = [];
+    }
+    if (!seenText) {
+      seenText = true;
+      const serial = labelPart.match(/^(\d+)[.)]?\s+(.*)$/);
+      if (hasSerialHeader && serial) { out.push(serial[1]); labelPart = serial[2]; }
+      // ID-anchored split "SHRADHA BHARDWAJ AYSS01576 Madhya Pradesh" →
+      // name | id | after-id, generic (fires only when an ID token is present).
+      const idm = labelPart.match(/^(.+?)\s+([A-Za-z]{2,}\d{3,})\b\s*(.*)$/);
+      if (idm) {
+        if (idm[1].trim()) out.push(idm[1].trim());
+        out.push(idm[2]);
+        if (idm[3].trim()) out.push(idm[3].trim());
+      } else if (labelPart) {
+        out.push(labelPart);
+      }
+    } else if (labelPart) {
+      out.push(labelPart);
+    }
+    for (const v of values) out.push(v);
   }
-  // Generic ID-anchored split: "SHRADHA BHARDWAJ AYSS01576 Madhya Pradesh"
-  // → name | id | trailing-state. Fires only when an ID token is present, so
-  // ordinary labels ("Hospital Superintendent") are untouched. No vocabulary.
-  const idm = rest.match(/^(.+?)\s+([A-Za-z]{2,}\d{3,})\b\s*(.*)$/);
-  if (idm) {
-    if (idm[1].trim()) cells.push(idm[1].trim());
-    cells.push(idm[2]);
-    if (idm[3].trim()) cells.push(idm[3].trim());
-  } else if (!hasSerialHeader || !serial) {
-    if (label) cells.push(label);
-  } else if (rest) {
-    cells.push(rest);
-  }
-  return cells.concat(values);
+  return out;
 }
 
 /**
@@ -214,6 +241,24 @@ function isDataRow(row) {
   // Run-on occurrence blob: "<phrase> N <phrase> N …" (≥2 pairs).
   if (splitOccurrenceBlob(joined).length >= 2) return true;
   return false;
+}
+
+/**
+ * A single "<phrase> <number>" observation row (§4.2 non-teaching staff: each
+ * count is its own paragraph rather than one concatenated blob). Recognised
+ * only under a 1–2 column non-Sr.No header (see the region loop).
+ */
+function isOccurrenceRow(row) {
+  const t = rowText(row);
+  if (isColonValueLine(t)) return false;
+  const { label, values } = splitInlineRow(t);
+  return values.length === 1 && /^-?\d+$/.test(values[0]) &&
+    /[A-Za-z]/.test(label) && label.split(/\s+/).length >= 2;
+}
+
+/** Whitespace/case-insensitive text key, for de-duplicating repeated headers. */
+function headerKey(text) {
+  return (text || '').replace(/\s+/g, '').toLowerCase();
 }
 
 function isHeaderRow(row) {
@@ -262,8 +307,16 @@ function buildTable(headerCells, dataRows, page) {
     for (let c = 0; c < colCount; c++) headerRow.push({ content: '', 'column span': 1, pdfua_tag: 'TH' });
   } else {
     const deficit = colCount - headers.length;
+    // The deficit column(s) belong to the merged header — the one that packs
+    // several logical columns into one element (usually the longest text, e.g.
+    // "Name of Teacher Teacher Id Institute State Name of State Board"). Give it
+    // the colspan so the remaining single-column headers stay aligned.
+    let mergeIdx = 0;
+    if (deficit > 0) {
+      headers.forEach((h, i) => { if (h.length > headers[mergeIdx].length) mergeIdx = i; });
+    }
     headers.forEach((h, idx) => {
-      headerRow.push({ content: h, 'column span': idx === 0 && deficit > 0 ? deficit + 1 : 1, pdfua_tag: 'TH' });
+      headerRow.push({ content: h, 'column span': idx === mergeIdx && deficit > 0 ? deficit + 1 : 1, pdfua_tag: 'TH' });
     });
   }
 
@@ -306,10 +359,17 @@ function reconstructTables(blocks) {
     byPage.get(line.page).push(line);
   }
 
-  const rows = [];
+  // One reading-order stream of rows AND pass-throughs (a real table / image
+  // between two inline regions must reset the current region — otherwise the
+  // §4.1 title + tables would bleed into §4.2's header band).
+  const stream = [];
   for (const page of [...byPage.keys()].sort((a, b) => a - b)) {
-    rows.push(...clusterLinesIntoRows(byPage.get(page)));
+    for (const row of clusterLinesIntoRows(byPage.get(page))) {
+      stream.push({ row, oi: Math.min(...row.cells.map((c) => c.oi)) });
+    }
   }
+  for (const pt of passthroughs) stream.push({ passthrough: pt.block, oi: pt.oi });
+  stream.sort((a, b) => a.oi - b.oi);
 
   const emitted = [];
   let headerCells = [];
@@ -335,7 +395,26 @@ function reconstructTables(blocks) {
 
   const headerHasSerial = () => headerCells.some((c) => /\bs\.?\s*no\b|sr\.?\s*no/i.test(c.text));
 
-  for (const row of rows) {
+  for (const item of stream) {
+    if (item.passthrough) {
+      // A real table resets the region (the §4.1 tables must not bleed into
+      // §4.2's header). Images / watermarks do not — they sit inside a
+      // continuing cross-page table (§6.1) and must not split it.
+      if (item.passthrough.type === 'table') flush();
+      emitted.push({ block: item.passthrough, oi: item.oi });
+      continue;
+    }
+    const row = item.row;
+    // A numbered sub-section title emitted as a paragraph ("4.2 Non-Teaching
+    // Staff … - Observation by the visitors") is a heading, not a table header:
+    // break the region and render it as a heading.
+    if (row.cells.length === 1 && /^\d+(?:\.\d+)+[\s.):-]/.test(rowText(row).trim())) {
+      flush();
+      const c = row.cells[0];
+      const level = Math.min(rowText(row).trim().match(/^\d+(?:\.\d+)+/)[0].split('.').length + 1, 6);
+      emitted.push({ block: { type: 'heading', level, content: c.text, 'page number': c.page }, oi: c.oi });
+      continue;
+    }
     if (isDataRow(row)) {
       dataRows.push(row);
     } else if (headerCells.length > 0 && headerHasSerial() && /^\d+\b/.test(rowText(row).trim())) {
@@ -343,13 +422,21 @@ function reconstructTables(blocks) {
       // fields are all text (names, designations) with no numeric values —
       // §3.4 absence list, §3.6 discrepancy list.
       dataRows.push(row);
+    } else if (headerCells.length > 0 && headerCells.length <= 2 && !headerHasSerial() && isOccurrenceRow(row)) {
+      // Single "<phrase> N" observation row under a 1–2 column occurrence
+      // header (§4.2, whose rows are separate paragraphs, not one blob).
+      dataRows.push(row);
     } else if (isHeaderRow(row) && dataRows.length === 0) {
       headerCells.push(...row.cells); // accumulate staggered header rows
     } else if (isHeaderRow(row) && dataRows.length > 0 && row.cells.length === 1) {
-      // Interior single-cell heading mid-table → full-width group-label row
-      // (e.g. "Modern Medical Staff" inside the §6.1 staff list). Keep the
-      // table continuous; never drop the label.
-      dataRows.push({ group: row.cells[0].text, cells: row.cells });
+      // A repeat of an accumulated header (§4.2 reprints its header on the next
+      // page) is skipped; any other interior single-cell heading becomes a
+      // full-width group-label row ("Modern Medical Staff" in §6.1) so the
+      // table stays continuous and the label is never dropped.
+      const key = headerKey(row.cells[0].text);
+      if (!headerCells.some((c) => headerKey(c.text) === key)) {
+        dataRows.push({ group: row.cells[0].text, cells: row.cells });
+      }
     } else if (isHeaderRow(row) && dataRows.length > 0) {
       flush(); // a genuine multi-cell header after data → new table
       headerCells.push(...row.cells);
@@ -360,8 +447,7 @@ function reconstructTables(blocks) {
   }
   flush();
 
-  // Merge reconstructed blocks with pass-throughs by document order.
-  return [...emitted, ...passthroughs].sort((a, b) => a.oi - b.oi).map((e) => e.block);
+  return emitted.sort((a, b) => a.oi - b.oi).map((e) => e.block);
 }
 
 /** Turns a leftover line back into a paragraph block. */

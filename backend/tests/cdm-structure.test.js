@@ -80,8 +80,16 @@ test('§6.2 occurrence blob splits into ≥6 rows', () => {
   assert.ok(rows >= 6, `expected ≥6 occurrence rows, got ${rows}`);
 });
 
-test('§3.6 ID-anchored row split (first page rows)', () => {
+test('§3.6 splits Institute State from Name of State Board', () => {
   const region = slice('3.6 Discrepancy of Teaching', 'Hospital staff');
-  assert.ok(/<td>SHRADHA BHARDWAJ<\/td>\s*<td>AYSS01576<\/td>/.test(region),
-    'name and ID token split into their own cells');
+  assert.ok(/<td>SHRADHA BHARDWAJ<\/td>\s*<td>AYSS01576<\/td>\s*<td>Madhya Pradesh<\/td>\s*<td>Chhattisgarh/.test(region),
+    'name | id | state | board are four separate cells (per-cell split, not merged)');
+});
+
+test('§4.2 non-teaching observation is a single-value occurrence table', () => {
+  const region = slice('4.2 Non-Teaching Staff', '5. Hospital Infrastructure');
+  assert.strictEqual((region.match(/<table>/g) || []).length, 1, 'one table across the page break');
+  assert.ok(/<td>Total no\. of Non-teaching staff listed by the college<\/td>\s*<td>45<\/td>/.test(region),
+    'each "phrase N" paragraph becomes a label|count row');
+  assert.ok(/salary register<\/td>\s*<td>0<\/td>/.test(region), 'a value split to its own element pairs back');
 });

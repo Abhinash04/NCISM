@@ -16,13 +16,14 @@ const extractors = [institution, infrastructure, library, herbalGarden, staffing
  *
  * @param {string} markdown - reconstructed markdown
  * @param {Object|null} elements - OpenDataLoader element JSON root, if available
+ * @param {Object|null} cdm - Canonical Document Model, if available
  */
-function extractParameters(markdown, elements = null) {
+function extractParameters(markdown, elements = null, cdm = null) {
   const lines = markdown.split('\n').map((l) => l.trim()).filter(Boolean);
 
   const parameters = {};
   for (const extractor of extractors) {
-    Object.assign(parameters, extractor.extract(markdown, lines, elements));
+    Object.assign(parameters, extractor.extract(markdown, lines, elements, cdm));
   }
   return parameters;
 }

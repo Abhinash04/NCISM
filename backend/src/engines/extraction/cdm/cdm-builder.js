@@ -58,21 +58,16 @@ function buildCdm(elementJson) {
   }
   logger.info(`Row regrouping: ${formCount} forms, ${pseudoTableCount} pseudo-tables detected`);
 
-  // Stage 4: Table normalization + cross-page stitching
+  // Stage 4: Table normalization + cross-page stitching.
+  // Normalize WITHIN each section only. A table that continues onto the next
+  // page stays in the same section (section-tree assigns blocks to the nearest
+  // preceding heading), so within-section stitching still merges the fragments
+  // — without ever moving a block across a heading boundary (which displaced
+  // sub-headings under the old doc-wide flatten+redistribute).
   logger.info('Stage 4: Table normalization');
-  // Collect all blocks across sections for cross-page stitching
-  // (tables can span section boundaries), then redistribute
-  const allBlocks = [];
-  const sectionBoundaries = [];
   for (const section of flatSections) {
-    sectionBoundaries.push({ sectionId: section.id, startIdx: allBlocks.length });
-    allBlocks.push(...section.blocks);
+    section.blocks = normalizeAndStitchTables(section.blocks);
   }
-
-  const normalizedBlocks = normalizeAndStitchTables(allBlocks);
-
-  // Redistribute blocks back to sections
-  redistributeBlocks(flatSections, sectionBoundaries, normalizedBlocks);
 
   const tableCount = flatSections.reduce(
     (sum, s) => sum + s.blocks.filter((b) => b.type === 'table' && b.columns).length,
@@ -93,52 +88,6 @@ function buildCdm(elementJson) {
 
   logger.info('CDM build complete');
   return cdm;
-}
-
-/**
- * Redistributes normalized/stitched blocks back to their sections.
- * After stitching, some blocks may have merged across section boundaries,
- * so we use a best-effort approach based on block order.
- */
-function redistributeBlocks(flatSections, sectionBoundaries, normalizedBlocks) {
-  // Clear all section blocks
-  for (const section of flatSections) {
-    section.blocks = [];
-  }
-
-  // Simple redistribution: assign blocks to sections in order
-  let blockIdx = 0;
-  for (let si = 0; si < sectionBoundaries.length; si++) {
-    const section = flatSections.find((s) => s.id === sectionBoundaries[si].sectionId);
-    if (!section) continue;
-
-    const nextStart = si + 1 < sectionBoundaries.length
-      ? sectionBoundaries[si + 1].startIdx
-      : Infinity;
-
-    // Assign blocks that originated from this section
-    while (blockIdx < normalizedBlocks.length) {
-      const block = normalizedBlocks[blockIdx];
-      // Use page number as heuristic for ownership after stitching
-      section.blocks.push(block);
-      blockIdx++;
-
-      // If we've used up the expected number of blocks for this section,
-      // move on (but stitched tables may have consumed extras)
-      if (blockIdx >= nextStart && si + 1 < sectionBoundaries.length) {
-        break;
-      }
-    }
-  }
-
-  // Any remaining blocks go to the last section
-  if (blockIdx < normalizedBlocks.length && flatSections.length > 0) {
-    const lastSection = flatSections[flatSections.length - 1];
-    while (blockIdx < normalizedBlocks.length) {
-      lastSection.blocks.push(normalizedBlocks[blockIdx]);
-      blockIdx++;
-    }
-  }
 }
 
 /**
@@ -178,6 +127,8 @@ function serializeBlock(block) {
       caption: block.caption || null,
       headerTree: block.headerTree || [],
       columns: block.columns,
+      gridCells: block.gridCells || null,
+      headerRowCount: block.headerRowCount || null,
       rows: (block.rows || []).map((row) => ({
         cells: row.cells,
         page: row.page,

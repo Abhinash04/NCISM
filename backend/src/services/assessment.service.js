@@ -28,9 +28,21 @@ class AssessmentService {
       }
     }
 
+    // Canonical Document Model gives the extractors typed section/table queries
+    // (e.g. the visitor table with paired names + ids).
+    let cdm = null;
+    const cdmPath = jobService.getArtifactPath(jobId, 'cdm');
+    if (cdmPath && fs.existsSync(cdmPath)) {
+      try {
+        cdm = JSON.parse(fs.readFileSync(cdmPath, 'utf8'));
+      } catch (error) {
+        console.warn('[AssessmentService] Failed to parse CDM:', error.message);
+      }
+    }
+
     let output;
     try {
-      output = assessmentEngine.runAssessment({ markdown, elements, rulesetId, rulesetVersion, jobId });
+      output = assessmentEngine.runAssessment({ markdown, elements, cdm, rulesetId, rulesetVersion, jobId });
     } catch (error) {
       throw ApiError.internal('ASSESSMENT_FAILED', error.message);
     }

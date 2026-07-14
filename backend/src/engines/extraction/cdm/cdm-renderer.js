@@ -32,7 +32,9 @@ function renderSections(sections, parts) {
     // Render section heading (skip the synthetic root "Preamble")
     if (section.id !== '0' && section.title) {
       const prefix = '#'.repeat(Math.min(section.level + 1, 6));
-      parts.push(`${prefix} ${section.id} ${section.title}`);
+      // Restore the numbering dot (id "3" / "2.1" -> "3." / "2.1").
+      const num = /\.\d/.test(section.id) ? section.id : `${section.id}.`;
+      parts.push(`${prefix} ${num} ${section.title}`);
     }
 
     // Render blocks
@@ -134,6 +136,12 @@ function renderTable(block) {
 }
 
 function renderNormalizedTable(block) {
+  // Prefer the span-aware grid: emits merged multi-row headers with proper
+  // rowspan/colspan (a rowspan-3 "Sr.No." renders once, not three times).
+  if (block.gridCells && block.gridCells.length > 0) {
+    return renderGridTable(block);
+  }
+
   const { columns, headerTree, rows, notes } = block;
 
   let html = '<table>\n';
@@ -172,6 +180,37 @@ function renderNormalizedTable(block) {
     html += '\n\n' + notes.map((n) => `*${n}*`).join('\n');
   }
 
+  return html;
+}
+
+/**
+ * Renders a table from the span-aware grid. Header rows (the leading
+ * `headerRowCount`) use <th>; the rest <td>. Carry-forward cells (rowspan
+ * continuations and colspan continuation columns) are skipped, and the origin
+ * cell emits its rowspan/colspan — so merged NCISM headers render correctly.
+ */
+function renderGridTable(block) {
+  const { gridCells, notes } = block;
+  const headerRowCount = block.headerRowCount || 1;
+
+  let html = '<table>\n';
+  for (let ri = 0; ri < gridCells.length; ri++) {
+    const isHeaderRow = ri < headerRowCount;
+    html += '  <tr>\n';
+    for (const cell of gridCells[ri]) {
+      if (!cell || cell.isCarryForward) continue;
+      const tag = isHeaderRow || cell.isHeader ? 'th' : 'td';
+      const rs = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
+      const cs = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
+      html += `    <${tag}${rs}${cs}>${escapeHtml(cell.text)}</${tag}>\n`;
+    }
+    html += '  </tr>\n';
+  }
+  html += '</table>';
+
+  if (notes && notes.length > 0) {
+    html += '\n\n' + notes.map((n) => `*${n}*`).join('\n');
+  }
   return html;
 }
 

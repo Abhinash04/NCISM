@@ -124,53 +124,95 @@ function toLines(blocks) {
   return lines;
 }
 
-/** Clusters lines on one page into rows by y-band overlap; cells sorted by x. */
+/**
+ * Clusters lines on one page into rows. Each row is seeded by the topmost
+ * unused line; other lines join when their vertical MIDPOINT falls inside the
+ * seed's y-band (or vice-versa). The band is NOT expanded as members join —
+ * that would chain tightly-packed rows of a dense table (e.g. §3.6 pages 7-8)
+ * into one giant row.
+ */
 function clusterLinesIntoRows(lines) {
   const sorted = [...lines].sort((a, b) => b.yT - a.yT);
   const rows = [];
   const used = new Set();
-  for (const line of sorted) {
-    if (used.has(line)) continue;
-    let bandMin = line.yB, bandMax = line.yT;
-    const row = [line];
-    used.add(line);
+  const mid = (l) => (l.yT + l.yB) / 2;
+  for (const seed of sorted) {
+    if (used.has(seed)) continue;
+    const sMid = mid(seed);
+    const row = [seed];
+    used.add(seed);
     for (const other of sorted) {
       if (used.has(other)) continue;
-      if (other.yB <= bandMax && bandMin <= other.yT) { // overlap
+      const oMid = mid(other);
+      if ((oMid <= seed.yT && oMid >= seed.yB) || (sMid <= other.yT && sMid >= other.yB)) {
         row.push(other);
         used.add(other);
-        bandMin = Math.min(bandMin, other.yB);
-        bandMax = Math.max(bandMax, other.yT);
       }
     }
     row.sort((a, b) => a.x - b.x);
-    rows.push({ cells: row, yT: bandMax });
+    rows.push({ cells: row, yT: seed.yT });
   }
   return rows.sort((a, b) => b.yT - a.yT);
 }
 
 // --- row classification ---------------------------------------------------
 
+/** A row's full text (cells joined left→right). */
+function rowText(row) {
+  return row.cells.map((c) => c.text).filter(Boolean).join(' ');
+}
+
+// An identifier token like "AYSS01576" / "AYPS01794" (≥2 letters + ≥3 digits).
+const ID_TOKEN = /^[A-Za-z]{2,}\d{3,}$/;
+
 /** Extracts a data row's cells: leading label + trailing value tokens. */
 function dataCells(row, hasSerialHeader) {
-  const joined = row.cells.map((c) => c.text).filter(Boolean).join(' ');
-  const { label, values } = splitInlineRow(joined);
+  const { label, values } = splitInlineRow(rowText(row));
   const cells = [];
+  let rest = label;
   const serial = label.match(/^(\d+)[.)]?\s+(.*)$/);
   if (hasSerialHeader && serial) {
-    cells.push(serial[1], serial[2]);
-  } else if (label) {
-    cells.push(label);
+    cells.push(serial[1]);
+    rest = serial[2];
+  }
+  // Generic ID-anchored split: "SHRADHA BHARDWAJ AYSS01576 Madhya Pradesh"
+  // → name | id | trailing-state. Fires only when an ID token is present, so
+  // ordinary labels ("Hospital Superintendent") are untouched. No vocabulary.
+  const idm = rest.match(/^(.+?)\s+([A-Za-z]{2,}\d{3,})\b\s*(.*)$/);
+  if (idm) {
+    if (idm[1].trim()) cells.push(idm[1].trim());
+    cells.push(idm[2]);
+    if (idm[3].trim()) cells.push(idm[3].trim());
+  } else if (!hasSerialHeader || !serial) {
+    if (label) cells.push(label);
+  } else if (rest) {
+    cells.push(rest);
   }
   return cells.concat(values);
 }
 
+/**
+ * Splits a run-on "occurrence" blob — "<phrase> <n> <phrase> <n> …" — into
+ * [phrase, number] pairs. Used for the NCISM No.-of-Occurrences observation
+ * tables whose rows the extractor concatenated into one paragraph. Generic:
+ * any repeated "text ending in a number" pattern.
+ */
+function splitOccurrenceBlob(text) {
+  const pairs = [];
+  const re = /(.+?)\s+(\d+)(?=\s+\D|\s*$)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) pairs.push([m[1].trim(), m[2]]);
+  return pairs;
+}
+
 function isDataRow(row) {
-  const joined = row.cells.map((c) => c.text).filter(Boolean).join(' ');
+  const joined = rowText(row);
   if (isColonValueLine(joined)) return false;
   const { label, values } = splitInlineRow(joined);
   if (values.length >= 2) return true;
   if (values.length === 1 && /^\d+[.)]?\s+\S/.test(label)) return true; // "1 Name  100"
+  // Run-on occurrence blob: "<phrase> N <phrase> N …" (≥2 pairs).
+  if (splitOccurrenceBlob(joined).length >= 2) return true;
   return false;
 }
 
@@ -191,11 +233,25 @@ function isHeaderRow(row) {
 /** Builds a RAW table block from accumulated header cells + data rows. */
 function buildTable(headerCells, dataRows, page) {
   const hasSerial = headerCells.some((h) => /\bs\.?\s*no\b|sr\.?\s*no/i.test(h.text));
-  const rows = dataRows.map((r) => dataCells(r, hasSerial));
-  const maxDataCols = Math.max(...rows.map((r) => r.length), 0);
-  if (maxDataCols < 2) return null;
-
   const headers = headerCells.map((h) => h.text);
+
+  // Expand each data row into concrete cells, a group-label marker, or (for
+  // 2-column occurrence tables) several "phrase | number" rows.
+  const cellRows = [];
+  for (const r of dataRows) {
+    if (r.group !== undefined) { cellRows.push({ group: r.group }); continue; }
+    // Occurrence table: one paragraph packs many "phrase N" rows. Only for
+    // 1–2 header tables (a wide multi-column table never packs like this).
+    if (headers.length <= 2) {
+      const pairs = splitOccurrenceBlob(rowText(r));
+      if (pairs.length >= 2) { for (const p of pairs) cellRows.push(p); continue; }
+    }
+    cellRows.push(dataCells(r, hasSerial));
+  }
+
+  const arrays = cellRows.filter(Array.isArray);
+  const maxDataCols = Math.max(...arrays.map((r) => r.length), 0);
+  if (maxDataCols < 2) return null;
   const colCount = Math.max(headers.length, maxDataCols);
 
   // Header row: pad/absorb. When there are fewer header cells than columns the
@@ -203,7 +259,6 @@ function buildTable(headerCells, dataRows, page) {
   // header over N columns) — honest, invents no column boundaries.
   const headerRow = [];
   if (headers.length === 0) {
-    // No header text — emit a column-count-only header of blanks.
     for (let c = 0; c < colCount; c++) headerRow.push({ content: '', 'column span': 1, pdfua_tag: 'TH' });
   } else {
     const deficit = colCount - headers.length;
@@ -212,15 +267,19 @@ function buildTable(headerCells, dataRows, page) {
     });
   }
 
-  const dataTableRows = rows.map((cells) => {
-    const padded = [...cells];
+  const bodyRows = cellRows.map((r) => {
+    if (!Array.isArray(r)) {
+      // Full-width group-label row (interior sub-heading).
+      return { cells: [{ content: r.group, 'column span': colCount, pdfua_tag: 'TD' }] };
+    }
+    const padded = [...r];
     while (padded.length < colCount) padded.push('-');
     return { cells: padded.slice(0, colCount).map((v) => ({ content: String(v), pdfua_tag: 'TD' })) };
   });
 
   return {
     type: 'table',
-    rows: [{ cells: headerRow }, ...dataTableRows],
+    rows: [{ cells: headerRow }, ...bodyRows],
     'page number': page,
     page,
   };
@@ -234,74 +293,75 @@ function reconstructTables(blocks) {
   if (!blocks || blocks.length === 0) return blocks;
 
   const lines = toLines(blocks);
-  // Preserve reading order but cluster per page.
+  // Cluster positioned lines into rows per page, then process ALL pages as one
+  // reading-order stream so an inline table whose header sits only on the first
+  // page carries down through data rows on later pages (§6.1/§3.6/§3.4 span
+  // pages 6-8 / 12-15). Pass-throughs (real tables, prose, no-geometry blocks)
+  // slot back by original document index.
+  const passthroughs = [];
   const byPage = new Map();
-  const order = []; // { kind:'page'|'passthrough', ... } to rebuild order
   for (const line of lines) {
-    if (line.passthrough) { order.push({ passthrough: line.passthrough, oi: line.oi }); continue; }
-    if (!byPage.has(line.page)) { byPage.set(line.page, []); order.push({ pageRef: line.page, oi: line.oi }); }
+    if (line.passthrough) { passthroughs.push({ block: line.passthrough, oi: line.oi }); continue; }
+    if (!byPage.has(line.page)) byPage.set(line.page, []);
     byPage.get(line.page).push(line);
   }
 
-  // Build a map: page -> ordered emitted blocks (tables + leftover paragraphs).
-  const pageBlocks = new Map();
-  for (const [page, pageLines] of byPage) {
-    const rows = clusterLinesIntoRows(pageLines);
-    const emitted = [];
-    let headerCells = [];
-    let dataRows = [];
-
-    const flush = () => {
-      if (dataRows.length >= 1 && (headerCells.length >= 1 || dataRows.length >= 2)) {
-        const table = buildTable(headerCells, dataRows, page);
-        if (table) {
-          emitted.push({ block: table, oi: Math.min(...[...headerCells, ...dataRows.flatMap((r) => r.cells)].map((c) => c.oi)) });
-          headerCells = [];
-          dataRows = [];
-          return;
-        }
-      }
-      // Not a table — release accumulated header + data rows as paragraphs.
-      for (const c of headerCells) emitted.push({ block: lineToBlock(c), oi: c.oi });
-      for (const r of dataRows) for (const c of r.cells) emitted.push({ block: lineToBlock(c), oi: c.oi });
-      headerCells = [];
-      dataRows = [];
-    };
-
-    for (const row of rows) {
-      const joined = row.cells.map((c) => c.text).filter(Boolean).join(' ');
-      if (isDataRow(row)) {
-        dataRows.push(row);
-      } else if (isHeaderRow(row) && dataRows.length === 0) {
-        headerCells.push(...row.cells); // accumulate staggered header rows
-      } else if (isHeaderRow(row) && dataRows.length > 0) {
-        flush(); // a new header after data → new table
-        headerCells.push(...row.cells);
-      } else {
-        // Prose / colon line / anything else: end any region, emit as paragraphs.
-        flush();
-        for (const c of row.cells) emitted.push({ block: lineToBlock(c), oi: c.oi });
-        void joined;
-      }
-    }
-    flush();
-
-    // Sort this page's emitted blocks back into document order.
-    emitted.sort((a, b) => a.oi - b.oi);
-    pageBlocks.set(page, emitted.map((e) => e.block));
+  const rows = [];
+  for (const page of [...byPage.keys()].sort((a, b) => a - b)) {
+    rows.push(...clusterLinesIntoRows(byPage.get(page)));
   }
 
-  // Rebuild the section block list in original order, expanding page refs once.
-  const out = [];
-  const emittedPages = new Set();
-  for (const o of order) {
-    if (o.passthrough) { out.push(o.passthrough); continue; }
-    if (!emittedPages.has(o.pageRef)) {
-      out.push(...(pageBlocks.get(o.pageRef) || []));
-      emittedPages.add(o.pageRef);
+  const emitted = [];
+  let headerCells = [];
+  let dataRows = [];
+
+  const flush = () => {
+    if (dataRows.length >= 1 && (headerCells.length >= 1 || dataRows.length >= 2)) {
+      const page = (headerCells[0] || dataRows[0].cells[0]).page;
+      const table = buildTable(headerCells, dataRows, page);
+      if (table) {
+        const oi = Math.min(...[...headerCells, ...dataRows.flatMap((r) => r.cells)].map((c) => c.oi));
+        emitted.push({ block: table, oi });
+        headerCells = [];
+        dataRows = [];
+        return;
+      }
+    }
+    for (const c of headerCells) emitted.push({ block: lineToBlock(c), oi: c.oi });
+    for (const r of dataRows) for (const c of r.cells) emitted.push({ block: lineToBlock(c), oi: c.oi });
+    headerCells = [];
+    dataRows = [];
+  };
+
+  const headerHasSerial = () => headerCells.some((c) => /\bs\.?\s*no\b|sr\.?\s*no/i.test(c.text));
+
+  for (const row of rows) {
+    if (isDataRow(row)) {
+      dataRows.push(row);
+    } else if (headerCells.length > 0 && headerHasSerial() && /^\d+\b/.test(rowText(row).trim())) {
+      // A serial-led row inside a "Sr.No" table is a data row even when its
+      // fields are all text (names, designations) with no numeric values —
+      // §3.4 absence list, §3.6 discrepancy list.
+      dataRows.push(row);
+    } else if (isHeaderRow(row) && dataRows.length === 0) {
+      headerCells.push(...row.cells); // accumulate staggered header rows
+    } else if (isHeaderRow(row) && dataRows.length > 0 && row.cells.length === 1) {
+      // Interior single-cell heading mid-table → full-width group-label row
+      // (e.g. "Modern Medical Staff" inside the §6.1 staff list). Keep the
+      // table continuous; never drop the label.
+      dataRows.push({ group: row.cells[0].text, cells: row.cells });
+    } else if (isHeaderRow(row) && dataRows.length > 0) {
+      flush(); // a genuine multi-cell header after data → new table
+      headerCells.push(...row.cells);
+    } else {
+      flush(); // prose / colon line: end the region, emit as paragraphs
+      for (const c of row.cells) emitted.push({ block: lineToBlock(c), oi: c.oi });
     }
   }
-  return out;
+  flush();
+
+  // Merge reconstructed blocks with pass-throughs by document order.
+  return [...emitted, ...passthroughs].sort((a, b) => a.oi - b.oi).map((e) => e.block);
 }
 
 /** Turns a leftover line back into a paragraph block. */

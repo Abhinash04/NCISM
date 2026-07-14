@@ -59,3 +59,29 @@ test('§2.4.1 heading-typed header reconstructs as a table', () => {
   assert.ok(/<td>Dean Office \/ Principal Office<\/td>\s*<td>Both available<\/td>/.test(region),
     'list rows split into department + availability columns');
 });
+
+test('§3.2 occurrence blob splits into rows', () => {
+  const region = slice('3.2 Observation by the', '3.3');
+  assert.ok(/<td>Total No\. Of teaching staff listed by the college<\/td>\s*<td>42<\/td>/.test(region),
+    'run-on "phrase N" observation blob splits into label|count rows');
+});
+
+test('§6.1 hospital staff is one cross-page table with group rows', () => {
+  const region = slice('6.1 Hospital Staff Verification', '6.2');
+  assert.strictEqual((region.match(/<table>/g) || []).length, 1, 'a single stitched table across pages');
+  assert.ok(region.includes('Hospital Superintendent') && region.includes('Security Guard'),
+    'first (p12) and late (p15) rows are in the same table');
+  assert.ok(/colspan="5">Modern Medical Staff/.test(region), 'interior sub-heading is a full-width group row');
+});
+
+test('§6.2 occurrence blob splits into ≥6 rows', () => {
+  const region = slice('6.2 Hospital Staff- Obs', '7. Instruments');
+  const rows = (region.match(/<td>\d+<\/td>/g) || []).length;
+  assert.ok(rows >= 6, `expected ≥6 occurrence rows, got ${rows}`);
+});
+
+test('§3.6 ID-anchored row split (first page rows)', () => {
+  const region = slice('3.6 Discrepancy of Teaching', 'Hospital staff');
+  assert.ok(/<td>SHRADHA BHARDWAJ<\/td>\s*<td>AYSS01576<\/td>/.test(region),
+    'name and ID token split into their own cells');
+});

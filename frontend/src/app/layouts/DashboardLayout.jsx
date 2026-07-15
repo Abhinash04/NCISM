@@ -1,19 +1,30 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Home, Settings, FileText, Info } from 'lucide-react';
+import { Home, Settings, FileText, Info, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/features/auth/AuthContext';
 
 export function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const auth = useAuth();
 
-  const navItems = [
+  // `roles` (optional) restricts an item; omit to show for everyone.
+  const allNav = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Documents', path: '/documents', icon: FileText },
     { name: 'Settings', path: '/settings', icon: Settings },
     { name: 'About', path: '/about', icon: Info },
   ];
+  const navItems = allNav.filter((i) => !i.roles || i.roles.some((r) => auth.hasRole(r)));
+
+  async function onLogout() {
+    await auth.logout();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background font-sans">
@@ -65,6 +76,17 @@ export function DashboardLayout() {
             <div className="flex items-center gap-4">
               <StatusBadge />
               <ThemeToggle />
+              {auth.user && (
+                <div className="flex items-center gap-3 pl-3 border-l">
+                  <div className="text-right leading-tight hidden sm:block">
+                    <div className="text-sm font-medium">{auth.user.name}</div>
+                    <div className="text-xs text-muted-foreground capitalize">{auth.roles.join(', ')}</div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={onLogout} title="Sign out">
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </header>
         )}

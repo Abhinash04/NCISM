@@ -3,6 +3,12 @@
 Authoritative reference for the NCISM Assessment Platform foundation. Anything under
 `docs/archive/` is historical and describes systems that no longer exist (or never did).
 
+> **Scope note (2026-07):** the project is now an **internal** review/validation portal
+> (~10–20 admin-provisioned staff) wrapped around the completed extraction + assessment pipeline —
+> NOT the public 9-role regulatory SaaS. The build blueprint (roles, RBAC, state machine, routing,
+> DB/backend/frontend/API modules, phased roadmap) is **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**.
+> `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the reference superset, not the build target.
+
 ## System overview
 
 ```

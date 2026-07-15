@@ -7,7 +7,12 @@ import { importLegacyLocalStorage } from '@/lib/db/documents.repository';
 import { LandingLayout } from '@/app/layouts/LandingLayout';
 import { DashboardLayout } from '@/app/layouts/DashboardLayout';
 
+import { AuthProvider } from '@/features/auth/AuthContext';
+import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
+
 import { Landing } from '@/pages/Landing';
+import { Login } from '@/pages/Login';
+import { Forbidden } from '@/pages/Forbidden';
 import { Dashboard } from '@/pages/Dashboard';
 import { Settings } from '@/pages/Settings';
 import { About } from '@/pages/About';
@@ -47,14 +52,17 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <BrowserRouter>
+          <AuthProvider>
           <Routes>
-            {/* Public Landing Page */}
+            {/* Public */}
             <Route element={<LandingLayout />}>
               <Route path="/" element={<Landing />} />
             </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/403" element={<Forbidden />} />
 
-            {/* Dashboard Shell */}
-            <Route element={<DashboardLayout />}>
+            {/* Authenticated dashboard shell */}
+            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/about" element={<About />} />
@@ -78,6 +86,7 @@ function App() {
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </AuthProvider>
         </BrowserRouter>
         <Toaster position="bottom-right" richColors />
       </ThemeProvider>

@@ -40,6 +40,15 @@ const config = Object.freeze({
   tempDir: path.join(backendRoot, 'temp'),
   uploadsDir: path.join(backendRoot, 'temp', 'uploads'),
   dataDir: path.join(backendRoot, 'data'),
+
+  // --- Portal foundation (Phase 0/1) ---
+  databaseUrl: process.env.DATABASE_URL || '',
+  auth: {
+    jwtSecret: process.env.JWT_SECRET || 'dev-only-change-me',
+    accessTtl: process.env.JWT_ACCESS_TTL || '15m',
+    refreshTtl: process.env.JWT_REFRESH_TTL || '7d',
+    bcryptRounds: intFromEnv('BCRYPT_ROUNDS', 12),
+  },
 });
 
 module.exports = config;

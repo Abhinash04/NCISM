@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ncism-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ncism}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ncism_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-ncism}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ncism_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ncism} -d ${POSTGRES_DB:-ncism}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ncism_pgdata:

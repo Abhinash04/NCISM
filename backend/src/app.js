@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const config = require('./config');
 const routes = require('./routes');
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
@@ -11,6 +12,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/api/v1', routes);
 

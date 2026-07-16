@@ -12,7 +12,7 @@ const SYSTEM_MAP = {
   sowarigpa: 'sowa_rigpa',
 };
 
-const ID_RE = /^(AYU|UNI|SI|SW)\d{4}$/;
+const ID_RE = /^(AYU|UNI|SID|SWR)\d{4}$/;
 
 function clean(cell) {
   const v = (cell || '').trim();

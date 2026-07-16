@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Home, Settings, FileText, Info, LogOut } from 'lucide-react';
+import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,19 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const auth = useAuth();
 
-  // `roles` (optional) restricts an item; omit to show for everyone.
+  // `roles` (optional) restricts an item; omit to show for everyone. Role-scoped
+  // paths are built from the user's primary role (see /:role routes in App).
+  const role = auth.primaryRole;
   const allNav = [
-    { name: 'Dashboard', path: '/dashboard', icon: Home },
+    { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
+    { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
     { name: 'Documents', path: '/documents', icon: FileText },
-    { name: 'Settings', path: '/settings', icon: Settings },
-    { name: 'About', path: '/about', icon: Info },
+    { name: 'Import', path: '/admin/institutions', icon: Upload, roles: ['admin'] },
+    { name: 'Users', path: '/admin/users', icon: Users, roles: ['admin'] },
+    { name: 'Roles', path: '/admin/roles', icon: Shield, roles: ['admin'] },
+    { name: 'Permissions', path: '/admin/permissions', icon: KeyRound, roles: ['admin'] },
+    { name: 'Settings', path: `/${role}/settings`, icon: Settings },
+    { name: 'About', path: `/${role}/about`, icon: Info },
   ];
   const navItems = allNav.filter((i) => !i.roles || i.roles.some((r) => auth.hasRole(r)));
 
@@ -40,9 +47,8 @@ export function DashboardLayout() {
         <div className="flex-1 overflow-y-auto py-6 px-4">
           <nav className="space-y-1">
             {navItems.map((item) => {
-              const isActive = item.path === '/documents'
-                ? location.pathname.startsWith('/documents')
-                : location.pathname === item.path;
+              const isActive = location.pathname === item.path
+                || location.pathname.startsWith(`${item.path}/`);
               return (
                 <Link
                   key={item.path}

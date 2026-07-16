@@ -6,7 +6,7 @@
 exports.up = async function up(knex) {
   await knex.schema.createTable('institutions', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    t.string('institute_id').notNullable().unique(); // AYU0001 / UNI#### / SI#### / SW####
+    t.string('institute_id').notNullable().unique(); // AYU#### / UNI#### / SID#### / SWR####
     t.enu('system', ['ayurveda', 'unani', 'siddha', 'sowa_rigpa'], { useNative: true, enumName: 'medicine_system' })
       .notNullable();
     t.string('state').notNullable();

@@ -6,17 +6,27 @@ import { importLegacyLocalStorage } from '@/lib/db/documents.repository';
 
 import { LandingLayout } from '@/app/layouts/LandingLayout';
 import { DashboardLayout } from '@/app/layouts/DashboardLayout';
+import { RoleLayout } from '@/app/layouts/RoleLayout';
 
-import { AuthProvider } from '@/features/auth/AuthContext';
+import { AuthProvider, useAuth } from '@/features/auth/AuthContext';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 
 import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { Forbidden } from '@/pages/Forbidden';
 import { Dashboard } from '@/pages/Dashboard';
+import { Profile } from '@/pages/Profile';
 import { Settings } from '@/pages/Settings';
 import { About } from '@/pages/About';
 import { NotFound } from '@/pages/NotFound';
+
+import { InstitutionsList } from '@/pages/institutions/InstitutionsList';
+import { InstitutionDetail } from '@/pages/institutions/InstitutionDetail';
+import { InstitutionImport } from '@/pages/institutions/InstitutionImport';
+import { UsersList } from '@/pages/admin/UsersList';
+import { UserDetail } from '@/pages/admin/UserDetail';
+import { RolesList } from '@/pages/admin/RolesList';
+import { PermissionsList } from '@/pages/admin/PermissionsList';
 
 import { DocumentsList } from '@/pages/documents/DocumentsList';
 import { DocumentDetails } from '@/pages/documents/DocumentDetails';
@@ -36,6 +46,12 @@ function WorkspaceNewRedirect() {
 function WorkspaceRedirect() {
   const { documentId } = useParams();
   return <Navigate to={`/documents/${documentId}`} replace />;
+}
+
+// `/dashboard` (and legacy flat paths) redirect to the role-scoped dashboard.
+function RoleDashboardRedirect() {
+  const auth = useAuth();
+  return <Navigate to={`/${auth.primaryRole}/dashboard`} replace />;
 }
 
 const queryClient = new QueryClient({
@@ -61,12 +77,31 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/403" element={<Forbidden />} />
 
-            {/* Authenticated dashboard shell */}
-            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/about" element={<About />} />
+            {/* Role-scoped portal: /:role/dashboard etc. RoleLayout validates the segment. */}
+            <Route path="/:role" element={<ProtectedRoute><RoleLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="about" element={<About />} />
+              <Route path="institutions" element={<InstitutionsList />} />
+              <Route path="institutions/:id" element={<InstitutionDetail />} />
+            </Route>
 
+            {/* Admin console (admin-only) */}
+            <Route path="/admin" element={<ProtectedRoute roles={['admin']}><DashboardLayout /></ProtectedRoute>}>
+              <Route path="institutions" element={<InstitutionImport />} />
+              <Route path="users" element={<UsersList />} />
+              <Route path="users/:userId" element={<UserDetail />} />
+              <Route path="roles" element={<RolesList />} />
+              <Route path="permissions" element={<PermissionsList />} />
+            </Route>
+
+            {/* Post-login landing → role-scoped dashboard */}
+            <Route path="/dashboard" element={<ProtectedRoute><RoleDashboardRedirect /></ProtectedRoute>} />
+
+            {/* Shared dashboard shell for the legacy document workflow (all roles) */}
+            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               {/* Page-based document workflow */}
               <Route path="/documents" element={<DocumentsList />} />
               <Route path="/documents/new" element={<UploadProcessing />} />

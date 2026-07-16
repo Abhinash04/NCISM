@@ -4,6 +4,16 @@ import * as authApi from './auth.api';
 
 const AuthContext = createContext(null);
 
+// Highest-authority role wins; drives the /:role landing + shell.
+const ROLE_PRIORITY = [
+  'admin', 'president', 'board_member', 'senior_consultant', 'junior_consultant',
+  'reviewer', 'analyst', 'viewer',
+];
+
+export function primaryRoleOf(roles = []) {
+  return ROLE_PRIORITY.find((r) => roles.includes(r)) || roles[0] || 'viewer';
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('loading'); // loading | authed | anon
@@ -44,13 +54,16 @@ export function AuthProvider({ children }) {
     try { await authApi.logout(); } finally { clearSession(); }
   }, [clearSession]);
 
+  const roles = user?.roles || [];
+
   const value = {
     user, status,
     isAuthenticated: status === 'authed',
-    roles: user?.roles || [],
+    roles,
     permissions: user?.permissions || [],
     hasPermission: (p) => (user?.permissions || []).includes(p),
-    hasRole: (r) => (user?.roles || []).includes(r),
+    hasRole: (r) => roles.includes(r),
+    primaryRole: primaryRoleOf(roles),
     login, logout,
   };
 

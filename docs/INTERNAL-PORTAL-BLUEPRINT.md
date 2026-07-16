@@ -11,11 +11,13 @@ build; the SRS remains the **reference superset**, not the build target.
 
 ---
 
-## Implementation status — as-built through Phase 3c (2026-07)
+## Implementation status — as-built through Phase 4 (2026-07)
 
-Phases 0–3 are built on branch `abhi-dev`. The **post-visitation lifecycle is now implemented**
-(3a case model + review chain · 3b clarification cycle + college · 3c hearings + board meetings +
-final-order dispatch). **Notable divergences** from the original blueprint:
+Phases 0–4 are built on branch `abhi-dev`. The **post-visitation lifecycle is implemented**
+(3a case model + review chain · 3b clarification + college · 3c hearings + board meetings +
+dispatch), plus **3d structured board outcomes + official letter/order generation** (reproducing the
+approved NCISM formats from the assessment result) and **Phase 4 a system-wide append-only
+`audit_log`**. **Notable divergences** from the original blueprint:
 
 1. **Role model expanded to 13.** The blueprint's 4 roles were kept as legacy, but the real NCISM
    hierarchy + lifecycle actors are the **primary** roles: `president`, `board_member`,
@@ -23,9 +25,10 @@ final-order dispatch). **Notable divergences** from the original blueprint:
    `secretariat`, `commission_observer`, `admin` (+ retained `reviewer`/`analyst`/`viewer`).
 2. **Routing is role-prefixed.** Actual routes are `/:role/*` (per-tier portal) + `/admin/*`, not
    the flat `/uploads`/`/assessments` scheme in §5. Legacy `/documents/*` is retained.
-3. **Schema — 15 domain tables.** Auth/RBAC + registry + the case lifecycle (`applications`,
+3. **Schema — 17 domain tables.** Auth/RBAC + registry + the case lifecycle (`applications`,
    `application_events`, `clarifications`, `hearings`, `hearing_members`, `board_meetings`,
-   `board_meeting_items`). Still **[Planned]**: `audit_log`, `ruleset_versions`, report tables.
+   `board_meeting_items`) + `letters` + `audit_log`. Still **[Planned]**: compliance/penalty tables,
+   `ruleset_versions`, report tables.
 4. **State machine names differ** from §3 (uploaded→processing→processed→under_validation→
    senior_review→board_review→approved→closed, with clarification/hearing branches) and the
    maker-checker is the **org chain** (junior→senior→board), not a flat Analyst→Reviewer.
@@ -37,15 +40,15 @@ final-order dispatch). **Notable divergences** from the original blueprint:
 | §3 Application state machine | **Built** (names differ; see status note above) |
 | §4 Portal per role | **Built** — shell, role nav, institutions, admin, case queues/detail, meetings |
 | §5 Routing | **Built, changed** to `/:role/*` + `/admin/*` (+ `/applications`, `/meetings`) |
-| §6 Roadmap | Phases **0, 1, 2, 3 = DONE**; 4+ **[Planned]** |
-| §7 Database | **Built:** auth/RBAC + registry + cases. audit/ruleset/report tables = **[Planned]** |
-| §8 Backend services | **Built:** auth, user/org, institution, **workflow-guard, application (lifecycle), meeting**. audit/report/ruleset/notification = **[Planned]**; processing is synchronous inline (no async worker yet) |
-| §9 Frontend modules | **Built:** auth, institutions, admin, applications, meetings, (legacy documents/workspace). reports/audit = **[Planned]** |
-| §10 API grouping | **Built:** Auth, Institutions, Admin, **Applications (+transitions), Meetings**. Reports/Audit/Rulesets = **[Planned]** |
+| §6 Roadmap | Phases **0–4 = DONE**; 5+ **[Planned]** |
+| §7 Database | **Built:** auth/RBAC + registry + cases + `letters` + `audit_log`. compliance/ruleset/report tables = **[Planned]** |
+| §8 Backend services | **Built:** auth, user/org, institution, workflow-guard, application (lifecycle), **letter, meeting, audit**. report/ruleset/notification = **[Planned]**; processing is synchronous inline (no async worker yet) |
+| §9 Frontend modules | **Built:** auth, institutions, admin, applications, meetings, **audit**, (legacy documents/workspace). reports = **[Planned]** |
+| §10 API grouping | **Built:** Auth, Institutions, Admin, Applications (+transitions), **Letters, Meetings, Audit**. Reports/Rulesets = **[Planned]** |
 
-> **Phase 3 is done.** Remaining lifecycle bits deferred: compliance/penalty tracking + letter/order
-> **template validation** (3d). Then Phase 4 audit log, Phase 5 reports, Phase 6 ruleset editor +
-> hardening. Sections below still marked **[Planned]** describe those.
+> **Phases 3d + 4 are done** (structured outcomes + official letters; audit log). Remaining:
+> a first-class compliance/penalty ledger, Phase 5 reports/analytics, Phase 6 ruleset editor +
+> async worker + hardening. Sections below still marked **[Planned]** describe those.
 
 ---
 
@@ -261,10 +264,11 @@ actions from `allowedActions`.
 | **0 — Foundation** | ✅ Done | DB-backed skeleton | PostgreSQL + Knex migrations, config/env. |
 | **1 — Auth + RBAC + Layout** | ✅ Done | Login + guarded shell | users/roles/permissions; local auth (bcrypt, JWT access+refresh); `authenticate` + `requirePermission`/`requireRole`; protected React routing + shell. |
 | **2 — Institutions + Org** | ✅ Done | Master registry + org hierarchy | 672 institutes + exception queue; registry; **org hierarchy (supervisor chain, allotments)**; role-prefixed portal + admin console. |
-| **3 — Post-visitation lifecycle** | ✅ Done | Cases + review/clarification/hearing/board/dispatch | `applications` state machine + `workflow.service` guard; upload→process(engine)→submit→senior→board approve/reject; **3b** clarification cycle + college; **3c** hearings (president appoints committee → minutes), board meetings (secretariat overlay), final-order dispatch → Closed. Roles visitor/college/hearing_committee/secretariat/commission_observer added. |
-| **4 — Audit + History** | 🔜 Planned | Traceability | append-only `audit_log` interceptor (generalizes the per-case `application_events` timeline). |
-| **5 — Reports & Analytics** | 🔜 Planned | Insight | compliance/punitive summaries, throughput, exports. |
-| **6 — Admin & hardening** | 🔜 Planned | Config + safety | ruleset version editor + activation (SoD); non-Ayurveda rulesets; RBAC matrix tests, E2E per role. |
+| **3 — Post-visitation lifecycle** | ✅ Done | Cases + review/clarification/hearing/board/dispatch | `applications` state machine + `workflow.service` guard; upload→process(engine)→submit→senior→board approve/reject; **3b** clarification cycle + college; **3c** hearings, board meetings (secretariat overlay), final-order dispatch → Closed. Roles visitor/college/hearing_committee/secretariat/commission_observer added. |
+| **3d — Outcomes + letters** | ✅ Done | Structured decisions + official documents | board `outcome` (grant/with-conditions/reduce-intake+seats/deny); `letter.service` generates the Clarification Letter, Hearing Notice (with/without prior clarification) and Final Order from the assessment result (`letters` table). |
+| **4 — Audit** | ✅ Done | Traceability | app-wide `audit.middleware` → append-only `audit_log`; `GET /audit` + viewer. Generalizes the per-case `application_events`. |
+| **5 — Reports & Analytics** | 🔜 Planned | Insight | compliance/punitive summaries, throughput, exports; compliance/penalty ledger. |
+| **6 — Admin & hardening** | 🔜 Planned | Config + safety | ruleset version editor + activation (SoD); non-Ayurveda rulesets; async worker; RBAC matrix + E2E. |
 
 Each phase ships an end-to-end vertical slice.
 
@@ -272,9 +276,9 @@ Each phase ships an end-to-end vertical slice.
 
 ## 7. Database modules (PostgreSQL)
 
-> **Built today (15 domain tables):** Auth/RBAC + Domain + the **case lifecycle**. The
-> `assessment_report`/`validation_issues`/`audit_log`/`ruleset_versions`/report tables below are
-> **[Planned — Phase 4+]**. The as-built case schema differs from the generic "Assessments" group
+> **Built today (17 domain tables):** Auth/RBAC + Domain + the **case lifecycle** + `letters` +
+> `audit_log`. The `validation_issues`/`ruleset_versions`/compliance/report tables below are
+> **[Planned — Phase 5+]**. The as-built case schema differs from the generic "Assessments" group
 > below: one `applications` table (with `report_markdown`/`report_json` inline) rather than separate
 > assessment/artifact/report tables.
 
@@ -282,9 +286,10 @@ Each phase ships an end-to-end vertical slice.
 `user_roles`, `permissions` / `role_permissions`, `refresh_tokens`.
 **Domain:** `institutions` (institute_id `AYU/UNI/SID/SWR####`, system, state, name, …) ·
 **`staff_allotments`** (user_id × system × state).
-**Cases (built):** `applications` (institution_id, system, state, session, `status` enum, job_id,
-report_markdown/json, decision, actor FKs) · `application_events` (timeline) · `clarifications`
-(round: letter + response) · `hearings` + `hearing_members` · `board_meetings` + `board_meeting_items`.
+**Cases (built):** `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`,
+`visitation_*`) · `application_events` (timeline) · `clarifications` · `hearings` + `hearing_members`
+· `board_meetings` + `board_meeting_items` · `letters` (generated Clarification/Hearing/Final Order).
+**Governance (built):** `audit_log` (append-only trail of every write).
 **Assessments:** `assessments` (id, institution_id, session/year, state, owner_id, submitted_by,
 approved_by, timestamps), `assessment_artifacts` (kind: pdf|elements|markdown|report, storage_key,
 hash, bytes), `assessment_report` (canonical parsed JSON — JSONB; immutable once Approved),
@@ -322,10 +327,11 @@ column reflects the current code.
 | `institution.service` (+ import) | ✅ Built | master registry, idempotent import, exception queue |
 | **`workflow.service` (guard)** | ✅ Built | `allowedActions(app,user,ctx)` + `assertCan` — status × role × ownership (403/423) |
 | **`application.service` (lifecycle)** | ✅ Built | upload · process (runs the engine inline) · submit · review · decide · clarification · hearing · dispatch · buildContext |
+| **`letter.service`** | ✅ Built | generates + issues the Clarification Letter / Hearing Notice / Final Order from the assessment result |
 | **`meeting.service`** | ✅ Built | board meetings: create / agenda / confirm minutes (overlay) |
+| **`audit.service` (+ audit.middleware)** | ✅ Built | append-only `audit_log` of every successful write; `GET /audit` |
 | `upload.service` / `processing.worker` | 🔜 Planned | dedicated intake + **async** queue (today: synchronous inline in `application.service.process`) |
 | `validation.service` | 🔜 Planned | structured extraction-issue tracking (today: junior re-runs/edits inline) |
-| `audit.service` | 🔜 Planned | generalized mutation interceptor (today: per-case `application_events`) |
 | `report.service` | 🔜 Planned | analytics aggregation, exports |
 | `ruleset.service` | 🔜 Planned | versioned standards/punitive config + activation (SoD) |
 | `notification.service` | 🔜 Planned | in-app "next action" feed |
@@ -376,9 +382,10 @@ Reuse the workspace viewers for the PDF / structured / JSON detail tabs.
 | Institutions | ✅ Built | `GET /institutions` · `GET /institutions/meta` · `GET/PATCH /institutions/:id` · `POST /institutions` · `POST /institutions/import` |
 | Extraction/Jobs | ✅ Built (pre-portal) | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run — not the lifecycle) |
 | **Cases (lifecycle)** | ✅ Built | `GET /applications` (role-scoped) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/{allowed-actions,events,hearings,clarifications}` · **transitions** `POST /:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `POST /:id/clarification[/respond]` |
+| **Letters** | ✅ Built | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` |
 | **Meetings** | ✅ Built | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |
+| **Audit** | ✅ Built | `GET /audit` (entity/actor/date filters) |
 | Reports | 🔜 Planned | `POST /reports/:key/run` |
-| Audit | 🔜 Planned | `GET /audit` |
 | Rulesets | 🔜 Planned | `GET/POST /rulesets` · `POST /rulesets/:id/activate` |
 | Self | 🔜 Planned | `GET/PATCH /me/settings` |
 

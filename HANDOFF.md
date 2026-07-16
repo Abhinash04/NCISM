@@ -1,8 +1,9 @@
-# NCISM Assessment Portal — Developer Handoff (end of Phase 3)
+# NCISM Assessment Portal — Developer Handoff (end of Phase 4)
 
 > Cold-start context for a new developer or AI agent. Describes **only what exists in the codebase
-> today** (Phases 0–3 — the full post-visitation case lifecycle is built). Items tagged **Planned**
-> are not yet implemented (Phase 3d/4/5/6). Companion docs: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (as-built reference),
+> today** (Phases 0–4 — full case lifecycle + official letter/order generation + a system-wide audit
+> log). Items tagged **Planned** are not yet implemented (compliance ledger, Phase 5/6). Companion
+> docs: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (as-built reference),
 > [docs/INTERNAL-PORTAL-BLUEPRINT.md](docs/INTERNAL-PORTAL-BLUEPRINT.md) (design blueprint + roadmap),
 > [AuthCred.md](AuthCred.md) (mock logins), [backend/src/engines/extraction/cdm/](backend/src/engines/extraction/cdm/)
 > (pipeline internals; a `CDM-RECONSTRUCTION.md` write-up exists on `main`), [docs/srs/](docs/srs/)
@@ -42,8 +43,10 @@ reference superset, not the build target.
 | Clarification cycle + college role | ✅ Phase 3b |
 | Hearings + board meetings + final-order dispatch → Closed | ✅ Phase 3c |
 | 13 roles incl. visitor/college/hearing_committee/secretariat/observer | ✅ Phase 3 |
-| Compliance/penalty tracking + template validation | 🔜 Phase 3d — Planned |
-| Audit log / reports / ruleset editor DB tables | 🔜 Phase 4–6 — Planned |
+| Structured board outcomes + official letter/order generation | ✅ Phase 3d |
+| System-wide append-only audit log + viewer | ✅ Phase 4 |
+| Compliance/penalty ledger | 🔜 Planned (3d remainder) |
+| Reports/analytics · ruleset editor · non-Ayurveda rulesets | 🔜 Phase 5–6 — Planned |
 
 ## 3. Completed phases
 
@@ -66,16 +69,27 @@ reference superset, not the build target.
     `record_minutes` → board), board meetings (secretariat overlay: schedule + agenda + confirm),
     final-order `dispatch` → `closed`. Roles `hearing_committee`, `secretariat`,
     `commission_observer`; `hearings`/`hearing_members`/`board_meetings`/`board_meeting_items`.
+- **Phase 3d — Structured outcomes + official letters:** the board decision carries a structured
+  `outcome` (grant / grant-with-conditions / reduce-intake + `approved_seats` / deny). The
+  clarification/hearing/dispatch actions **auto-generate the official NCISM letters** (Clarification
+  Letter, Hearing Notice with/without prior clarification, Final Order) that reproduce the approved
+  formats — data-driven from the case institution, the ruleset manifest (regulation + course),
+  `report_json.findings` (the staff-shortcoming **tables** + percentages) and `punitiveSummary`
+  (outcome/seats/penalties). The actor edits the draft, issues it, and the college sees it on its
+  case. `letters` table; `letter.service`; `utils/mesar-catalog`; letter-context fields on
+  `applications` (intake, level, permission_type, visitation_*).
+- **Phase 4 — Audit log:** an app-wide `audit.middleware` records every successful write to an
+  append-only `audit_log`; `GET /audit` + an Audit viewer (admin / board / president / observer).
 
 ## 4. Remaining phases (Planned)
 
-- **Phase 3d (optional):** compliance/penalty tracking + letter/order **template validation** +
-  dispatch log.
-- **Phase 4 — Audit + history:** generalized append-only `audit_log` interceptor (the per-case
-  `application_events` timeline already exists; this generalizes it system-wide).
+- **Compliance/penalty ledger (3d remainder):** monetary penalties (₹25-lakh ghost-faculty),
+  seat-reduction/compliance tracking as first-class records (the data is computed in `punitiveSummary`
+  today and rendered into the Final Order).
 - **Phase 5 — Reports/analytics:** compliance/punitive summaries, throughput, exports.
 - **Phase 6 — Admin hardening:** ruleset version editor + activation (SoD); **non-Ayurveda rulesets**
-  (Unani/Siddha/Sowa-Rigpa/PG); RBAC matrix tests, per-role E2E. See blueprint §6.
+  (Unani/Siddha/Sowa-Rigpa/PG); async processing worker; RBAC matrix tests, per-role E2E. See
+  blueprint §6.
 
 ## 5. System architecture
 
@@ -186,15 +200,15 @@ viewer` (`features/auth/AuthContext.jsx`).
 ```
 app.js / ../server.js   express assembly / bootstrap (asserts DB connection, starts retention)
 config/index.js         only place env is read (adds auth: jwtSecret, TTLs, bcryptRounds)
-db/index.js             singleton Knex; db/migrations (001–006); db/seeds (001–011)
+db/index.js             singleton Knex; db/migrations (001–008); db/seeds (001–011)
 routes/index.js         mounts /auth /(extract) /jobs /assessments /institutions /admin
-                        /applications /meetings  (+ /health)
-controllers/            auth · institution · org · application · meeting · assessments · extract · jobs · health
-services/               auth · institution · workflow · application · meeting · job · extraction · assessment · retention
-repositories/           user · token · institution · application · clarification · hearing · meeting · job (disk)
-middlewares/            auth (authenticate) · rbac (requirePermission/requireRole) · upload (multer)
+                        /applications /meetings /audit  (+ /health)
+controllers/            auth · institution · org · application · meeting · audit · assessments · extract · jobs · health
+services/               auth · institution · workflow · application · letter · meeting · audit · job · extraction · assessment · retention
+repositories/           user · token · institution · application · clarification · hearing · meeting · letter · audit · job (disk)
+middlewares/            auth (authenticate) · rbac (requirePermission/requireRole) · upload (multer) · audit (records writes)
 engines/                extraction (OpenDataLoader→CDM) · assessment (extractors→evaluator→punitive→reporter)
-utils/                  jwt · api-error (ApiError) · master-data.parser · logger
+utils/                  jwt · api-error (ApiError) · master-data.parser · mesar-catalog · logger
 ```
 
 - **Layering:** routes → controllers → services → repositories / engines.
@@ -217,8 +231,9 @@ pages/documents/        legacy document workflow pages (retained)
 features/auth/          AuthContext(+primaryRole) · ProtectedRoute · RoleGate · token-store · auth.api
 features/institutions/  institution.api · hooks
 features/applications/  application.api · hooks (queue/detail/allowedActions/transitions/
-                        clarifications/hearings/committee-members)
+                        clarifications/hearings/committee-members/letters/previewLetter)
 features/meetings/      meeting.api · hooks (list/get/create/addItem/confirm)
+features/audit/         audit.api · useAuditLog
 features/admin/         admin.api · hooks (useOrgUsers/useOrgUser/useRoles/usePermissions)
 features/documents/     + features/workspace/ (legacy Dexie-backed workflow + reusable viewers)
 components/ui/          shadcn primitives (table, select, input, card, badge, …)
@@ -231,7 +246,7 @@ lib/api/                client (axios + Bearer + silent refresh) · endpoints
 
 ## 11. Database overview
 
-15 domain tables (Knex; + knex bookkeeping). Auth/RBAC + registry + case lifecycle.
+17 domain tables (Knex; + knex bookkeeping). Auth/RBAC + registry + case lifecycle + letters + audit.
 
 ```
 users ──< user_roles >── roles ──< role_permissions >── permissions
@@ -241,17 +256,20 @@ users ──< user_roles >── roles ──< role_permissions >── permissi
   └──< staff_allotments   (user × system × state routing)
 institutions ──1:N── applications ──1:N── application_events
                           ├──1:N── clarifications
-                          └──1:N── hearings ──1:N── hearing_members
+                          ├──1:N── hearings ──1:N── hearing_members
+                          └──1:N── letters (clarification / hearing notice / final order)
 board_meetings ──1:N── board_meeting_items ──→ applications
+audit_log (append-only; actor · action · entity · entity_id · status · created_at)
 ```
 
 | Group | Tables |
 |---|---|
 | Auth/RBAC (6) | `users` (+`supervisor_id`, `institution_id`) · `roles` · `permissions` · `role_permissions` · `user_roles` · `refresh_tokens` |
 | Registry (2) | `institutions` (unique `institute_id`) · `staff_allotments` |
-| Cases (7) | `applications` (institution_id, system, state, session, `status` enum, job_id, report_markdown/json, decision, actor FKs) · `application_events` · `clarifications` (round: letter+response) · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` |
+| Cases (8) | `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`, `visitation_*`) · `application_events` · `clarifications` · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` · `letters` |
+| Governance (1) | `audit_log` (append-only) |
 
-**[Planned — Phase 4+]:** `audit_log`, `ruleset_versions`, report tables.
+**[Planned]:** compliance/penalty tables, `ruleset_versions`, report tables.
 
 ## 12. Document-processing pipeline (built, pre-portal)
 
@@ -284,10 +302,12 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 | Institutions | ✅ | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` · `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` |
 | Admin | ✅ | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` |
 | Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
-| Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `POST /:id/clarification` · `POST /:id/clarification/respond` |
+| Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `POST /:id/clarification` · `POST /:id/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) |
+| Letters | ✅ | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` |
 | Meetings | ✅ | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |
+| Audit | ✅ | `GET /audit` (entity/actor/date filters; `audit:read`) |
 | Extraction/Jobs | ✅ | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run) |
-| Reports / Audit / Rulesets | 🔜 Planned | Phase 4–6; see blueprint §10 |
+| Reports / Rulesets | 🔜 Planned | Phase 5–6; see blueprint §10 |
 
 **Guards:** institution read/write per `institution:*`; admin group per `admin` + `user:manage`/
 `role:read`; case transitions per `application:*`/`clarification:*`/`hearing:*`/`order:dispatch`,
@@ -332,10 +352,12 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
   (`status = failed`). Adding Unani/Siddha/Sowa-Rigpa/PG rulesets is Phase 6.
 - **Processing is synchronous inline** — `application.service.process` runs the engine in-request
   (~3–35s); no async worker/queue yet.
-- **No generalized audit log** — every case transition writes an `application_events` row (per-case
-  timeline), but a system-wide append-only `audit_log` is Phase 4.
-- **Compliance/penalty tracking + letter/order template validation** not built (order/letter text is
-  free-form) — Phase 3d.
+- **Letters are fully data-driven only for Ayurveda-UG** (the only ruleset produces a report);
+  uncaptured subject fields render as `[[editable]]` markers the board fills before signing.
+- **Compliance/penalty ledger not built** — penalties/seat-reduction are computed in `punitiveSummary`
+  and rendered into the Final Order, but not tracked as first-class records yet.
+- **Audit is path-derived** (entity/action from the URL + status); precise before/after value diffs
+  are a later refinement.
 - **Mock credentials:** org users use `MOCK_PASSWORD` (seed default `Password123`); bootstrap admin
   uses `ADMIN_PASSWORD` (code default `ChangeMe123!`). Note: pre-existing users keep their original
   hash (the seed doesn't clobber), so the actual value can drift from the default — the authoritative
@@ -346,14 +368,15 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
 - **Frontend bundle** is a single large chunk (build warns >500 kB); code-splitting deferred.
 - Phase-1 roles (`reviewer`/`analyst`/`viewer`) are retained but unused by org users.
 
-## 16. Pending work (next: Phase 3d / Phase 4)
+## 16. Pending work (next: Phase 5)
 
-- **Phase 3d (optional):** compliance/penalty ledger; letter/order **template validation** (dates,
-  session, copy-to) + a dispatch log.
-- **Phase 4 — audit:** add an append-only `audit_log` interceptor over every mutation (generalize
-  `application_events`); assessment + institution timelines/aggregate views.
+- **Compliance/penalty ledger:** first-class penalty + seat-reduction + compliance-status records
+  (data already computed in `punitiveSummary`); a dispatch log; stricter letter template validation.
+- **Phase 5 — reports/analytics:** compliance/punitive summaries, throughput, institution trends,
+  exports (the `audit_log` + `application_events` + `report_json` feed this).
 - **Hardening backlog:** move processing to an **async worker/queue** (pg-boss/BullMQ); add
-  **non-Ayurveda rulesets**; RBAC-matrix + per-role E2E tests; code-split the frontend bundle.
+  **non-Ayurveda rulesets**; ruleset version editor; RBAC-matrix + per-role E2E tests; code-split
+  the frontend bundle.
 - **Ops:** replace mock credentials with real ones; rotate `JWT_SECRET`; consider MFA for
   board/admin. Reconcile the `AuthCred.md` password drift (reset the DB volume or update the file).
 
@@ -390,8 +413,11 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
   `ROLE_PRIORITY` + a `DashboardLayout` nav branch; seed mock users.
 - **Adding an endpoint:** route → controller → service → repository; guard with `authenticate` +
   `requirePermission`. Keep the `{ success, ... }` / `ApiError` envelope.
-- **Adding a migration/seed:** next numbers are migration `007_*`, seed `012_*`. Enum `ADD VALUE`
+- **Adding a migration/seed:** next numbers are migration `009_*`, seed `012_*`. Enum `ADD VALUE`
   needs `exports.config = { transaction: false }` (see `005`/`006`). Keep seeds idempotent.
+- **Adding a generated letter kind:** add a renderer in `services/letter.service.js` (reuse
+  `report_json.findings`/`punitiveSummary`) + wire `issue()` into the relevant case action; add a
+  `LETTER_LABELS` entry + a `previewLetter` prefill in `ApplicationDetail.jsx`.
 - **Frontend server data:** TanStack Query hooks; build role-relative links from the current location
   (see `InstitutionsList`/`ApplicationsList`) so pages work under `/:role/*` and `/admin/*`.
 - **Run the DB before backend tests/seed** (`docker compose up -d db`). `npm test` covers the engines

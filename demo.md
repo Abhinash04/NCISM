@@ -1,15 +1,16 @@
-# NCISM Assessment Portal — Demo & Verification Guide (through Phase 3c)
+# NCISM Assessment Portal — Demo & Verification Guide (through Phase 4)
 
 A follow-along tutorial to run the platform locally and walk the **entire post-visitation case
 lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review →
-clarification cycle → hearing → board meeting → final-order dispatch → **Closed**. Companion docs:
+clarification cycle → hearing → board meeting → **structured decision + auto-generated official
+letters** → final-order dispatch → **Closed**, plus the **audit log**. Companion docs:
 [HANDOFF.md](HANDOFF.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [AuthCred.md](AuthCred.md).
 
 ---
 
 ## 0. Does the diagram/narrative match the built system?
 
-**Yes — strongly aligned** with what is built (Phases 3a + 3b + 3c), with **three honest caveats**:
+**Yes — aligned** with what is built (Phases 3a–3d + 4), with **two minor labelling caveats**:
 
 1. **First-pass junior state is `processed`, not `under_validation`.** After the junior clicks
    **Process**, the case is `processed` (report generated) and the junior submits from there.
@@ -18,19 +19,20 @@ clarification cycle → hearing → board meeting → final-order dispatch → *
    (under_validation)"* node is conceptually right but mislabels the first pass.
 2. **A college response goes junior `submit` → `senior_review` directly.** In code,
    `clarification_responded` lets the junior re-**process** or **submit**; **submit** returns the
-   case to `senior_review` (not to a separate "junior verification" node first). The re-examination
-   happens — just without an extra intermediate state.
-3. **The four outcomes are NOT structured yet.** The board records a **binary approve / reject +
-   free-text note**; there is **no field** distinguishing *granted / granted-with-conditions /
-   intake-reduced / denied*. `reject` loops back to `revise` (it does **not** dispatch to Closed).
-   So the diagram's "Permission Granted / …with Conditions / Denied" terminals and the narrative's
-   four outcomes are **conceptual today**, realized only as free text. Structured outcomes + official
-   letter/order templates are **Phase 3d** (not built).
+   case to `senior_review` (not to a separate "junior verification" node first).
+
+**Now resolved (Phase 3d):** the four outcomes **are** structured — on Approve the board picks
+`grant / grant-with-conditions / reduce-intake (+ seats) / deny` (pre-seeded from the punitive
+summary), stored on the case; and the Clarification Letter, Hearing Notice (with/without prior
+clarification), and Final Order are **auto-generated in the approved NCISM formats** from the
+assessment result (institution + shortcoming tables + regulation + signatory) — the board edits and
+issues them, and the college sees them on its case. (`reject` still loops to `revise`; a *denial* is
+an Approve-path `deny` outcome that dispatches to Closed.)
 
 Everything else matches: allotment-based routing, extraction → CDM → parameter extraction → rule
 evaluation → punitive policy → Assessment Report, the junior → senior → board review chain, the
 clarification → college → junior loop, the hearing (President appoints committee → minutes → board),
-and approve → secretariat dispatch → **closed**. The Phase-3d description in the narrative is accurate.
+and approve → secretariat dispatch → **closed**.
 
 ---
 
@@ -95,7 +97,7 @@ and the college binding line up. **Password for every org/portal user: `Password
 | Hearing Committee | `hearing1@ncism.local`, `hearing2@ncism.local` | `Password123` |
 | Secretariat | `secretariat@ncism.local` | `Password123` |
 | Commission Observer | `observer@ncism.local` | `Password123` |
-| Administrator | `admin@ncism.local` | `ChangeMe123!` |
+| Administrator | `admin@ncism.local` | see [AuthCred.md](AuthCred.md) (currently `Admin123`) |
 
 **Sample report PDF** (upload this in step 3.2):
 `All data/Part-3 colleges/AYU0659 100 intake capacity.pdf`
@@ -115,7 +117,8 @@ authenticated yet).
 ### 3.2 Visitor uploads the report → `uploaded`
 Log in as **`visitor@ncism.local`**. In the sidebar open **My Uploads → New upload**:
 - **Institution:** type `AYU0140` (or `Maharashtra`) in the search box, then pick it from the select.
-- **Session/year:** `2026-27`.
+- **Session/year:** `2026-27`; **Intake:** `100`; **Permission type:** `yearly`; **Visitation dates:**
+  pick two dates. (These optional fields populate the generated letters — leave blank to fill later.)
 - **Report PDF:** drag in the sample PDF.
 - Click **Create case** → you land on the case, status **Uploaded**. Log out.
 
@@ -136,8 +139,10 @@ Log in as **`member.mehra@ncism.local`**. Open **Cases** → the case. You'll se
 **Reject**, **Request clarification**, **Request hearing**.
 
 **Branch A — Clarification cycle**
-1. Click **Request clarification**, type the shortcomings letter, Confirm → status
-   **clarification_open**. Log out.
+1. Click **Request clarification** → the dialog is **pre-filled with the drafted Clarification
+   Letter** (real institution block, subject, the assessment shortcomings, signatory, copy-to) —
+   review/edit it → Confirm → status **clarification_open**. The **Letters** tab now shows the issued
+   letter (the college sees it too). Log out.
 2. Log in as **`college.ayu0140@ncism.local`** → **My Cases** → the case shows a **Respond to
    clarification** panel → enter response text (+ optional PDF) → **Submit response** → status
    **clarification_responded**. Log out.
@@ -152,20 +157,25 @@ Log in as **`member.mehra@ncism.local`**. Open **Cases** → the case. You'll se
    → enter minutes + a verdict (e.g. *submission not considered*) → status returns to
    **board_review**. The **Hearings** tab now shows the panel, minutes, and verdict.
 
-### 3.6 Board approves → `approved`
-Back as **`member.mehra@ncism.local`**, open the case → **Approve (grant)** + a note → status
-**approved**.
+### 3.6 Board approves with a structured outcome → `approved`
+Back as **`member.mehra@ncism.local`**, open the case → **Approve (decide)** → the dialog shows an
+**outcome** select pre-seeded from the punitive summary (e.g. *reduce-intake*); adjust seats if
+needed → Confirm → status **approved**, and the outcome shows in the case header.
 
 ### 3.7 Secretariat: board meeting + dispatch → `closed`
 Log in as **`secretariat@ncism.local`**:
 - **Meetings → New meeting** (number `MARB/2026/07`, pick a date) → open the meeting.
 - **Add a board-ready case** → select the case → it appears on the agenda.
-- Open the case → **Dispatch final order** → enter the order text → status **closed**.
+- Open the case → **Dispatch final order** → the dialog is **pre-filled with the drafted Final Order**
+  (outcome + seats + penalties) → review → Confirm → status **closed**; the **Letters** tab shows the
+  Final Order.
 - Back on the meeting → **Confirm minutes** → meeting status **confirmed**. Log out.
 
-### 3.8 Commission Observer (read-only)
+### 3.8 Commission Observer (read-only) + Audit
 Log in as **`observer@ncism.local`** → **Cases** / **Meetings**: everything is viewable but there
-are **no action buttons** (read-only oversight). Log out.
+are **no action buttons** (read-only oversight). Open **Audit** → the append-only trail shows a row
+for every write in this run (login, process, submit, review, clarification, decide, dispatch, meeting
+create/confirm) with actor, action, entity, and status; filter by entity/actor. Log out.
 
 ### 3.9 Administrator
 Log in as **`admin@ncism.local`** (`ChangeMe123!`) → sidebar **Users / Roles / Permissions /
@@ -181,6 +191,9 @@ insert/update + exception-queue summary.
   clarification_responded → … → hearing_requested → hearing_scheduled → board_review → approved →
   closed`.
 - **Clarifications** and **Hearings** tabs list each round (letter/response; panel/minutes/verdict).
+- **Letters** tab lists every issued document (Clarification Letter, Hearing Notice, Final Order),
+  rendered in the official format with the case's institution + shortcoming tables + signatory.
+- **Audit** (admin/board/president/observer) records every write; GET browsing adds no rows.
 - **Action buttons differ per role** — they render only from the backend `allowedActions`, never from
   role literals in the UI.
 - **Segregation of duties** holds:
@@ -215,7 +228,8 @@ approved ─(secretariat dispatch)→ closed        (closed = terminal, immutabl
 ```
 
 - **Guard:** `backend/src/services/workflow.service.js` (`allowedActions` / `assertCan`).
+- **Letters:** `backend/src/services/letter.service.js` (built — reproduces the NCISM formats from
+  the assessment result). **Audit:** `backend/src/middlewares/audit.middleware.js` → `audit_log`.
 - **Roles/logins:** [AuthCred.md](AuthCred.md). **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
-- **Next (Phase 3d, not built):** compliance/penalty tracking + **letter/order template generation**
-  — auto-drafting Clarification Letters and Hearing Notices (with/without prior clarification) from
-  the Assessment Report using approved NCISM Markdown templates.
+- **Next (Phase 5, not built):** compliance/penalty ledger + reports/analytics (compliance/punitive
+  summaries, throughput, exports). Phase 6: ruleset editor + non-Ayurveda rulesets + async worker.

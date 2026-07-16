@@ -5,16 +5,16 @@ Authoritative reference for the NCISM Assessment Platform foundation. Anything u
 
 > **Scope note (2026-07):** the project is an **internal** review/validation portal wrapped around
 > the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. Built
-> **through Phase 3c**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
-> institutions master registry, and the **full post-visitation case lifecycle** — visitor upload →
-> route to allotted junior → run engine → senior/board review → clarification cycle (college) →
-> hearings (President-appointed committee) → board meetings (secretariat) → final-order dispatch →
-> Closed. The design blueprint + phased roadmap is
-> **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; a cold-start handoff is
+> **through Phase 4**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
+> institutions master registry, the **full post-visitation case lifecycle** (visitor upload → allotted
+> junior → engine → senior/board review → clarification (college) → hearings (President-appointed
+> committee) → board meetings (secretariat) → final-order dispatch → Closed), **structured board
+> outcomes + official letter/order generation** (Phase 3d — reproduce the approved NCISM formats from
+> the assessment result), and a **system-wide append-only audit log** (Phase 4). Design blueprint +
+> roadmap: **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; cold-start handoff:
 > **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
-> reference superset. **Planned (not built):** compliance/penalty tracking + letter/order template
-> validation (3d), a generalized audit log (Phase 4), reports/analytics (Phase 5), a ruleset editor +
-> non-Ayurveda rulesets (Phase 6).
+> reference superset. **Planned (not built):** a first-class compliance/penalty ledger, reports/
+> analytics (Phase 5), a ruleset editor + non-Ayurveda rulesets + async worker (Phase 6).
 
 ## System overview
 
@@ -45,13 +45,14 @@ persists the resulting `report_markdown`/`report_json` onto the `applications` r
 truth, immutable once approved). The legacy `/documents` workflow keeps its own disk job + **Dexie**
 local store.
 
-## Portal layer (Phases 0–3)
+## Portal layer (Phases 0–4)
 
 A DB-backed governed multi-user layer wraps the pipeline. Built: authentication, RBAC (13 roles),
-the NCISM org hierarchy, the institutions master registry, and the **full case lifecycle**
+the NCISM org hierarchy, the institutions master registry, the **full case lifecycle**
 (upload → review → clarification → hearing → board meeting → dispatch → Closed) driven by a
-workflow-state guard. Not built (Planned): compliance/penalty tracking + template validation (3d),
-a generalized audit log (Phase 4), reports/analytics (Phase 5), a ruleset editor (Phase 6).
+workflow-state guard, **structured board outcomes + official letter/order generation** (3d), and a
+**system-wide audit log** (4). Not built (Planned): a first-class compliance/penalty ledger,
+reports/analytics (Phase 5), a ruleset editor + non-Ayurveda rulesets (Phase 6).
 
 ### Authentication & session flow
 
@@ -122,6 +123,20 @@ only the Secretariat dispatches; a college can't touch another institution's cas
 are an **overlay** — the secretariat schedules a numbered meeting + agenda and confirms minutes; the
 board decides cases with the normal actions.
 
+**Structured outcomes + official letters (Phase 3d).** The board decision carries a structured
+`outcome` (grant / grant-with-conditions / reduce-intake + `approved_seats` / deny), pre-seeded from
+`report_json.punitiveSummary`. The clarification/hearing/dispatch actions **auto-generate the official
+NCISM letters** — `services/letter.service.js` reproduces the approved formats (Clarification Letter,
+Hearing Notice with/without prior clarification, Final Order) driven by the case institution, the
+ruleset manifest (regulation + course via `utils/mesar-catalog.js`), `report_json.findings` (the
+staff-shortcoming **tables** + percentages, reusing the reporter's row fields) and `punitiveSummary`
+(outcome/seats/penalties). The actor edits the draft, issues it (stored in `letters`), and the
+college sees it on its case; uncaptured subject fields render as `[[editable]]` markers.
+
+**Audit (Phase 4).** `middlewares/audit.middleware.js` records **every successful write** (path-derived
+entity/action + actor + status) to the append-only `audit_log`; `GET /audit` powers the Audit viewer.
+The per-case `application_events` timeline remains the case-level view.
+
 ### Institutions registry
 
 `institutions` holds the full 672-college master (590 Ayurveda / 58 Unani / 17 Siddha /
@@ -143,34 +158,28 @@ src/
 ├── config/                    the only place env vars are read (incl. auth: jwt/bcrypt)
 ├── db/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
-│   ├── migrations/            001_auth_rbac · 002_institutions · 003_org_hierarchy ·
-│   │                          004_applications · 005_clarifications · 006_hearings_meetings
-│   └── seeds/                 001_rbac · 002_bootstrap_admin · 003_org_roles · 004_institutions (672)
-│                              · 005_org_users (17) · 006_application_rbac · 007_visitor_users ·
-│                              008_college_rbac · 009_college_users · 010_hearing_meeting_rbac ·
-│                              011_phase3c_users
+│   ├── migrations/            001_auth_rbac … 006_hearings_meetings ·
+│   │                          007_letters_outcomes · 008_audit_log
+│   └── seeds/                 001_rbac … 011_phase3c_users (RBAC, 672 institutions, org + lifecycle
+│                              mock users)
 ├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs ·
-│                              /assessments · /institutions · /admin · /applications · /meetings
-├── controllers/               auth · institution · org · application · meeting · assessments · extract · jobs · health
+│                              /assessments · /institutions · /admin · /applications · /meetings · /audit
+├── controllers/               auth · institution · org · application · meeting · audit · assessments · extract · jobs · health
 ├── services/
 │   ├── auth.service.js        login / refresh / logout / me
 │   ├── institution.service.js list/get/create/update · facets · importFromMarkdown (exception queue)
 │   ├── workflow.service.js    case guard — allowedActions / assertCan (status × role × ownership)
-│   ├── application.service.js case lifecycle: upload · process (runs engine) · submit · review ·
-│   │                          decide · clarification · hearing · dispatch · buildContext
+│   ├── application.service.js case lifecycle: upload · process · submit · review · decide (+outcome) ·
+│   │                          clarification · hearing · dispatch · letters · buildContext
+│   ├── letter.service.js      generates + issues the official letters/orders from the assessment result
 │   ├── meeting.service.js     board meetings (create / agenda / confirm minutes)
+│   ├── audit.service.js       append-only audit record + query
 │   ├── job.service.js         business ops over the repository; owns toJobDto()
 │   ├── extraction.service.js  dispatches to the pipeline registered for a mimetype
 │   ├── assessment.service.js  orchestrates engine run + artifact persistence
 │   └── retention.service.js   hourly purge of jobs older than JOB_RETENTION_HOURS
 ├── repositories/
-│   ├── user.repository.js     users + roles + live perms (findWithAccess, listUsers, listByRole)
-│   ├── token.repository.js    refresh-token hashing / lookup / revoke
-│   ├── institution.repository.js  filter/paginate, facets, bulkUpsert
-│   ├── application.repository.js  create · getById · role-scoped queueFor · update · events
-│   ├── clarification.repository.js  clarification rounds (letter + response)
-│   ├── hearing.repository.js  hearings + panel members
-│   ├── meeting.repository.js  board meetings + agenda items
+│   ├── user · token · institution · application · clarification · hearing · meeting · letter · audit
 │   └── job.repository.js      disk implementation of the job storage contract
 ├── engines/
 │   ├── extraction/            mimetype-keyed pipeline registry
@@ -179,8 +188,9 @@ src/
 ├── middlewares/
 │   ├── auth.middleware.js     authenticate (verify JWT + load live perms → req.user)
 │   ├── rbac.middleware.js     requirePermission / requireRole (→ 403)
+│   ├── audit.middleware.js    records every successful write → audit_log
 │   └── upload.middleware.js   multer PDF validation
-└── utils/                     jwt, api-error (ApiError), master-data.parser, logger
+└── utils/                     jwt · api-error (ApiError) · master-data.parser · mesar-catalog · logger
 ```
 
 ### Job repository contract
@@ -307,16 +317,18 @@ workflow errors — **401** (`NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/
 | Institutions (write) | `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` | `institution:create`/`:update` |
 | Admin | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` | `admin` + `user:manage`/`role:read` |
 | Cases | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/allowed-actions` · `/:id/events` · `/:id/hearings` · `/:id/clarifications` | `application:create`/`:read` |
-| Case transitions | `POST /applications/:id/{process,submit,review,decide,revise}` · `/request-hearing` · `/appoint-committee` · `/hearing/minutes` · `/dispatch` · `/clarification` · `/clarification/respond` | per-action perm (workflow guard re-checks state×role×ownership) |
+| Case transitions | `POST /applications/:id/{process,submit,review,decide,revise}` · `/request-hearing` · `/appoint-committee` · `/hearing/minutes` · `/dispatch` · `/clarification` · `/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) | per-action perm (workflow guard re-checks state×role×ownership) |
+| Letters | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` | `application:read` |
 | Meetings | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` | `meeting:manage` (writes) |
+| Audit | `GET /audit` (entity/actor/date filters) | `audit:read` |
 
-Institution/case list DTO: `{ success, rows[], … }`. **Planned:** audit, reports, ruleset endpoints
-(Phase 4–6; see the blueprint §10).
+Institution/case list DTO: `{ success, rows[], … }`. **Planned:** reports + ruleset endpoints
+(Phase 5–6).
 
 ### Database (Postgres — high level)
 
-15 domain tables via Knex migrations (+ knex bookkeeping): auth/RBAC + registry + the case
-lifecycle. Audit/report/ruleset tables remain Phase-4+ Planned.
+17 domain tables via Knex migrations (+ knex bookkeeping): auth/RBAC + registry + case lifecycle +
+letters + audit.
 
 ```
 users ──< user_roles >── roles ──< role_permissions >── permissions
@@ -325,18 +337,20 @@ users ──< user_roles >── roles ──< role_permissions >── permissi
   ├──< refresh_tokens
   └──< staff_allotments (user × system × state routing)
 institutions ──1:N── applications ──1:N── application_events (case timeline)
-                          ├──1:N── clarifications (letter + response, per round)
-                          └──1:N── hearings ──1:N── hearing_members
+                          ├──1:N── clarifications · hearings ──1:N── hearing_members
+                          └──1:N── letters (clarification / hearing notice / final order)
 board_meetings ──1:N── board_meeting_items ──→ applications (agenda overlay)
+audit_log (append-only: actor · action · entity · entity_id · status · created_at)
 ```
 
 - **Auth/RBAC (6):** `users` (+`supervisor_id`, `institution_id`) · `roles` · `permissions`
   (33: `institution:*`, `application:*`, `clarification:*`, `hearing:*`, `meeting:manage`,
-  `order:dispatch`, …) · `role_permissions` · `user_roles` · `refresh_tokens`.
+  `order:dispatch`, `audit:read`, …) · `role_permissions` · `user_roles` · `refresh_tokens`.
 - **Registry (2):** `institutions` (unique `institute_id`) · `staff_allotments`.
-- **Cases (7):** `applications` (institution_id, system, state, session, `status` enum, job_id,
-  report_markdown/json, decision, actor FKs) · `application_events` · `clarifications` · `hearings`
-  · `hearing_members` · `board_meetings` · `board_meeting_items`.
+- **Cases (8):** `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`,
+  `visitation_*`) · `application_events` · `clarifications` · `hearings` · `hearing_members` ·
+  `board_meetings` · `board_meeting_items` · `letters`.
+- **Governance (1):** `audit_log` (append-only).
 
 ## Frontend (`frontend/src/`)
 
@@ -350,11 +364,11 @@ Routes:
 - Public: `/`, `/login`, `/403`.
 - `/:role/*` (via `ProtectedRoute > RoleLayout`, which redirects if the URL role ≠ your primary
   role): `dashboard`, `profile`, `settings`, `about`, `institutions`, `institutions/:id`,
-  `applications`, `applications/new`, `applications/:id`, `meetings`, `meetings/:id`. The
+  `applications`, `applications/new`, `applications/:id`, `meetings`, `meetings/:id`, `audit`. The
   `DashboardLayout` sidebar branches per role (e.g. secretariat → Meetings; committee → Hearings;
-  college → own cases only; observer → read-only).
+  college → own cases only; observer → read-only; board/president/observer/admin → Audit).
 - `/admin/*` (`ProtectedRoute roles={['admin']}`): `institutions` (registry), `institutions/import`,
-  `institutions/:id`, `users`, `users/:userId`, `roles`, `permissions`.
+  `institutions/:id`, `users`, `users/:userId`, `roles`, `permissions`, `audit`.
 - Legacy document workflow (all roles): `/documents` → `/documents/:id` → `/pdf`, `/text`,
   `/structure`, `/metadata`, `/pipeline`, `/report`; `/documents/new` upload; `/history` +
   `/workspace/*` redirect. Retained alongside the case flow (ad-hoc extraction).
@@ -367,18 +381,21 @@ app/
 pages/                  Landing, Dashboard, Profile, Settings, About, Login, Forbidden, NotFound
 pages/institutions/     InstitutionsList (search + system/state filters + pagination),
                         InstitutionDetail, InstitutionImport
-pages/applications/     ApplicationsList (role-scoped queue), ApplicationUpload (visitor),
-                        ApplicationDetail (report + clarifications + hearings + timeline tabs;
-                        action bar driven by allowedActions)
+pages/applications/     ApplicationsList (role-scoped queue), ApplicationUpload (visitor +
+                        intake/permission/visitation fields), ApplicationDetail (report +
+                        clarifications + hearings + letters + timeline tabs; allowedActions bar +
+                        outcome select + auto-drafted letter dialogs)
 pages/meetings/         MeetingsList (secretariat create), MeetingDetail (agenda + confirm minutes)
+pages/audit/            AuditLog (filterable, paginated write trail)
 pages/admin/            UsersList, UserDetail, RolesList, PermissionsList
 pages/documents/        legacy pipeline UI (retained)
 features/
 ├── auth/               AuthContext (+ primaryRole), ProtectedRoute, RoleGate, token-store, auth.api
 ├── institutions/       institution.api + hooks — TanStack Query
 ├── applications/       application.api + hooks (queue, detail, allowedActions, transitions,
-│                       clarifications, hearings, committee-members)
+│                       clarifications, hearings, committee-members, letters/previewLetter)
 ├── meetings/           meeting.api + hooks (list/get/create/addItem/confirm)
+├── audit/              audit.api + useAuditLog
 ├── admin/              admin.api + hooks (users/roles/permissions)
 ├── documents/          legacy Dexie-backed workflow (DocumentPageLayout, useDocuments)
 └── workspace/          reusable viewers: PdfViewer, JsonViewer, DocumentOutline, useJob/useArtifact
@@ -418,6 +435,8 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 | **Case lifecycle + workflow guard** | `workflow.service`, `application.{service,repository,controller}`, `features/applications` |
 | **Clarification cycle + college** | `clarification.repository`, seeds `008/009`, `ApplicationDetail` |
 | **Hearings + board meetings + dispatch** | `hearing.repository`, `meeting.{service,repository,controller}`, `features/meetings` |
+| **Structured outcomes + letter/order generation** | `letter.service`, `utils/mesar-catalog`, `letters` table, `ApplicationDetail` Letters tab |
+| **Audit log** | `audit.middleware`, `audit.{service,repository}`, `features/audit`, `pages/audit` |
 
 **Extension points (designed for, not built):**
 
@@ -427,11 +446,11 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 | Cloud/object storage | new implementation of the job repository contract |
 | New regulations (Unani, Siddha, PG…) | new ruleset directory + report template registration (only Ayurveda-UG rules exist today, so non-Ayurveda cases process but assessment fails loudly) |
 
-**Planned (NOT built):** compliance/penalty tracking + letter/order template validation + dispatch
-log (**3d**); a generalized append-only `audit_log` interceptor (**Phase 4** — the per-case
-`application_events` timeline exists; this generalizes it); reports/analytics (**Phase 5**); a
-ruleset version editor + activation + RBAC-matrix/E2E hardening + non-Ayurveda rulesets (**Phase 6**).
-See [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
+**Planned (NOT built):** a first-class compliance/penalty ledger (data is computed in
+`punitiveSummary` and rendered into the Final Order today); reports/analytics (**Phase 5**); a
+ruleset version editor + activation + async worker + RBAC-matrix/E2E hardening + non-Ayurveda
+rulesets (**Phase 6**). See [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and
+[../HANDOFF.md](../HANDOFF.md).
 
 ## Domain sources
 

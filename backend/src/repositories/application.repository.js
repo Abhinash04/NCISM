@@ -65,9 +65,21 @@ async function queueFor(user) {
   const roles = user.roles || [];
   const q = baseQuery().orderBy('applications.updated_at', 'desc');
 
-  if (roles.includes('admin') || roles.includes('viewer')) return q;
+  if (roles.includes('admin') || roles.includes('viewer') || roles.includes('commission_observer')) return q;
+  if (roles.includes('secretariat')) {
+    return q.whereIn('applications.status', ['board_review', 'hearing_requested', 'hearing_scheduled', 'approved', 'closed', 'rejected']);
+  }
+  if (roles.includes('hearing_committee')) {
+    // Cases with an open hearing this user is a panel member of.
+    const mine = db('hearings')
+      .join('hearing_members', 'hearings.id', 'hearing_members.hearing_id')
+      .where('hearing_members.user_id', user.id)
+      .whereRaw('hearings.application_id = applications.id')
+      .select(db.raw('1'));
+    return q.whereExists(mine);
+  }
   if (roles.includes('board_member') || roles.includes('president')) {
-    return q.whereIn('applications.status', ['board_review', 'approved', 'rejected']);
+    return q.whereIn('applications.status', ['board_review', 'hearing_requested', 'hearing_scheduled', 'approved', 'closed', 'rejected']);
   }
   if (roles.includes('senior_consultant')) {
     const supervisees = db('users').where({ supervisor_id: user.id }).select('id');

@@ -16,10 +16,13 @@ const POLICY = {
   processed: { process: ['junior_owner'], submit: ['junior_owner'] },
   under_validation: { process: ['junior_owner'], submit: ['junior_owner'] },
   senior_review: { forward: ['senior_supervisor'], return: ['senior_supervisor'] },
-  board_review: { approve: ['board'], reject: ['board'], request_clarification: ['board'] },
+  board_review: { approve: ['board'], reject: ['board'], request_clarification: ['board'], request_hearing: ['board'] },
   clarification_open: { respond: ['college_owner'] },
   clarification_responded: { process: ['junior_owner'], submit: ['junior_owner'] },
-  approved: {},
+  hearing_requested: { appoint_committee: ['president'] },
+  hearing_scheduled: { record_minutes: ['committee_member'] },
+  approved: { dispatch_order: ['secretariat'] },
+  closed: {},
   rejected: { revise: ['junior_owner_allotted'] },
 };
 
@@ -32,6 +35,9 @@ function hasCapability(cap, user, ctx) {
     case 'junior_owner_allotted': return isJunior && (ctx.isAssignedJunior || ctx.isAllottedJunior);
     case 'senior_supervisor': return roles.includes('senior_consultant') && ctx.supervisesSubmitter;
     case 'board': return roles.includes('board_member') || roles.includes('president');
+    case 'president': return roles.includes('president');
+    case 'committee_member': return roles.includes('hearing_committee') && ctx.isHearingMember;
+    case 'secretariat': return roles.includes('secretariat');
     case 'college_owner': return roles.includes('college') && ctx.isCollegeOwner;
     default: return false;
   }
@@ -47,8 +53,9 @@ function allowedActions(app, user, ctx) {
 
 /** Throws 403 (or 423 for a finalized case) unless the action is allowed. */
 function assertCan(app, user, ctx, action) {
-  if (app.status === 'approved') {
-    throw ApiError.locked('CASE_FINALIZED', 'Approved cases are immutable');
+  // `closed` is fully terminal; `approved` accepts only the secretariat's dispatch.
+  if (app.status === 'closed' || (app.status === 'approved' && action !== 'dispatch_order')) {
+    throw ApiError.locked('CASE_FINALIZED', 'Case is finalized and immutable');
   }
   if (!allowedActions(app, user, ctx).includes(action)) {
     throw ApiError.forbidden('ACTION_NOT_ALLOWED', `Action "${action}" not allowed on a ${app.status} case for your role`);

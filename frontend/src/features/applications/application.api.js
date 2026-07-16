@@ -42,6 +42,16 @@ export async function getClarifications(id) {
   return data.clarifications || [];
 }
 
+export async function getHearings(id) {
+  const { data } = await apiClient.get(`/applications/${id}/hearings`);
+  return data.hearings || [];
+}
+
+export async function getCommitteeMembers() {
+  const { data } = await apiClient.get('/applications/committee-members');
+  return data.members || [];
+}
+
 /** Board issues a clarification letter. */
 export async function issueClarification(id, letterText) {
   const { data } = await apiClient.post(`/applications/${id}/clarification`, { letterText });

@@ -7,6 +7,7 @@ const assessmentsRoutes = require('./assessments.routes');
 const institutionsRoutes = require('./institutions.routes');
 const orgRoutes = require('./org.routes');
 const applicationsRoutes = require('./applications.routes');
+const meetingsRoutes = require('./meetings.routes');
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use('/assessment', assessmentsRoutes); // legacy alias
 router.use('/institutions', institutionsRoutes);
 router.use('/admin', orgRoutes);
 router.use('/applications', applicationsRoutes);
+router.use('/meetings', meetingsRoutes);
 
 module.exports = router;

@@ -4,6 +4,8 @@ const { db } = require('../db');
 const config = require('../config');
 const appRepo = require('../repositories/application.repository');
 const clarificationRepo = require('../repositories/clarification.repository');
+const hearingRepo = require('../repositories/hearing.repository');
+const userRepo = require('../repositories/user.repository');
 const institutionRepo = require('../repositories/institution.repository');
 const jobService = require('./job.service');
 const extractionService = require('./extraction.service');
@@ -35,7 +37,13 @@ async function buildContext(app, user) {
   const isCollegeOwner = (user.roles || []).includes('college')
     && !!user.institution_id && user.institution_id === app.institution_id;
 
-  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter, isCollegeOwner };
+  let isHearingMember = false;
+  if ((user.roles || []).includes('hearing_committee')) {
+    const active = await hearingRepo.activeForCase(app.id);
+    isHearingMember = !!active && (await hearingRepo.isMember(active.id, user.id));
+  }
+
+  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter, isCollegeOwner, isHearingMember };
 }
 
 async function getForUser(id, user) {
@@ -192,6 +200,62 @@ function clarifications(id) {
   return clarificationRepo.list(id);
 }
 
+/** Board flags unresolved shortcomings for a hearing. */
+async function requestHearing(id, user, { note } = {}) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'request_hearing');
+  const updated = await appRepo.update(id, { status: 'hearing_requested' });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'hearing_requested', actorId: user.id, note: note || 'Hearing requested' });
+  return updated;
+}
+
+/** President appoints the 2-member hearing committee (SoD-03). */
+async function appointCommittee(id, user, { memberIds, scheduledAt }) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'appoint_committee');
+  const members = Array.isArray(memberIds) ? [...new Set(memberIds)] : [];
+  if (members.length !== 2) throw ApiError.badRequest('VALIDATION_ERROR', 'Exactly two committee members are required');
+
+  const hearing = await hearingRepo.create({ application_id: id, appointed_by: user.id, scheduled_at: scheduledAt || null, status: 'open' });
+  await hearingRepo.addMembers(hearing.id, members);
+  const updated = await appRepo.update(id, { status: 'hearing_scheduled' });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'hearing_scheduled', actorId: user.id, note: 'Hearing committee appointed' });
+  return updated;
+}
+
+/** Committee records minutes; the case returns to the board. */
+async function recordMinutes(id, user, { minutes, verdict }) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'record_minutes');
+  const active = await hearingRepo.activeForCase(id);
+  if (!active) throw ApiError.badRequest('NO_OPEN_HEARING', 'No open hearing for this case');
+
+  await hearingRepo.update(active.id, {
+    status: 'held', minutes_text: minutes || null, verdict: verdict || null,
+    recorded_by: user.id, recorded_at: db.fn.now(),
+  });
+  const updated = await appRepo.update(id, { status: 'board_review' });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'board_review', actorId: user.id, note: `Hearing minutes recorded${verdict ? ` — ${verdict}` : ''}` });
+  return updated;
+}
+
+/** Secretariat dispatches the final order → the case closes. */
+async function dispatchOrder(id, user, { orderText } = {}) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'dispatch_order');
+  const updated = await appRepo.update(id, { status: 'closed', decision_note: orderText || app.decision_note });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'closed', actorId: user.id, note: orderText || 'Final order dispatched' });
+  return updated;
+}
+
+function hearings(id) {
+  return hearingRepo.listForCase(id);
+}
+
+function committeeMembers() {
+  return userRepo.listByRole('hearing_committee');
+}
+
 /** Junior reopens a rejected case for rework. */
 async function revise(id, user) {
   const { app, ctx } = await getForUser(id, user);
@@ -205,4 +269,5 @@ module.exports = {
   list, getDetail, allowedActionsFor, events,
   createUpload, process, submit, review, decide, revise,
   requestClarification, respondClarification, clarifications,
+  requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,
 };

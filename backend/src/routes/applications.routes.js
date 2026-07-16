@@ -9,6 +9,7 @@ const router = express.Router();
 router.use(authenticate);
 
 router.get('/', requirePermission('application:read'), (req, res, next) => controller.list(req, res, next));
+router.get('/committee-members', requirePermission('hearing:appoint'), (req, res, next) => controller.committeeMembers(req, res, next));
 router.post('/', requirePermission('application:create'), uploadPdf.single('file'), (req, res, next) => controller.create(req, res, next));
 
 router.get('/:id', requirePermission('application:read'), (req, res, next) => controller.get(req, res, next));
@@ -25,5 +26,12 @@ router.post('/:id/revise', requirePermission('application:process'), (req, res, 
 router.get('/:id/clarifications', requirePermission('application:read'), (req, res, next) => controller.clarifications(req, res, next));
 router.post('/:id/clarification', requirePermission('clarification:issue'), (req, res, next) => controller.requestClarification(req, res, next));
 router.post('/:id/clarification/respond', requirePermission('clarification:respond'), uploadPdf.single('file'), (req, res, next) => controller.respondClarification(req, res, next));
+
+// Hearings + final-order dispatch (Phase 3c)
+router.get('/:id/hearings', requirePermission('application:read'), (req, res, next) => controller.hearings(req, res, next));
+router.post('/:id/request-hearing', requirePermission('application:decide'), (req, res, next) => controller.requestHearing(req, res, next));
+router.post('/:id/appoint-committee', requirePermission('hearing:appoint'), (req, res, next) => controller.appointCommittee(req, res, next));
+router.post('/:id/hearing/minutes', requirePermission('hearing:conduct'), (req, res, next) => controller.recordMinutes(req, res, next));
+router.post('/:id/dispatch', requirePermission('order:dispatch'), (req, res, next) => controller.dispatchOrder(req, res, next));
 
 module.exports = router;

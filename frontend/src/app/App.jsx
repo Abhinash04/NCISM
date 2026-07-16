@@ -30,6 +30,8 @@ import { PermissionsList } from '@/pages/admin/PermissionsList';
 import { ApplicationsList } from '@/pages/applications/ApplicationsList';
 import { ApplicationUpload } from '@/pages/applications/ApplicationUpload';
 import { ApplicationDetail } from '@/pages/applications/ApplicationDetail';
+import { MeetingsList } from '@/pages/meetings/MeetingsList';
+import { MeetingDetail } from '@/pages/meetings/MeetingDetail';
 
 import { DocumentsList } from '@/pages/documents/DocumentsList';
 import { DocumentDetails } from '@/pages/documents/DocumentDetails';
@@ -94,6 +96,8 @@ function App() {
               <Route path="applications" element={<ApplicationsList />} />
               <Route path="applications/new" element={<ApplicationUpload />} />
               <Route path="applications/:id" element={<ApplicationDetail />} />
+              <Route path="meetings" element={<MeetingsList />} />
+              <Route path="meetings/:id" element={<MeetingDetail />} />
             </Route>
 
             {/* Admin console (admin-only) */}

@@ -3,6 +3,7 @@ import {
   listApplications, getApplication, getAllowedActions, getEvents,
   uploadApplication, actOnApplication,
   getClarifications, issueClarification, respondClarification,
+  getHearings, getCommitteeMembers,
 } from './application.api';
 
 export function useApplications() {
@@ -58,4 +59,12 @@ export function useIssueClarification(id) {
 export function useRespondClarification(id) {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (payload) => respondClarification(id, payload), onSuccess: () => invalidateCase(qc, id) });
+}
+
+export function useHearings(id) {
+  return useQuery({ queryKey: ['application', id, 'hearings'], queryFn: () => getHearings(id), enabled: !!id });
+}
+
+export function useCommitteeMembers(enabled) {
+  return useQuery({ queryKey: ['committee-members'], queryFn: getCommitteeMembers, enabled: !!enabled, staleTime: 5 * 60 * 1000 });
 }

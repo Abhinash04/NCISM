@@ -129,6 +129,60 @@ class ApplicationController {
       next(error);
     }
   }
+
+  async requestHearing(req, res, next) {
+    try {
+      const application = await applicationService.requestHearing(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async appointCommittee(req, res, next) {
+    try {
+      const application = await applicationService.appointCommittee(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async recordMinutes(req, res, next) {
+    try {
+      const application = await applicationService.recordMinutes(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async dispatchOrder(req, res, next) {
+    try {
+      const application = await applicationService.dispatchOrder(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async hearings(req, res, next) {
+    try {
+      const hearings = await applicationService.hearings(req.params.id);
+      res.json({ success: true, hearings });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async committeeMembers(req, res, next) {
+    try {
+      const members = await applicationService.committeeMembers();
+      res.json({ success: true, members });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ApplicationController();

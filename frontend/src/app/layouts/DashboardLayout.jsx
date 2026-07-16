@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound, FileStack } from 'lucide-react';
+import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound, FileStack, Gavel } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,37 @@ export function DashboardLayout() {
       { name: 'Dashboard', path: '/college/dashboard', icon: Home },
       { name: 'My Cases', path: '/college/applications', icon: FileStack },
       { name: 'Settings', path: '/college/settings', icon: Settings },
+    ],
+    secretariat: [
+      { name: 'Dashboard', path: '/secretariat/dashboard', icon: Home },
+      { name: 'Meetings', path: '/secretariat/meetings', icon: Gavel },
+      { name: 'Cases', path: '/secretariat/applications', icon: FileStack },
+      { name: 'Settings', path: '/secretariat/settings', icon: Settings },
+    ],
+    hearing_committee: [
+      { name: 'Dashboard', path: '/hearing_committee/dashboard', icon: Home },
+      { name: 'Hearings', path: '/hearing_committee/applications', icon: Gavel },
+      { name: 'Settings', path: '/hearing_committee/settings', icon: Settings },
+    ],
+    commission_observer: [
+      { name: 'Dashboard', path: '/commission_observer/dashboard', icon: Home },
+      { name: 'Cases', path: '/commission_observer/applications', icon: FileStack },
+      { name: 'Meetings', path: '/commission_observer/meetings', icon: Gavel },
+      { name: 'Settings', path: '/commission_observer/settings', icon: Settings },
+    ],
+    board_member: [
+      { name: 'Dashboard', path: '/board_member/dashboard', icon: Home },
+      { name: 'Cases', path: '/board_member/applications', icon: FileStack },
+      { name: 'Meetings', path: '/board_member/meetings', icon: Gavel },
+      { name: 'Institutions', path: '/board_member/institutions', icon: Building2 },
+      { name: 'Settings', path: '/board_member/settings', icon: Settings },
+    ],
+    president: [
+      { name: 'Dashboard', path: '/president/dashboard', icon: Home },
+      { name: 'Cases', path: '/president/applications', icon: FileStack },
+      { name: 'Meetings', path: '/president/meetings', icon: Gavel },
+      { name: 'Institutions', path: '/president/institutions', icon: Building2 },
+      { name: 'Settings', path: '/president/settings', icon: Settings },
     ],
   };
   const navItems = NAV_BY_ROLE[role] || [

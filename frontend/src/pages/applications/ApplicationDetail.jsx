@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Building2, Clock, FileCheck2, Mail } from 'lucide-react';
+import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -14,6 +17,7 @@ import { DragDropZone } from '@/features/documents/components/DragDropZone';
 import {
   useApplication, useAllowedActions, useApplicationEvents, useApplicationAction,
   useClarifications, useIssueClarification, useRespondClarification,
+  useHearings, useCommitteeMembers,
 } from '@/features/applications/hooks';
 import { STATUS_META } from './ApplicationsList';
 
@@ -30,6 +34,15 @@ const ACTION_DEFS = {
   revise: { route: 'revise', label: 'Reopen for revision', variant: 'default' },
 };
 
+// Actions with their own form dialog (kind drives which fields render).
+const SPECIAL = {
+  request_clarification: { label: 'Request clarification', variant: 'outline', kind: 'issue' },
+  request_hearing: { label: 'Request hearing', variant: 'outline', route: 'request-hearing', kind: 'note' },
+  appoint_committee: { label: 'Appoint hearing committee', variant: 'default', route: 'appoint-committee', kind: 'committee' },
+  record_minutes: { label: 'Record hearing minutes', variant: 'default', route: 'hearing/minutes', kind: 'minutes' },
+  dispatch_order: { label: 'Dispatch final order', variant: 'default', route: 'dispatch', kind: 'text', field: 'orderText' },
+};
+
 export function ApplicationDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -40,12 +53,20 @@ export function ApplicationDetail() {
   const { data: actions = [] } = useAllowedActions(id);
   const { data: events = [] } = useApplicationEvents(id);
   const { data: rounds = [] } = useClarifications(id);
+  const { data: hearings = [] } = useHearings(id);
   const action = useApplicationAction(id);
   const issue = useIssueClarification(id);
   const respond = useRespondClarification(id);
 
-  const [dialog, setDialog] = useState(null); // { key } — note/letter dialog
-  const [note, setNote] = useState('');
+  const [dialog, setDialog] = useState(null); // { key, kind }
+  const committeeOpen = dialog?.kind === 'committee';
+  const { data: committee = [] } = useCommitteeMembers(committeeOpen);
+
+  // Form fields shared by the dialogs.
+  const [text, setText] = useState('');      // note / letter / order / minutes
+  const [verdict, setVerdict] = useState('');
+  const [members, setMembers] = useState([]);
+  const [when, setWhen] = useState('');
   const [respText, setRespText] = useState('');
   const [respFile, setRespFile] = useState(null);
 
@@ -54,31 +75,42 @@ export function ApplicationDetail() {
 
   const meta = STATUS_META[app.status] || { label: app.status, variant: 'secondary' };
   const busy = action.isPending || issue.isPending || respond.isPending;
-
-  // Buttons: pure transitions + "request clarification"; "respond" is an inline panel below.
   const buttonActions = actions.filter((a) => a !== 'respond');
 
-  const onAction = (key) => {
-    if (key === 'request_clarification') { setNote(''); setDialog({ key, issue: true }); return; }
-    const def = ACTION_DEFS[key];
-    if (def.note) { setNote(''); setDialog({ key }); }
-    else action.mutate({ action: def.route, body: def.body || {} });
+  const openDialog = (key) => {
+    setText(''); setVerdict(''); setMembers([]); setWhen('');
+    setDialog({ key, kind: SPECIAL[key]?.kind || (ACTION_DEFS[key]?.note ? 'note' : null) });
   };
+  const onAction = (key) => {
+    if (SPECIAL[key] || ACTION_DEFS[key]?.note) return openDialog(key);
+    const def = ACTION_DEFS[key];
+    action.mutate({ action: def.route, body: def.body || {} });
+  };
+  const toggleMember = (mid) => setMembers((m) => (m.includes(mid) ? m.filter((x) => x !== mid) : [...m, mid]));
+
   const confirmDialog = () => {
-    if (dialog.issue) { issue.mutate(note); }
-    else {
-      const def = ACTION_DEFS[dialog.key];
-      action.mutate({ action: def.route, body: { ...(def.body || {}), ...(note ? { note } : {}) } });
+    const key = dialog.key;
+    const sp = SPECIAL[key];
+    if (sp?.kind === 'issue') issue.mutate(text);
+    else if (sp?.kind === 'note') action.mutate({ action: sp.route, body: { note: text } });
+    else if (sp?.kind === 'text') action.mutate({ action: sp.route, body: { [sp.field]: text } });
+    else if (sp?.kind === 'minutes') action.mutate({ action: sp.route, body: { minutes: text, verdict } });
+    else if (sp?.kind === 'committee') action.mutate({ action: sp.route, body: { memberIds: members, scheduledAt: when || null } });
+    else { // pure note transition (forward/return/approve/reject)
+      const def = ACTION_DEFS[key];
+      action.mutate({ action: def.route, body: { ...(def.body || {}), ...(text ? { note: text } : {}) } });
     }
     setDialog(null);
   };
-  const submitResponse = () => {
-    respond.mutate({ responseText: respText, file: respFile }, {
-      onSuccess: () => { setRespText(''); setRespFile(null); },
-    });
-  };
+  const confirmDisabled = busy
+    || (dialog?.kind === 'issue' && !text.trim())
+    || (dialog?.kind === 'committee' && members.length !== 2);
 
-  const dialogTitle = dialog?.issue ? 'Request clarification' : dialog && ACTION_DEFS[dialog.key].label;
+  const submitResponse = () => respond.mutate({ responseText: respText, file: respFile }, {
+    onSuccess: () => { setRespText(''); setRespFile(null); },
+  });
+
+  const dialogTitle = dialog ? (SPECIAL[dialog.key]?.label || ACTION_DEFS[dialog.key]?.label) : '';
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
@@ -107,13 +139,10 @@ export function ApplicationDetail() {
         </p>
       )}
 
-      {/* Action bar — rendered only from backend allowedActions (no role checks here). */}
       {buttonActions.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {buttonActions.map((key) => {
-            const def = key === 'request_clarification'
-              ? { label: 'Request clarification', variant: 'outline' }
-              : ACTION_DEFS[key];
+            const def = SPECIAL[key] || ACTION_DEFS[key];
             if (!def) return null;
             return (
               <Button key={key} variant={def.variant} disabled={busy} onClick={() => onAction(key)}>
@@ -124,7 +153,6 @@ export function ApplicationDetail() {
         </div>
       )}
 
-      {/* College respond panel — shown when the owning college may answer. */}
       {actions.includes('respond') && (
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" /> Respond to clarification</CardTitle></CardHeader>
@@ -148,43 +176,56 @@ export function ApplicationDetail() {
         <TabsList>
           <TabsTrigger value="report">Assessment report</TabsTrigger>
           <TabsTrigger value="clarifications">Clarifications{rounds.length ? ` (${rounds.length})` : ''}</TabsTrigger>
+          <TabsTrigger value="hearings">Hearings{hearings.length ? ` (${hearings.length})` : ''}</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
 
         <TabsContent value="report">
-          <Card>
-            <CardContent className="pt-6">
-              {app.report_markdown
-                ? <div className="prose prose-sm dark:prose-invert max-w-none"><MarkdownRenderer markdown={app.report_markdown} /></div>
-                : <p className="text-sm text-muted-foreground">No report yet. Run <strong>Process</strong> to generate the assessment.</p>}
-            </CardContent>
-          </Card>
+          <Card><CardContent className="pt-6">
+            {app.report_markdown
+              ? <div className="prose prose-sm dark:prose-invert max-w-none"><MarkdownRenderer markdown={app.report_markdown} /></div>
+              : <p className="text-sm text-muted-foreground">No report yet. Run <strong>Process</strong> to generate the assessment.</p>}
+          </CardContent></Card>
         </TabsContent>
 
         <TabsContent value="clarifications">
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              {rounds.length ? rounds.map((r) => (
-                <div key={r.id} className="rounded-lg border p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Round {r.round}</span>
-                    <Badge variant={r.status === 'responded' ? 'default' : 'secondary'}>{r.status}</Badge>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Letter{r.issued_by_name ? ` · ${r.issued_by_name}` : ''}</p>
-                    <p className="text-sm whitespace-pre-wrap">{r.letter_text}</p>
-                  </div>
-                  {(r.response_text || r.response_file) && (
-                    <div className="border-t pt-2">
-                      <p className="text-xs text-muted-foreground">Response{r.responded_by_name ? ` · ${r.responded_by_name}` : ''}</p>
-                      {r.response_text && <p className="text-sm whitespace-pre-wrap">{r.response_text}</p>}
-                      {r.response_file && <p className="text-xs text-muted-foreground mt-1">📎 {r.response_file}</p>}
-                    </div>
-                  )}
+          <Card><CardContent className="pt-6 space-y-4">
+            {rounds.length ? rounds.map((r) => (
+              <div key={r.id} className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Round {r.round}</span>
+                  <Badge variant={r.status === 'responded' ? 'default' : 'secondary'}>{r.status}</Badge>
                 </div>
-              )) : <p className="text-sm text-muted-foreground">No clarifications issued.</p>}
-            </CardContent>
-          </Card>
+                <div><p className="text-xs text-muted-foreground">Letter{r.issued_by_name ? ` · ${r.issued_by_name}` : ''}</p>
+                  <p className="text-sm whitespace-pre-wrap">{r.letter_text}</p></div>
+                {(r.response_text || r.response_file) && (
+                  <div className="border-t pt-2"><p className="text-xs text-muted-foreground">Response{r.responded_by_name ? ` · ${r.responded_by_name}` : ''}</p>
+                    {r.response_text && <p className="text-sm whitespace-pre-wrap">{r.response_text}</p>}
+                    {r.response_file && <p className="text-xs text-muted-foreground mt-1">📎 {r.response_file}</p>}</div>
+                )}
+              </div>
+            )) : <p className="text-sm text-muted-foreground">No clarifications issued.</p>}
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="hearings">
+          <Card><CardContent className="pt-6 space-y-4">
+            {hearings.length ? hearings.map((h) => (
+              <div key={h.id} className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium flex items-center gap-2"><Gavel className="h-4 w-4" /> Hearing</span>
+                  <Badge variant={h.status === 'held' ? 'default' : 'secondary'}>{h.status}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Committee: {(h.members || []).join(', ') || '—'}
+                  {h.appointed_by_name ? ` · appointed by ${h.appointed_by_name}` : ''}
+                  {h.scheduled_at ? ` · ${new Date(h.scheduled_at).toLocaleString()}` : ''}
+                </p>
+                {h.minutes_text && <div><p className="text-xs text-muted-foreground">Minutes{h.recorded_by_name ? ` · ${h.recorded_by_name}` : ''}</p><p className="text-sm whitespace-pre-wrap">{h.minutes_text}</p></div>}
+                {h.verdict && <p className="text-sm"><span className="text-muted-foreground">Verdict: </span>{h.verdict}</p>}
+              </div>
+            )) : <p className="text-sm text-muted-foreground">No hearings.</p>}
+          </CardContent></Card>
         </TabsContent>
 
         <TabsContent value="timeline">
@@ -196,11 +237,9 @@ export function ApplicationDetail() {
                   <li key={e.id} className="flex gap-3 text-sm">
                     <Clock className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
                     <div>
-                      <p>
-                        <span className="font-medium">{(STATUS_META[e.to_state] || {}).label || e.to_state}</span>
+                      <p><span className="font-medium">{(STATUS_META[e.to_state] || {}).label || e.to_state}</span>
                         {e.actor_name && <span className="text-muted-foreground"> · {e.actor_name}</span>}
-                        <span className="text-muted-foreground"> · {new Date(e.created_at).toLocaleString()}</span>
-                      </p>
+                        <span className="text-muted-foreground"> · {new Date(e.created_at).toLocaleString()}</span></p>
                       {e.note && <p className="text-muted-foreground">{e.note}</p>}
                     </div>
                   </li>
@@ -214,12 +253,41 @@ export function ApplicationDetail() {
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>{dialogTitle}</DialogTitle></DialogHeader>
-          <Textarea
-            placeholder={dialog?.issue ? 'Clarification letter — list the shortcomings…' : 'Add a note (optional)…'}
-            value={note} onChange={(e) => setNote(e.target.value)} rows={dialog?.issue ? 6 : 3} />
+
+          {dialog?.kind === 'committee' ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Committee members (pick exactly 2)</Label>
+                {committee.map((m) => (
+                  <label key={m.id} className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={members.includes(m.id)} onCheckedChange={() => toggleMember(m.id)} />
+                    {m.name}
+                  </label>
+                ))}
+                {committee.length === 0 && <p className="text-sm text-muted-foreground">No hearing-committee members found.</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="when">Hearing date</Label>
+                <Input id="when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+              </div>
+            </div>
+          ) : dialog?.kind === 'minutes' ? (
+            <div className="space-y-3">
+              <Textarea placeholder="Minutes — observations per shortcoming…" rows={5} value={text} onChange={(e) => setText(e.target.value)} />
+              <Input placeholder="Verdict (e.g. submission not considered / compliance verified)" value={verdict} onChange={(e) => setVerdict(e.target.value)} />
+            </div>
+          ) : (
+            <Textarea
+              placeholder={dialog?.kind === 'issue' ? 'Clarification letter — list the shortcomings…'
+                : dialog?.kind === 'text' ? 'Final order text…'
+                : 'Add a note (optional)…'}
+              rows={dialog?.kind === 'issue' || dialog?.kind === 'text' ? 6 : 3}
+              value={text} onChange={(e) => setText(e.target.value)} />
+          )}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialog(null)}>Cancel</Button>
-            <Button onClick={confirmDialog} disabled={busy || (dialog?.issue && !note.trim())}>Confirm</Button>
+            <Button onClick={confirmDialog} disabled={confirmDisabled}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

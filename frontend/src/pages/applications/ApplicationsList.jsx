@@ -17,7 +17,10 @@ export const STATUS_META = {
   clarification_responded: { label: 'Clarification answered', variant: 'default' },
   senior_review: { label: 'Senior review', variant: 'default' },
   board_review: { label: 'Board review', variant: 'default' },
+  hearing_requested: { label: 'Hearing requested', variant: 'secondary' },
+  hearing_scheduled: { label: 'Hearing scheduled', variant: 'secondary' },
   approved: { label: 'Approved', variant: 'default' },
+  closed: { label: 'Closed', variant: 'default' },
   rejected: { label: 'Rejected', variant: 'destructive' },
 };
 

@@ -53,6 +53,15 @@ async function listUsers() {
   return rows;
 }
 
+/** Users holding a given role (e.g. the hearing-committee picker). */
+function listByRole(roleKey) {
+  return db('users')
+    .join('user_roles', 'users.id', 'user_roles.user_id')
+    .where('user_roles.role_key', roleKey)
+    .orderBy('users.name')
+    .select('users.id', 'users.name', 'users.email');
+}
+
 /** Single user with roles + permissions (admin detail view). */
 async function getUserWithRoles(id) {
   const user = await findById(id);
@@ -68,5 +77,5 @@ async function getUserWithRoles(id) {
 
 module.exports = {
   findByEmail, findById, roleKeys, permissionsForRoles, findWithAccess, touchLastLogin,
-  listUsers, getUserWithRoles,
+  listUsers, getUserWithRoles, listByRole,
 };

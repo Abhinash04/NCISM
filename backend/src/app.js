@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const config = require('./config');
 const routes = require('./routes');
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
+const { auditRequests } = require('./middlewares/audit.middleware');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(auditRequests); // append-only audit trail for every successful write
 
 app.use('/api/v1', routes);
 

@@ -20,7 +20,7 @@ const GRANTS = {
   president: ['hearing:appoint'],
   hearing_committee: ['application:read', 'hearing:conduct'],
   secretariat: ['application:read', 'meeting:manage', 'order:dispatch'],
-  commission_observer: ['application:read'],
+  commission_observer: ['application:read', 'audit:read'],
 };
 
 exports.seed = async function seed(knex) {

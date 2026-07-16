@@ -8,6 +8,7 @@ const institutionsRoutes = require('./institutions.routes');
 const orgRoutes = require('./org.routes');
 const applicationsRoutes = require('./applications.routes');
 const meetingsRoutes = require('./meetings.routes');
+const auditRoutes = require('./audit.routes');
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use('/institutions', institutionsRoutes);
 router.use('/admin', orgRoutes);
 router.use('/applications', applicationsRoutes);
 router.use('/meetings', meetingsRoutes);
+router.use('/audit', auditRoutes);
 
 module.exports = router;

@@ -32,6 +32,7 @@ import { ApplicationUpload } from '@/pages/applications/ApplicationUpload';
 import { ApplicationDetail } from '@/pages/applications/ApplicationDetail';
 import { MeetingsList } from '@/pages/meetings/MeetingsList';
 import { MeetingDetail } from '@/pages/meetings/MeetingDetail';
+import { AuditLog } from '@/pages/audit/AuditLog';
 
 import { DocumentsList } from '@/pages/documents/DocumentsList';
 import { DocumentDetails } from '@/pages/documents/DocumentDetails';
@@ -98,6 +99,7 @@ function App() {
               <Route path="applications/:id" element={<ApplicationDetail />} />
               <Route path="meetings" element={<MeetingsList />} />
               <Route path="meetings/:id" element={<MeetingDetail />} />
+              <Route path="audit" element={<AuditLog />} />
             </Route>
 
             {/* Admin console (admin-only) */}
@@ -110,6 +112,7 @@ function App() {
               <Route path="users/:userId" element={<UserDetail />} />
               <Route path="roles" element={<RolesList />} />
               <Route path="permissions" element={<PermissionsList />} />
+              <Route path="audit" element={<AuditLog />} />
             </Route>
 
             {/* Post-login landing → role-scoped dashboard */}

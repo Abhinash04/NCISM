@@ -3,24 +3,89 @@
 Authoritative reference for the NCISM Assessment Platform foundation. Anything under
 `docs/archive/` is historical and describes systems that no longer exist (or never did).
 
-> **Scope note (2026-07):** the project is now an **internal** review/validation portal
-> (~10–20 admin-provisioned staff) wrapped around the completed extraction + assessment pipeline —
-> NOT the public 9-role regulatory SaaS. The build blueprint (roles, RBAC, state machine, routing,
-> DB/backend/frontend/API modules, phased roadmap) is **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**.
-> `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the reference superset, not the build target.
+> **Scope note (2026-07):** the project is an **internal** review/validation portal wrapped around
+> the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. The portal
+> **foundation is built through Phase 2**: Postgres + JWT auth + RBAC, the NCISM org hierarchy as
+> loginable users, the institutions master registry + import, and a role-prefixed (`/:role/*`)
+> portal + admin console (see the **Portal layer** section below). The design blueprint + phased
+> roadmap is **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; a cold-start handoff is
+> **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
+> reference superset. The post-visitation lifecycle (uploads-as-cases, review/hearing/board workflow,
+> visitor/secretariat/college roles) is **Phase 3 — Planned**, not built.
 
 ## System overview
 
 ```
 Browser (React SPA, :5173)
-   │  multipart PDF / JSON over /api/v1        Dexie (IndexedDB)
-   ▼                                            ▲  documents, artifacts, assessments
-Express backend (:3000)                         │  (survives backend retention purge)
+   │  Bearer JWT + httpOnly refresh cookie      Dexie (IndexedDB)
+   │  multipart PDF / JSON over /api/v1         ▲  documents, artifacts, assessments
+   ▼                                            │  (local store for the document workflow only)
+Express backend (:3000)
+   ├─ auth + RBAC ──────── authenticate → requirePermission/requireRole (per-request live perms)
+   ├─ portal API ───────── institutions registry + import · admin users/roles/permissions
    ├─ extraction engine ── OpenDataLoader-PDF CLI (Python wrapper → Java core)
    │                        └─ Docling hybrid server (:5002, optional, --hybrid-fallback)
    ├─ assessment engine ── data/rulesets/<id>/<version>/  (rules + punitive policy JSON)
    └─ job repository ───── backend/temp/job_<id>/  (input.pdf, manifest.json, output/*)
+        │
+        ▼
+   PostgreSQL (:5432, docker-compose)  ── auth/RBAC + institutions registry + org hierarchy
+                                          (knex migrations + seeds; NOT the job/artifact store)
 ```
+
+Two storage planes coexist: **Postgres** holds identity, RBAC, and the institution registry
+(Phase 0–2); the **disk job repository** + **Dexie** still back the original document-processing
+workflow. Assessment runs are not yet persisted as DB records — that is Phase 3 (Planned).
+
+## Portal layer (Phases 0–2)
+
+A DB-backed governed multi-user layer wraps the pipeline. Built: authentication, RBAC, the NCISM
+org hierarchy, and the institutions master registry. Not built (Phase 3, Planned): the assessment
+review lifecycle, uploads-as-cases, audit log, reports.
+
+### Authentication & session flow
+
+Local accounts only (admin-provisioned; no public registration). `bcryptjs` password hashes
+(`BCRYPT_ROUNDS`, default 12). On `POST /auth/login`: a short-lived **access JWT** (`15m`, sent as
+`Authorization: Bearer`) + a **refresh token** (`7d`, set as an httpOnly cookie and stored only as a
+sha-256 hash in `refresh_tokens`). The SPA keeps the access token in memory; a 401 triggers one
+silent `POST /auth/refresh` and replays the request; `POST /auth/logout` revokes the refresh token.
+`GET /auth/me` returns the identity + roles + permission set. `utils/jwt.js` exposes
+`signAccess` / `verifyAccess` / `newRefreshToken`.
+
+### RBAC model
+
+`role → permission`, where a permission is `resource:action` (e.g. `institution:create`). Users hold
+one or more roles (`user_roles`); `role_permissions` maps roles → permissions. The `authenticate`
+middleware (`middlewares/auth.middleware.js`) verifies the access token and loads the user's **live**
+role+permission set **on every request** (so role changes take effect without re-login), attaching
+`req.user = { id, email, name, status, roles[], permissions[] }`. `middlewares/rbac.middleware.js`
+provides `requirePermission(...perms)` (→ 403) and `requireRole(...roles)` (→ 403). The frontend
+`RoleGate`/`ProtectedRoute` are cosmetic; the backend re-checks every call.
+
+**Roles (8 seeded).** The NCISM org tiers plus the retained Phase-1 coarse roles:
+
+| Tier / role | Key | Notes |
+|---|---|---|
+| President | `president` | Apex authority (1 user: Dr. Mukul Patel) |
+| Board Member | `board_member` | Review/finalize, sign letters (2 users) |
+| Senior Consultant | `senior_consultant` | Supervises dealing staff; verifies assessments (2) |
+| Junior Consultant | `junior_consultant` | Dealing staff; processes allotted colleges (12) |
+| Administrator | `admin` | Users, roles, master data; **no business approval** (SoD) |
+| Reviewer / Analyst / Viewer | `reviewer`,`analyst`,`viewer` | Retained Phase-1 maker/checker/auditor roles |
+
+**Org reporting chain** (`users.supervisor_id`, self-FK): President → 2 Board Members → 2 Senior
+Consultants → Junior teams (Team-1 → Gaurav Bhandari; Team-2 → Kritika). 17 org users are seeded
+with **mock credentials** (see [../AuthCred.md](../AuthCred.md)) + a bootstrap admin.
+
+### Institutions registry
+
+`institutions` holds the full 672-college master (590 Ayurveda / 58 Unani / 17 Siddha /
+7 Sowa-Rigpa). `utils/master-data.parser.js` parses the markdown master table (tolerant of `-`
+placeholders and header typos; IDs `^(AYU|UNI|SID|SWR)\d{4}$`), collecting malformed rows into an
+**exception queue** rather than throwing. Import is idempotent (`bulkUpsert` on `institute_id`).
+`staff_allotments` (user × system × state) routes colleges to their dealing staff — the basis for
+Phase-3 case routing. `POST /institutions/import` accepts a `.md`/`.csv` file or `{ text }`.
 
 ## Backend (`backend/`)
 
@@ -31,20 +96,36 @@ returns `{success:false, error:{code, message}}` for every non-2xx.
 ```
 src/
 ├── app.js / ../server.js      express assembly / bootstrap (starts retention service)
-├── config/                    the only place env vars are read
-├── routes/  controllers/      thin HTTP layer
+├── config/                    the only place env vars are read (incl. auth: jwt/bcrypt)
+├── db/
+│   ├── index.js               singleton Knex instance (+ assertConnection on boot)
+│   ├── migrations/            001_auth_rbac · 002_institutions · 003_org_hierarchy
+│   └── seeds/                 001_rbac · 002_bootstrap_admin · 003_org_roles ·
+│                              004_institutions (672) · 005_org_users (17 + allotments)
+├── routes/                    thin HTTP layer — index mounts:
+│                              /auth · /(extract) · /jobs · /assessments · /institutions · /admin
+├── controllers/               auth · institution · org (admin) · assessments · extract · jobs · health
 ├── services/
+│   ├── auth.service.js        login / refresh / logout / me
+│   ├── institution.service.js list/get/create/update · facets · importFromMarkdown (exception queue)
 │   ├── job.service.js         business ops over the repository; owns toJobDto()
 │   ├── extraction.service.js  dispatches to the pipeline registered for a mimetype
 │   ├── assessment.service.js  orchestrates engine run + artifact persistence
 │   └── retention.service.js   hourly purge of jobs older than JOB_RETENTION_HOURS
 ├── repositories/
+│   ├── user.repository.js     users + roles + live permissions (findWithAccess, listUsers)
+│   ├── token.repository.js    refresh-token hashing / lookup / revoke
+│   ├── institution.repository.js  filter/paginate, facets, bulkUpsert
 │   └── job.repository.js      disk implementation of the job storage contract
 ├── engines/
 │   ├── extraction/            mimetype-keyed pipeline registry
 │   │   └── pdf/               opendataloader.stage → reconstruction.stage → collect.stage
 │   └── assessment/            extractors → evaluator(+checks) → punitive → reporter
-└── middlewares/ utils/        error handler, upload validation, ApiError, logger
+├── middlewares/
+│   ├── auth.middleware.js     authenticate (verify JWT + load live perms → req.user)
+│   ├── rbac.middleware.js     requirePermission / requireRole (→ 403)
+│   └── upload.middleware.js   multer PDF validation
+└── utils/                     jwt, api-error (ApiError), master-data.parser, logger
 ```
 
 ### Job repository contract
@@ -158,35 +239,84 @@ One canonical **JobDto** returned by extract/getJob/assessments:
 
 Errors: `{success:false, error:{code, message, details?}}` with codes like
 `UNSUPPORTED_FILE_TYPE`, `FILE_TOO_LARGE`, `JOB_NOT_FOUND`, `ARTIFACT_NOT_FOUND`,
-`EXTRACTION_FAILED`, `ASSESSMENT_FAILED`.
+`EXTRACTION_FAILED`, `ASSESSMENT_FAILED`. Portal endpoints add auth errors — **401** (no/invalid
+token, `NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/permission), **409** (`INSTITUTION_EXISTS`).
+
+**Portal endpoint groups** (all under `/api/v1`, behind `authenticate` except login/refresh):
+
+| Group | Endpoints | Guard |
+|---|---|---|
+| Auth | `POST /auth/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` | public / cookie |
+| Institutions | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` | `institution:read` |
+| Institutions (write) | `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` | `institution:create`/`:update` |
+| Admin | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` | `admin` + `user:manage`/`role:read` |
+
+Institution list DTO: `{ success, rows[], total, page, limit }`. **Planned (Phase 3):** uploads,
+assessment lifecycle transitions, issues, audit, reports endpoints (see the blueprint §10).
+
+### Database (Postgres — high level)
+
+10 tables via Knex migrations. Auth/RBAC + registry only; assessment/audit/ruleset tables are
+Phase-3 Planned.
+
+```
+users ──< user_roles >── roles ──< role_permissions >── permissions
+  │  └─ supervisor_id ─┐ (self-FK: org reporting chain)
+  └──< refresh_tokens  │
+  └──< staff_allotments (user × system × state routing)
+institutions  (672 master rows: institute_id, system, state, name, file_number, email, contact)
+```
+
+- `users` (email, name, password_hash, status, supervisor_id) · `roles` (key) · `permissions`
+  (key = resource:action) · `role_permissions` · `user_roles` · `refresh_tokens` (token_hash,
+  expires_at, revoked_at).
+- `institutions` (unique `institute_id`, `system` enum, indexed by `(system,state)` + `state`).
+- `staff_allotments` (user_id → system+state, unique per triple).
 
 ## Frontend (`frontend/src/`)
 
-Page-based document workflow (enterprise-DMS pattern):
-`/documents` (list) → `/documents/:id` (Details: summary cards + artifacts table) →
-dedicated pages `/pdf`, `/text`, `/structure`, `/metadata`, `/pipeline`, `/report`.
-Upload runs through the transient `/documents/new` route and lands on Details.
-Legacy `/history` and `/workspace/*` routes redirect.
+**Role-prefixed portal** wrapping the original document workflow. After login the SPA redirects to
+`/${primaryRole}/dashboard` (admin → `/admin/users`). `AuthContext` derives `primaryRole` from the
+user's roles by priority (`admin > president > board_member > senior_consultant > junior_consultant
+> reviewer > analyst > viewer`).
+
+Routes:
+- Public: `/`, `/login`, `/403`.
+- `/:role/*` (via `ProtectedRoute > RoleLayout`, which redirects if the URL role ≠ your primary
+  role): `dashboard`, `profile`, `settings`, `about`, `institutions`, `institutions/:id`.
+- `/admin/*` (`ProtectedRoute roles={['admin']}`): `institutions` (registry), `institutions/import`,
+  `institutions/:id`, `users`, `users/:userId`, `roles`, `permissions`.
+- Legacy document workflow (all roles): `/documents` → `/documents/:id` → `/pdf`, `/text`,
+  `/structure`, `/metadata`, `/pipeline`, `/report`; `/documents/new` upload; `/history` +
+  `/workspace/*` redirect. Folds under `/:role/application/:id/*` in Phase 3 (Planned).
 
 ```
-app/                router root, providers (react-query, theme), DashboardLayout (sidebar:
-                    Dashboard / Documents / Settings / About)
-pages/              Landing, Dashboard, Settings, About, NotFound
-pages/documents/    DocumentsList, DocumentDetails, PdfPage, ExtractedTextPage,
-                    StructurePage (search + TOC), MetadataPage, PipelinePage,
-                    ReportPage (generate/download/print), UploadProcessing
+app/
+├── App.jsx             router root + providers (react-query, theme, AuthProvider)
+└── layouts/            DashboardLayout (role-branched sidebar nav), RoleLayout (/:role guard),
+                        LandingLayout
+pages/                  Landing, Dashboard, Profile, Settings, About, Login, Forbidden, NotFound
+pages/institutions/     InstitutionsList (search + system/state filters + pagination),
+                        InstitutionDetail (identity card; assessment-history stub), InstitutionImport
+pages/admin/            UsersList, UserDetail, RolesList, PermissionsList
+pages/documents/        DocumentsList, DocumentDetails, Pdf/Text/Structure/Metadata/Pipeline/Report,
+                        UploadProcessing (legacy pipeline UI, retained)
 features/
-├── documents/      DocumentPageLayout (breadcrumb + job resolution + skeleton),
-│                   ArtifactsTable, WarningsBanner, upload zone, health widget,
-│                   useDocuments (Dexie live query), doc stats util
-└── workspace/      reusable viewers: PdfViewer, JsonViewer, DocumentOutline,
-                    useJob / useArtifact, search-highlight rehype plugin
-components/         shared: ui/ (shadcn), common/, markdown/MarkdownRenderer (THE one
-                    markdown render map)
-lib/                api client + endpoints, Dexie schema + documents repository,
-                    format/download/slug helpers
-hooks/              cross-feature hooks (useHealthCheck)
+├── auth/               AuthContext (+ primaryRole), ProtectedRoute, RoleGate, token-store, auth.api
+├── institutions/       institution.api + hooks (useInstitutions/useInstitution/useInstitutionMeta,
+│                       useImportInstitutions) — TanStack Query
+├── admin/              admin.api + hooks (useOrgUsers/useOrgUser/useRoles/usePermissions)
+├── documents/          DocumentPageLayout, ArtifactsTable, WarningsBanner, upload zone, health
+│                       widget, useDocuments (Dexie live query)
+└── workspace/          reusable viewers: PdfViewer, JsonViewer, DocumentOutline, useJob/useArtifact
+components/             shared: ui/ (shadcn), common/, markdown/MarkdownRenderer
+lib/                    api/client (axios + Bearer interceptor + silent refresh), api/endpoints,
+                        Dexie schema + documents repository, format/download/slug helpers
+hooks/                  cross-feature hooks (useHealthCheck)
 ```
+
+Server data (auth, institutions, admin) goes through the axios `apiClient` + TanStack Query; the
+legacy document workflow keeps its Dexie/IndexedDB local store.
 
 - **Data layer**: TanStack Query. `['artifact', jobId, type]` shares one fetch across all
   pages; `['health']` collapses every status indicator into one 30s poll; upload/assessment
@@ -201,18 +331,35 @@ hooks/              cross-feature hooks (useHealthCheck)
   body, JetBrains Mono code). Brand-literal tokens (`coral`, `cream`, `surface-dark`, …) exist
   for marketing surfaces.
 
-## Extension points (future modules — designed for, not built)
+## Built vs planned modules
+
+**Built (Phases 0–2):**
+
+| Module | Where it lives |
+| --- | --- |
+| Auth / RBAC | `middlewares/auth+rbac`, `db/` (users/roles/permissions), `features/auth` |
+| Org hierarchy | `users.supervisor_id`, seed `005_org_users`, `staff_allotments` |
+| Institutions registry + import | `institution.{repository,service,controller}`, `utils/master-data.parser`, `features/institutions` |
+| Admin console | `routes/org.routes`, `controllers/org`, `pages/admin/*` |
+| Role-prefixed portal | `app/layouts/RoleLayout`, `AuthContext.primaryRole` |
+
+**Extension points (designed for, not built):**
 
 | Module | Where it slots in |
 | --- | --- |
 | DOCX/XLSX/image extraction | register a pipeline in `engines/extraction/index.js` |
-| Postgres / cloud storage | new implementation of the job repository contract |
+| Cloud/object storage for artifacts | new implementation of the job repository contract |
 | Rule management & versioning UI | rulesets are already versioned directories; add CRUD over `data/rulesets/` |
 | New regulations (Unani, Siddha, PG…) | new ruleset directory + report template registration in `reporter/templater.js` |
-| Auth / orgs / RBAC | Express middleware chain + a `features/auth` folder; API error envelope already uniform |
-| Assessment history / analytics | Dexie `assessments` table already stores every run per document |
 | Report export (DOCX/PDF) | consume the `report` artifact or `AssessmentResult` JSON |
-| Notifications, audit logs, search | new services behind the existing route/controller pattern |
+
+**Planned — Phase 3 (post-visitation lifecycle; NOT built):** uploads-as-cases + an `applications`/
+`assessments` DB state machine (Draft→…→Approved/Archived), the review workflow (maker-checker
+submit/approve/reject), clarification + hearing letters, board meetings + decisions, audit log,
+reports/analytics. New roles: **visitor, secretariat, hearing_committee, college,
+commission_observer**. Pipeline routing change (visitor uploads the 20–50pg report + selects
+region → routes to the allotted junior consultant via `staff_allotments`). See
+[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
 
 ## Domain sources
 

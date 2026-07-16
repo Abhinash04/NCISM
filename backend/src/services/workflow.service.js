@@ -16,7 +16,9 @@ const POLICY = {
   processed: { process: ['junior_owner'], submit: ['junior_owner'] },
   under_validation: { process: ['junior_owner'], submit: ['junior_owner'] },
   senior_review: { forward: ['senior_supervisor'], return: ['senior_supervisor'] },
-  board_review: { approve: ['board'], reject: ['board'] },
+  board_review: { approve: ['board'], reject: ['board'], request_clarification: ['board'] },
+  clarification_open: { respond: ['college_owner'] },
+  clarification_responded: { process: ['junior_owner'], submit: ['junior_owner'] },
   approved: {},
   rejected: { revise: ['junior_owner_allotted'] },
 };
@@ -30,6 +32,7 @@ function hasCapability(cap, user, ctx) {
     case 'junior_owner_allotted': return isJunior && (ctx.isAssignedJunior || ctx.isAllottedJunior);
     case 'senior_supervisor': return roles.includes('senior_consultant') && ctx.supervisesSubmitter;
     case 'board': return roles.includes('board_member') || roles.includes('president');
+    case 'college_owner': return roles.includes('college') && ctx.isCollegeOwner;
     default: return false;
   }
 }

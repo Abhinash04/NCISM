@@ -30,6 +30,7 @@ async function findWithAccess(id) {
   const permissions = await permissionsForRoles(roles);
   return {
     id: user.id, email: user.email, name: user.name, status: user.status,
+    institution_id: user.institution_id || null, // college users bind to one institution
     roles, permissions,
   };
 }

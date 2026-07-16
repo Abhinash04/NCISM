@@ -3,6 +3,7 @@ const path = require('path');
 const { db } = require('../db');
 const config = require('../config');
 const appRepo = require('../repositories/application.repository');
+const clarificationRepo = require('../repositories/clarification.repository');
 const institutionRepo = require('../repositories/institution.repository');
 const jobService = require('./job.service');
 const extractionService = require('./extraction.service');
@@ -31,7 +32,10 @@ async function buildContext(app, user) {
     supervisesSubmitter = !!sub && sub.supervisor_id === user.id;
   }
 
-  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter };
+  const isCollegeOwner = (user.roles || []).includes('college')
+    && !!user.institution_id && user.institution_id === app.institution_id;
+
+  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter, isCollegeOwner };
 }
 
 async function getForUser(id, user) {
@@ -147,6 +151,47 @@ async function decide(id, user, { action, note }) {
   return updated;
 }
 
+/** Board issues a clarification letter to the college → opens a response window. */
+async function requestClarification(id, user, { letterText }) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'request_clarification');
+  if (!letterText || !letterText.trim()) throw ApiError.badRequest('VALIDATION_ERROR', 'letterText is required');
+
+  const round = (await clarificationRepo.countFor(id)) + 1;
+  await clarificationRepo.create({ application_id: id, round, letter_text: letterText, issued_by: user.id, status: 'open' });
+  const updated = await appRepo.update(id, { status: 'clarification_open' });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'clarification_open', actorId: user.id, note: `Clarification requested (round ${round})` });
+  return updated;
+}
+
+/** College answers the open clarification (text + optional PDF). */
+async function respondClarification(id, user, { file, responseText }) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'respond');
+
+  const open = await clarificationRepo.latestOpen(id);
+  if (!open) throw ApiError.badRequest('NO_OPEN_CLARIFICATION', 'No open clarification to respond to');
+
+  let responseFile = null;
+  if (file) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    responseFile = `${id}-clarification-${open.round}.pdf`;
+    fs.renameSync(file.path, path.join(UPLOADS_DIR, responseFile));
+  }
+
+  await clarificationRepo.update(open.id, {
+    response_text: responseText || null, response_file: responseFile,
+    responded_by: user.id, responded_at: db.fn.now(), status: 'responded',
+  });
+  const updated = await appRepo.update(id, { status: 'clarification_responded' });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'clarification_responded', actorId: user.id, note: `College responded (round ${open.round})` });
+  return updated;
+}
+
+function clarifications(id) {
+  return clarificationRepo.list(id);
+}
+
 /** Junior reopens a rejected case for rework. */
 async function revise(id, user) {
   const { app, ctx } = await getForUser(id, user);
@@ -159,4 +204,5 @@ async function revise(id, user) {
 module.exports = {
   list, getDetail, allowedActionsFor, events,
   createUpload, process, submit, review, decide, revise,
+  requestClarification, respondClarification, clarifications,
 };

@@ -36,3 +36,25 @@ export async function actOnApplication(id, action, body = {}) {
   const { data } = await apiClient.post(`/applications/${id}/${action}`, body);
   return data.application;
 }
+
+export async function getClarifications(id) {
+  const { data } = await apiClient.get(`/applications/${id}/clarifications`);
+  return data.clarifications || [];
+}
+
+/** Board issues a clarification letter. */
+export async function issueClarification(id, letterText) {
+  const { data } = await apiClient.post(`/applications/${id}/clarification`, { letterText });
+  return data.application;
+}
+
+/** College answers the open clarification (text + optional PDF). */
+export async function respondClarification(id, { responseText, file }) {
+  const form = new FormData();
+  if (responseText) form.append('responseText', responseText);
+  if (file) form.append('file', file);
+  const { data } = await apiClient.post(`/applications/${id}/clarification/respond`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.application;
+}

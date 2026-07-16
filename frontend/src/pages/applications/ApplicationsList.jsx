@@ -13,6 +13,8 @@ export const STATUS_META = {
   processed: { label: 'Processed', variant: 'default' },
   failed: { label: 'Failed', variant: 'destructive' },
   under_validation: { label: 'Validation', variant: 'secondary' },
+  clarification_open: { label: 'Clarification sent', variant: 'secondary' },
+  clarification_responded: { label: 'Clarification answered', variant: 'default' },
   senior_review: { label: 'Senior review', variant: 'default' },
   board_review: { label: 'Board review', variant: 'default' },
   approved: { label: 'Approved', variant: 'default' },

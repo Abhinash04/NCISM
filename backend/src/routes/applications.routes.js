@@ -21,4 +21,9 @@ router.post('/:id/review', requirePermission('application:review'), (req, res, n
 router.post('/:id/decide', requirePermission('application:decide'), (req, res, next) => controller.decide(req, res, next));
 router.post('/:id/revise', requirePermission('application:process'), (req, res, next) => controller.revise(req, res, next));
 
+// Clarification cycle
+router.get('/:id/clarifications', requirePermission('application:read'), (req, res, next) => controller.clarifications(req, res, next));
+router.post('/:id/clarification', requirePermission('clarification:issue'), (req, res, next) => controller.requestClarification(req, res, next));
+router.post('/:id/clarification/respond', requirePermission('clarification:respond'), uploadPdf.single('file'), (req, res, next) => controller.respondClarification(req, res, next));
+
 module.exports = router;

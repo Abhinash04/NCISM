@@ -98,6 +98,37 @@ class ApplicationController {
       next(error);
     }
   }
+
+  /** POST /applications/:id/clarification — board issues a clarification letter. */
+  async requestClarification(req, res, next) {
+    try {
+      const application = await applicationService.requestClarification(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** POST /applications/:id/clarification/respond — college responds (multipart). */
+  async respondClarification(req, res, next) {
+    try {
+      const application = await applicationService.respondClarification(req.params.id, req.user, {
+        file: req.file, responseText: req.body?.responseText,
+      });
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async clarifications(req, res, next) {
+    try {
+      const clarifications = await applicationService.clarifications(req.params.id);
+      res.json({ success: true, clarifications });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ApplicationController();

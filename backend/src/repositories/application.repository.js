@@ -81,6 +81,9 @@ async function queueFor(user) {
         .select(db.raw('1')),
     );
   }
+  if (roles.includes('college')) {
+    return user.institution_id ? q.where('applications.institution_id', user.institution_id) : q.whereRaw('false');
+  }
   if (roles.includes('visitor')) return q.where('applications.uploaded_by', user.id);
   return q.whereRaw('false');
 }

@@ -14,23 +14,30 @@ export function DashboardLayout() {
 
   // Admin lives under /admin/*; every other role under its own /:role/* subtree.
   const role = auth.primaryRole;
-  const navItems = role === 'admin'
-    ? [
+  const NAV_BY_ROLE = {
+    admin: [
       { name: 'Institutions', path: '/admin/institutions', icon: Building2 },
       { name: 'Import', path: '/admin/institutions/import', icon: Upload },
       { name: 'Users', path: '/admin/users', icon: Users },
       { name: 'Roles', path: '/admin/roles', icon: Shield },
       { name: 'Permissions', path: '/admin/permissions', icon: KeyRound },
       { name: 'Documents', path: '/documents', icon: FileText },
-    ]
-    : [
-      { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
-      { name: role === 'visitor' ? 'My Uploads' : 'Applications', path: `/${role}/applications`, icon: FileStack },
-      { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
-      { name: 'Documents', path: '/documents', icon: FileText },
-      { name: 'Settings', path: `/${role}/settings`, icon: Settings },
-      { name: 'About', path: `/${role}/about`, icon: Info },
-    ];
+    ],
+    // College is external: only their own cases + settings (no registry access).
+    college: [
+      { name: 'Dashboard', path: '/college/dashboard', icon: Home },
+      { name: 'My Cases', path: '/college/applications', icon: FileStack },
+      { name: 'Settings', path: '/college/settings', icon: Settings },
+    ],
+  };
+  const navItems = NAV_BY_ROLE[role] || [
+    { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
+    { name: role === 'visitor' ? 'My Uploads' : 'Applications', path: `/${role}/applications`, icon: FileStack },
+    { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
+    { name: 'Documents', path: '/documents', icon: FileText },
+    { name: 'Settings', path: `/${role}/settings`, icon: Settings },
+    { name: 'About', path: `/${role}/about`, icon: Info },
+  ];
 
   async function onLogout() {
     await auth.logout();

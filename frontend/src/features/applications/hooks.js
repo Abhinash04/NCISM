@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listApplications, getApplication, getAllowedActions, getEvents,
   uploadApplication, actOnApplication,
+  getClarifications, issueClarification, respondClarification,
 } from './application.api';
 
 export function useApplications() {
@@ -38,4 +39,23 @@ export function useApplicationAction(id) {
       qc.invalidateQueries({ queryKey: ['applications'] });
     },
   });
+}
+
+export function useClarifications(id) {
+  return useQuery({ queryKey: ['application', id, 'clarifications'], queryFn: () => getClarifications(id), enabled: !!id });
+}
+
+function invalidateCase(qc, id) {
+  qc.invalidateQueries({ queryKey: ['application', id] });
+  qc.invalidateQueries({ queryKey: ['applications'] });
+}
+
+export function useIssueClarification(id) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (letterText) => issueClarification(id, letterText), onSuccess: () => invalidateCase(qc, id) });
+}
+
+export function useRespondClarification(id) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (payload) => respondClarification(id, payload), onSuccess: () => invalidateCase(qc, id) });
 }

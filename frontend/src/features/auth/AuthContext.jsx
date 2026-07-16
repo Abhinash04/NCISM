@@ -7,7 +7,7 @@ const AuthContext = createContext(null);
 // Highest-authority role wins; drives the /:role landing + shell.
 const ROLE_PRIORITY = [
   'admin', 'president', 'board_member', 'senior_consultant', 'junior_consultant',
-  'reviewer', 'analyst', 'viewer',
+  'visitor', 'reviewer', 'analyst', 'viewer',
 ];
 
 export function primaryRoleOf(roles = []) {

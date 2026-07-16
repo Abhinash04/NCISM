@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound } from 'lucide-react';
+import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound, FileStack } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export function DashboardLayout() {
     ]
     : [
       { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
+      { name: role === 'visitor' ? 'My Uploads' : 'Applications', path: `/${role}/applications`, icon: FileStack },
       { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
       { name: 'Documents', path: '/documents', icon: FileText },
       { name: 'Settings', path: `/${role}/settings`, icon: Settings },

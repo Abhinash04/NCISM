@@ -27,6 +27,9 @@ import { UsersList } from '@/pages/admin/UsersList';
 import { UserDetail } from '@/pages/admin/UserDetail';
 import { RolesList } from '@/pages/admin/RolesList';
 import { PermissionsList } from '@/pages/admin/PermissionsList';
+import { ApplicationsList } from '@/pages/applications/ApplicationsList';
+import { ApplicationUpload } from '@/pages/applications/ApplicationUpload';
+import { ApplicationDetail } from '@/pages/applications/ApplicationDetail';
 
 import { DocumentsList } from '@/pages/documents/DocumentsList';
 import { DocumentDetails } from '@/pages/documents/DocumentDetails';
@@ -88,6 +91,9 @@ function App() {
               <Route path="about" element={<About />} />
               <Route path="institutions" element={<InstitutionsList />} />
               <Route path="institutions/:id" element={<InstitutionDetail />} />
+              <Route path="applications" element={<ApplicationsList />} />
+              <Route path="applications/new" element={<ApplicationUpload />} />
+              <Route path="applications/:id" element={<ApplicationDetail />} />
             </Route>
 
             {/* Admin console (admin-only) */}

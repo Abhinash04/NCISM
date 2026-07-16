@@ -1,0 +1,103 @@
+const applicationService = require('../services/application.service');
+
+class ApplicationController {
+  /** POST /applications — visitor upload (multipart: file + institutionId + session). */
+  async create(req, res, next) {
+    try {
+      const app = await applicationService.createUpload({
+        file: req.file,
+        institutionId: req.body.institutionId,
+        session: req.body.session,
+        user: req.user,
+      });
+      res.status(201).json({ success: true, application: app });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** GET /applications — role-scoped queue. */
+  async list(req, res, next) {
+    try {
+      const rows = await applicationService.list(req.user);
+      res.json({ success: true, rows });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** GET /applications/:id — case detail (incl. report) + allowedActions. */
+  async get(req, res, next) {
+    try {
+      const application = await applicationService.getDetail(req.params.id, req.user);
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async allowedActions(req, res, next) {
+    try {
+      const actions = await applicationService.allowedActionsFor(req.params.id, req.user);
+      res.json({ success: true, actions });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async events(req, res, next) {
+    try {
+      const events = await applicationService.events(req.params.id);
+      res.json({ success: true, events });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async process(req, res, next) {
+    try {
+      const application = await applicationService.process(req.params.id, req.user);
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async submit(req, res, next) {
+    try {
+      const application = await applicationService.submit(req.params.id, req.user);
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async review(req, res, next) {
+    try {
+      const application = await applicationService.review(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async decide(req, res, next) {
+    try {
+      const application = await applicationService.decide(req.params.id, req.user, req.body || {});
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async revise(req, res, next) {
+    try {
+      const application = await applicationService.revise(req.params.id, req.user);
+      res.json({ success: true, application });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new ApplicationController();

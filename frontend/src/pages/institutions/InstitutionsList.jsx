@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Building2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ const LIMIT = 25;
 
 export function InstitutionsList() {
   const navigate = useNavigate();
-  const { role } = useParams();
+  const { pathname } = useLocation(); // works under /:role/institutions and /admin/institutions
   const [q, setQ] = useState('');
   const [system, setSystem] = useState(ALL);
   const [state, setState] = useState(ALL);
@@ -99,7 +99,7 @@ export function InstitutionsList() {
                   <tr
                     key={r.id}
                     className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/${role}/institutions/${r.id}`)}
+                    onClick={() => navigate(`${pathname}/${r.id}`)}
                   >
                     <td className="px-4 py-3 font-mono text-xs">{r.institute_id}</td>
                     <td className="px-4 py-3 font-medium max-w-[420px] truncate" title={r.name}>{r.name}</td>

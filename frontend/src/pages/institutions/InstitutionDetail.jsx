@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Building2, Mail, Phone, FileText, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,9 @@ function Field({ icon: Icon, label, value }) {
 
 export function InstitutionDetail() {
   const navigate = useNavigate();
-  const { role, id } = useParams();
+  const { id } = useParams();
+  const { pathname } = useLocation();
+  const listPath = pathname.replace(/\/[^/]+$/, ''); // drop /:id → registry list
   const { data: inst, isLoading, isError } = useInstitution(id);
 
   if (isLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
@@ -30,7 +32,7 @@ export function InstitutionDetail() {
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
-      <Button variant="ghost" size="sm" onClick={() => navigate(`/${role}/institutions`)}>
+      <Button variant="ghost" size="sm" onClick={() => navigate(listPath)}>
         <ArrowLeft className="h-4 w-4 mr-1" /> Back to registry
       </Button>
 

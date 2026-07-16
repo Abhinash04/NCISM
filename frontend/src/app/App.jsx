@@ -48,9 +48,11 @@ function WorkspaceRedirect() {
   return <Navigate to={`/documents/${documentId}`} replace />;
 }
 
-// `/dashboard` (and legacy flat paths) redirect to the role-scoped dashboard.
+// `/dashboard` (and legacy flat paths) redirect to the role-scoped landing.
+// Admin has no /:role subtree — it lands in the admin console instead.
 function RoleDashboardRedirect() {
   const auth = useAuth();
+  if (auth.primaryRole === 'admin') return <Navigate to="/admin/users" replace />;
   return <Navigate to={`/${auth.primaryRole}/dashboard`} replace />;
 }
 
@@ -90,7 +92,10 @@ function App() {
 
             {/* Admin console (admin-only) */}
             <Route path="/admin" element={<ProtectedRoute roles={['admin']}><DashboardLayout /></ProtectedRoute>}>
-              <Route path="institutions" element={<InstitutionImport />} />
+              <Route index element={<Navigate to="users" replace />} />
+              <Route path="institutions" element={<InstitutionsList />} />
+              <Route path="institutions/import" element={<InstitutionImport />} />
+              <Route path="institutions/:id" element={<InstitutionDetail />} />
               <Route path="users" element={<UsersList />} />
               <Route path="users/:userId" element={<UserDetail />} />
               <Route path="roles" element={<RolesList />} />

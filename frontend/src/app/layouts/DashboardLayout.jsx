@@ -12,21 +12,24 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const auth = useAuth();
 
-  // `roles` (optional) restricts an item; omit to show for everyone. Role-scoped
-  // paths are built from the user's primary role (see /:role routes in App).
+  // Admin lives under /admin/*; every other role under its own /:role/* subtree.
   const role = auth.primaryRole;
-  const allNav = [
-    { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
-    { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
-    { name: 'Documents', path: '/documents', icon: FileText },
-    { name: 'Import', path: '/admin/institutions', icon: Upload, roles: ['admin'] },
-    { name: 'Users', path: '/admin/users', icon: Users, roles: ['admin'] },
-    { name: 'Roles', path: '/admin/roles', icon: Shield, roles: ['admin'] },
-    { name: 'Permissions', path: '/admin/permissions', icon: KeyRound, roles: ['admin'] },
-    { name: 'Settings', path: `/${role}/settings`, icon: Settings },
-    { name: 'About', path: `/${role}/about`, icon: Info },
-  ];
-  const navItems = allNav.filter((i) => !i.roles || i.roles.some((r) => auth.hasRole(r)));
+  const navItems = role === 'admin'
+    ? [
+      { name: 'Institutions', path: '/admin/institutions', icon: Building2 },
+      { name: 'Import', path: '/admin/institutions/import', icon: Upload },
+      { name: 'Users', path: '/admin/users', icon: Users },
+      { name: 'Roles', path: '/admin/roles', icon: Shield },
+      { name: 'Permissions', path: '/admin/permissions', icon: KeyRound },
+      { name: 'Documents', path: '/documents', icon: FileText },
+    ]
+    : [
+      { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
+      { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
+      { name: 'Documents', path: '/documents', icon: FileText },
+      { name: 'Settings', path: `/${role}/settings`, icon: Settings },
+      { name: 'About', path: `/${role}/about`, icon: Info },
+    ];
 
   async function onLogout() {
     await auth.logout();

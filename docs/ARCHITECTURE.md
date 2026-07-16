@@ -4,14 +4,17 @@ Authoritative reference for the NCISM Assessment Platform foundation. Anything u
 `docs/archive/` is historical and describes systems that no longer exist (or never did).
 
 > **Scope note (2026-07):** the project is an **internal** review/validation portal wrapped around
-> the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. The portal
-> **foundation is built through Phase 2**: Postgres + JWT auth + RBAC, the NCISM org hierarchy as
-> loginable users, the institutions master registry + import, and a role-prefixed (`/:role/*`)
-> portal + admin console (see the **Portal layer** section below). The design blueprint + phased
-> roadmap is **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; a cold-start handoff is
+> the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. Built
+> **through Phase 3c**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
+> institutions master registry, and the **full post-visitation case lifecycle** — visitor upload →
+> route to allotted junior → run engine → senior/board review → clarification cycle (college) →
+> hearings (President-appointed committee) → board meetings (secretariat) → final-order dispatch →
+> Closed. The design blueprint + phased roadmap is
+> **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; a cold-start handoff is
 > **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
-> reference superset. The post-visitation lifecycle (uploads-as-cases, review/hearing/board workflow,
-> visitor/secretariat/college roles) is **Phase 3 — Planned**, not built.
+> reference superset. **Planned (not built):** compliance/penalty tracking + letter/order template
+> validation (3d), a generalized audit log (Phase 4), reports/analytics (Phase 5), a ruleset editor +
+> non-Ayurveda rulesets (Phase 6).
 
 ## System overview
 
@@ -22,26 +25,33 @@ Browser (React SPA, :5173)
    ▼                                            │  (local store for the document workflow only)
 Express backend (:3000)
    ├─ auth + RBAC ──────── authenticate → requirePermission/requireRole (per-request live perms)
-   ├─ portal API ───────── institutions registry + import · admin users/roles/permissions
+   ├─ portal API ───────── institutions registry · admin console · CASE lifecycle + board meetings
+   ├─ workflow guard ───── workflow.service (allowedActions / assertCan: status × role × ownership)
    ├─ extraction engine ── OpenDataLoader-PDF CLI (Python wrapper → Java core)
    │                        └─ Docling hybrid server (:5002, optional, --hybrid-fallback)
    ├─ assessment engine ── data/rulesets/<id>/<version>/  (rules + punitive policy JSON)
    └─ job repository ───── backend/temp/job_<id>/  (input.pdf, manifest.json, output/*)
         │
         ▼
-   PostgreSQL (:5432, docker-compose)  ── auth/RBAC + institutions registry + org hierarchy
-                                          (knex migrations + seeds; NOT the job/artifact store)
+   PostgreSQL (:5432, docker-compose)  ── auth/RBAC + institutions + org hierarchy + CASES
+                                          (applications, clarifications, hearings, board meetings)
+   backend/data/applications/<id>.pdf  ── raw uploaded case reports (gitignored; survives job purge)
 ```
 
-Two storage planes coexist: **Postgres** holds identity, RBAC, and the institution registry
-(Phase 0–2); the **disk job repository** + **Dexie** still back the original document-processing
-workflow. Assessment runs are not yet persisted as DB records — that is Phase 3 (Planned).
+Storage planes: **Postgres** holds identity, RBAC, the institution registry, and the **case
+records** (applications + their events, clarifications, hearings, board meetings). The **disk job
+repository** is the transient extraction workspace (a case runs the engine through a job, then
+persists the resulting `report_markdown`/`report_json` onto the `applications` row — the source of
+truth, immutable once approved). The legacy `/documents` workflow keeps its own disk job + **Dexie**
+local store.
 
-## Portal layer (Phases 0–2)
+## Portal layer (Phases 0–3)
 
-A DB-backed governed multi-user layer wraps the pipeline. Built: authentication, RBAC, the NCISM
-org hierarchy, and the institutions master registry. Not built (Phase 3, Planned): the assessment
-review lifecycle, uploads-as-cases, audit log, reports.
+A DB-backed governed multi-user layer wraps the pipeline. Built: authentication, RBAC (13 roles),
+the NCISM org hierarchy, the institutions master registry, and the **full case lifecycle**
+(upload → review → clarification → hearing → board meeting → dispatch → Closed) driven by a
+workflow-state guard. Not built (Planned): compliance/penalty tracking + template validation (3d),
+a generalized audit log (Phase 4), reports/analytics (Phase 5), a ruleset editor (Phase 6).
 
 ### Authentication & session flow
 
@@ -63,20 +73,54 @@ role+permission set **on every request** (so role changes take effect without re
 provides `requirePermission(...perms)` (→ 403) and `requireRole(...roles)` (→ 403). The frontend
 `RoleGate`/`ProtectedRoute` are cosmetic; the backend re-checks every call.
 
-**Roles (8 seeded).** The NCISM org tiers plus the retained Phase-1 coarse roles:
+**Roles (13 seeded).** The NCISM org tiers, the case-lifecycle actors, and the retained Phase-1
+coarse roles:
 
-| Tier / role | Key | Notes |
+| Role | Key | Responsibility |
 |---|---|---|
-| President | `president` | Apex authority (1 user: Dr. Mukul Patel) |
-| Board Member | `board_member` | Review/finalize, sign letters (2 users) |
-| Senior Consultant | `senior_consultant` | Supervises dealing staff; verifies assessments (2) |
-| Junior Consultant | `junior_consultant` | Dealing staff; processes allotted colleges (12) |
+| President | `president` | Apex authority; appoints hearing committees; decides |
+| Board Member | `board_member` | Review/finalize; approve/reject/request clarification or hearing |
+| Senior Consultant | `senior_consultant` | Supervises dealing staff; forwards/returns cases |
+| Junior Consultant | `junior_consultant` | Dealing staff; processes allotted colleges, drafts, submits |
+| Visitor | `visitor` | Uploads visitation reports → starts a case |
+| College | `college` | External respondent (bound to one institution); answers clarifications |
+| Hearing Committee | `hearing_committee` | Conducts appointed hearings; records minutes |
+| Secretariat | `secretariat` | Assembles board meetings; dispatches final orders |
+| Commission Observer | `commission_observer` | Read-only oversight across all cases |
 | Administrator | `admin` | Users, roles, master data; **no business approval** (SoD) |
 | Reviewer / Analyst / Viewer | `reviewer`,`analyst`,`viewer` | Retained Phase-1 maker/checker/auditor roles |
 
 **Org reporting chain** (`users.supervisor_id`, self-FK): President → 2 Board Members → 2 Senior
-Consultants → Junior teams (Team-1 → Gaurav Bhandari; Team-2 → Kritika). 17 org users are seeded
-with **mock credentials** (see [../AuthCred.md](../AuthCred.md)) + a bootstrap admin.
+Consultants → Junior teams (Team-1 → Gaurav Bhandari; Team-2 → Kritika). College users bind to an
+institution via `users.institution_id`. ~25 users are seeded with **mock credentials** (see
+[../AuthCred.md](../AuthCred.md)) + a bootstrap admin.
+
+### Case lifecycle (workflow engine)
+
+`services/workflow.service.js` is the single source of truth for **which action a user may take on a
+case**, given `status × roles × ownership` — a pure `allowedActions(app, user, ctx)` + `assertCan`
+(→ 403, or 423 when finalized). Both the transition endpoints and `GET /applications/:id/
+allowed-actions` call it, so the UI (which renders action buttons **only** from `allowedActions`) and
+the guard can never disagree. `application.service.buildContext` computes the ownership facts
+(allotted/assigned junior, supervises submitter, college owner, hearing panel member).
+
+**State machine** (`applications.status`):
+```
+uploaded → processing → processed → under_validation → senior_review → board_review
+   │(err)                    ▲(return)          ▲(re-loop)     │
+   └→ failed(retry)          └── clarification_open ─(college)→ clarification_responded
+                                     ▲(board)                          │(junior submit)
+board_review ─(board)→ request_hearing → hearing_requested ─(president)→ hearing_scheduled
+                                                              (committee minutes)→ board_review
+board_review ─(board)→ approved ─(secretariat dispatch)→ closed   ·   reject → rejected → revise
+```
+Ownership/scoping: junior queue = cases whose `(system,state)` ∈ their `staff_allotments`; senior =
+cases submitted by a supervisee; board/president = board-review+decided; college = own institution;
+committee = own hearing panel; secretariat = back-half cases; observer/admin = all. **SoD** is
+enforced by the state→role guard (a junior can't decide; only the President appoints a committee;
+only the Secretariat dispatches; a college can't touch another institution's case). Board meetings
+are an **overlay** — the secretariat schedules a numbered meeting + agenda and confirms minutes; the
+board decides cases with the normal actions.
 
 ### Institutions registry
 
@@ -99,23 +143,34 @@ src/
 ├── config/                    the only place env vars are read (incl. auth: jwt/bcrypt)
 ├── db/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
-│   ├── migrations/            001_auth_rbac · 002_institutions · 003_org_hierarchy
-│   └── seeds/                 001_rbac · 002_bootstrap_admin · 003_org_roles ·
-│                              004_institutions (672) · 005_org_users (17 + allotments)
-├── routes/                    thin HTTP layer — index mounts:
-│                              /auth · /(extract) · /jobs · /assessments · /institutions · /admin
-├── controllers/               auth · institution · org (admin) · assessments · extract · jobs · health
+│   ├── migrations/            001_auth_rbac · 002_institutions · 003_org_hierarchy ·
+│   │                          004_applications · 005_clarifications · 006_hearings_meetings
+│   └── seeds/                 001_rbac · 002_bootstrap_admin · 003_org_roles · 004_institutions (672)
+│                              · 005_org_users (17) · 006_application_rbac · 007_visitor_users ·
+│                              008_college_rbac · 009_college_users · 010_hearing_meeting_rbac ·
+│                              011_phase3c_users
+├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs ·
+│                              /assessments · /institutions · /admin · /applications · /meetings
+├── controllers/               auth · institution · org · application · meeting · assessments · extract · jobs · health
 ├── services/
 │   ├── auth.service.js        login / refresh / logout / me
 │   ├── institution.service.js list/get/create/update · facets · importFromMarkdown (exception queue)
+│   ├── workflow.service.js    case guard — allowedActions / assertCan (status × role × ownership)
+│   ├── application.service.js case lifecycle: upload · process (runs engine) · submit · review ·
+│   │                          decide · clarification · hearing · dispatch · buildContext
+│   ├── meeting.service.js     board meetings (create / agenda / confirm minutes)
 │   ├── job.service.js         business ops over the repository; owns toJobDto()
 │   ├── extraction.service.js  dispatches to the pipeline registered for a mimetype
 │   ├── assessment.service.js  orchestrates engine run + artifact persistence
 │   └── retention.service.js   hourly purge of jobs older than JOB_RETENTION_HOURS
 ├── repositories/
-│   ├── user.repository.js     users + roles + live permissions (findWithAccess, listUsers)
+│   ├── user.repository.js     users + roles + live perms (findWithAccess, listUsers, listByRole)
 │   ├── token.repository.js    refresh-token hashing / lookup / revoke
 │   ├── institution.repository.js  filter/paginate, facets, bulkUpsert
+│   ├── application.repository.js  create · getById · role-scoped queueFor · update · events
+│   ├── clarification.repository.js  clarification rounds (letter + response)
+│   ├── hearing.repository.js  hearings + panel members
+│   ├── meeting.repository.js  board meetings + agenda items
 │   └── job.repository.js      disk implementation of the job storage contract
 ├── engines/
 │   ├── extraction/            mimetype-keyed pipeline registry
@@ -238,57 +293,71 @@ One canonical **JobDto** returned by extract/getJob/assessments:
 ```
 
 Errors: `{success:false, error:{code, message, details?}}` with codes like
-`UNSUPPORTED_FILE_TYPE`, `FILE_TOO_LARGE`, `JOB_NOT_FOUND`, `ARTIFACT_NOT_FOUND`,
-`EXTRACTION_FAILED`, `ASSESSMENT_FAILED`. Portal endpoints add auth errors — **401** (no/invalid
-token, `NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/permission), **409** (`INSTITUTION_EXISTS`).
+`UNSUPPORTED_FILE_TYPE`, `JOB_NOT_FOUND`, `EXTRACTION_FAILED`, `ASSESSMENT_FAILED`. Portal +
+workflow errors — **401** (`NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/permission, or
+`ACTION_NOT_ALLOWED` for a disallowed transition), **409** (`INSTITUTION_EXISTS`), **423**
+(`CASE_FINALIZED` — editing an approved/closed case).
 
 **Portal endpoint groups** (all under `/api/v1`, behind `authenticate` except login/refresh):
 
 | Group | Endpoints | Guard |
 |---|---|---|
 | Auth | `POST /auth/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` | public / cookie |
-| Institutions | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` | `institution:read` |
+| Institutions | `GET /institutions` · `GET /institutions/meta` · `GET /institutions/:id` | `institution:read` |
 | Institutions (write) | `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` | `institution:create`/`:update` |
 | Admin | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` | `admin` + `user:manage`/`role:read` |
+| Cases | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/allowed-actions` · `/:id/events` · `/:id/hearings` · `/:id/clarifications` | `application:create`/`:read` |
+| Case transitions | `POST /applications/:id/{process,submit,review,decide,revise}` · `/request-hearing` · `/appoint-committee` · `/hearing/minutes` · `/dispatch` · `/clarification` · `/clarification/respond` | per-action perm (workflow guard re-checks state×role×ownership) |
+| Meetings | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` | `meeting:manage` (writes) |
 
-Institution list DTO: `{ success, rows[], total, page, limit }`. **Planned (Phase 3):** uploads,
-assessment lifecycle transitions, issues, audit, reports endpoints (see the blueprint §10).
+Institution/case list DTO: `{ success, rows[], … }`. **Planned:** audit, reports, ruleset endpoints
+(Phase 4–6; see the blueprint §10).
 
 ### Database (Postgres — high level)
 
-10 tables via Knex migrations. Auth/RBAC + registry only; assessment/audit/ruleset tables are
-Phase-3 Planned.
+15 domain tables via Knex migrations (+ knex bookkeeping): auth/RBAC + registry + the case
+lifecycle. Audit/report/ruleset tables remain Phase-4+ Planned.
 
 ```
 users ──< user_roles >── roles ──< role_permissions >── permissions
-  │  └─ supervisor_id ─┐ (self-FK: org reporting chain)
-  └──< refresh_tokens  │
+  │  ├─ supervisor_id ─┐ (self-FK: org reporting chain)
+  │  └─ institution_id ─→ institutions  (college users)
+  ├──< refresh_tokens
   └──< staff_allotments (user × system × state routing)
-institutions  (672 master rows: institute_id, system, state, name, file_number, email, contact)
+institutions ──1:N── applications ──1:N── application_events (case timeline)
+                          ├──1:N── clarifications (letter + response, per round)
+                          └──1:N── hearings ──1:N── hearing_members
+board_meetings ──1:N── board_meeting_items ──→ applications (agenda overlay)
 ```
 
-- `users` (email, name, password_hash, status, supervisor_id) · `roles` (key) · `permissions`
-  (key = resource:action) · `role_permissions` · `user_roles` · `refresh_tokens` (token_hash,
-  expires_at, revoked_at).
-- `institutions` (unique `institute_id`, `system` enum, indexed by `(system,state)` + `state`).
-- `staff_allotments` (user_id → system+state, unique per triple).
+- **Auth/RBAC (6):** `users` (+`supervisor_id`, `institution_id`) · `roles` · `permissions`
+  (33: `institution:*`, `application:*`, `clarification:*`, `hearing:*`, `meeting:manage`,
+  `order:dispatch`, …) · `role_permissions` · `user_roles` · `refresh_tokens`.
+- **Registry (2):** `institutions` (unique `institute_id`) · `staff_allotments`.
+- **Cases (7):** `applications` (institution_id, system, state, session, `status` enum, job_id,
+  report_markdown/json, decision, actor FKs) · `application_events` · `clarifications` · `hearings`
+  · `hearing_members` · `board_meetings` · `board_meeting_items`.
 
 ## Frontend (`frontend/src/`)
 
 **Role-prefixed portal** wrapping the original document workflow. After login the SPA redirects to
 `/${primaryRole}/dashboard` (admin → `/admin/users`). `AuthContext` derives `primaryRole` from the
 user's roles by priority (`admin > president > board_member > senior_consultant > junior_consultant
-> reviewer > analyst > viewer`).
+> secretariat > hearing_committee > commission_observer > visitor > college > reviewer > analyst >
+viewer`).
 
 Routes:
 - Public: `/`, `/login`, `/403`.
 - `/:role/*` (via `ProtectedRoute > RoleLayout`, which redirects if the URL role ≠ your primary
-  role): `dashboard`, `profile`, `settings`, `about`, `institutions`, `institutions/:id`.
+  role): `dashboard`, `profile`, `settings`, `about`, `institutions`, `institutions/:id`,
+  `applications`, `applications/new`, `applications/:id`, `meetings`, `meetings/:id`. The
+  `DashboardLayout` sidebar branches per role (e.g. secretariat → Meetings; committee → Hearings;
+  college → own cases only; observer → read-only).
 - `/admin/*` (`ProtectedRoute roles={['admin']}`): `institutions` (registry), `institutions/import`,
   `institutions/:id`, `users`, `users/:userId`, `roles`, `permissions`.
 - Legacy document workflow (all roles): `/documents` → `/documents/:id` → `/pdf`, `/text`,
   `/structure`, `/metadata`, `/pipeline`, `/report`; `/documents/new` upload; `/history` +
-  `/workspace/*` redirect. Folds under `/:role/application/:id/*` in Phase 3 (Planned).
+  `/workspace/*` redirect. Retained alongside the case flow (ad-hoc extraction).
 
 ```
 app/
@@ -297,17 +366,21 @@ app/
                         LandingLayout
 pages/                  Landing, Dashboard, Profile, Settings, About, Login, Forbidden, NotFound
 pages/institutions/     InstitutionsList (search + system/state filters + pagination),
-                        InstitutionDetail (identity card; assessment-history stub), InstitutionImport
+                        InstitutionDetail, InstitutionImport
+pages/applications/     ApplicationsList (role-scoped queue), ApplicationUpload (visitor),
+                        ApplicationDetail (report + clarifications + hearings + timeline tabs;
+                        action bar driven by allowedActions)
+pages/meetings/         MeetingsList (secretariat create), MeetingDetail (agenda + confirm minutes)
 pages/admin/            UsersList, UserDetail, RolesList, PermissionsList
-pages/documents/        DocumentsList, DocumentDetails, Pdf/Text/Structure/Metadata/Pipeline/Report,
-                        UploadProcessing (legacy pipeline UI, retained)
+pages/documents/        legacy pipeline UI (retained)
 features/
 ├── auth/               AuthContext (+ primaryRole), ProtectedRoute, RoleGate, token-store, auth.api
-├── institutions/       institution.api + hooks (useInstitutions/useInstitution/useInstitutionMeta,
-│                       useImportInstitutions) — TanStack Query
-├── admin/              admin.api + hooks (useOrgUsers/useOrgUser/useRoles/usePermissions)
-├── documents/          DocumentPageLayout, ArtifactsTable, WarningsBanner, upload zone, health
-│                       widget, useDocuments (Dexie live query)
+├── institutions/       institution.api + hooks — TanStack Query
+├── applications/       application.api + hooks (queue, detail, allowedActions, transitions,
+│                       clarifications, hearings, committee-members)
+├── meetings/           meeting.api + hooks (list/get/create/addItem/confirm)
+├── admin/              admin.api + hooks (users/roles/permissions)
+├── documents/          legacy Dexie-backed workflow (DocumentPageLayout, useDocuments)
 └── workspace/          reusable viewers: PdfViewer, JsonViewer, DocumentOutline, useJob/useArtifact
 components/             shared: ui/ (shadcn), common/, markdown/MarkdownRenderer
 lib/                    api/client (axios + Bearer interceptor + silent refresh), api/endpoints,
@@ -333,33 +406,32 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 
 ## Built vs planned modules
 
-**Built (Phases 0–2):**
+**Built (Phases 0–3):**
 
 | Module | Where it lives |
 | --- | --- |
-| Auth / RBAC | `middlewares/auth+rbac`, `db/` (users/roles/permissions), `features/auth` |
-| Org hierarchy | `users.supervisor_id`, seed `005_org_users`, `staff_allotments` |
-| Institutions registry + import | `institution.{repository,service,controller}`, `utils/master-data.parser`, `features/institutions` |
+| Auth / RBAC (13 roles) | `middlewares/auth+rbac`, `db/` (users/roles/permissions), `features/auth` |
+| Org hierarchy | `users.supervisor_id`, seeds `003/005/006/008/010`, `staff_allotments` |
+| Institutions registry + import | `institution.*`, `utils/master-data.parser`, `features/institutions` |
 | Admin console | `routes/org.routes`, `controllers/org`, `pages/admin/*` |
 | Role-prefixed portal | `app/layouts/RoleLayout`, `AuthContext.primaryRole` |
+| **Case lifecycle + workflow guard** | `workflow.service`, `application.{service,repository,controller}`, `features/applications` |
+| **Clarification cycle + college** | `clarification.repository`, seeds `008/009`, `ApplicationDetail` |
+| **Hearings + board meetings + dispatch** | `hearing.repository`, `meeting.{service,repository,controller}`, `features/meetings` |
 
 **Extension points (designed for, not built):**
 
 | Module | Where it slots in |
 | --- | --- |
 | DOCX/XLSX/image extraction | register a pipeline in `engines/extraction/index.js` |
-| Cloud/object storage for artifacts | new implementation of the job repository contract |
-| Rule management & versioning UI | rulesets are already versioned directories; add CRUD over `data/rulesets/` |
-| New regulations (Unani, Siddha, PG…) | new ruleset directory + report template registration in `reporter/templater.js` |
-| Report export (DOCX/PDF) | consume the `report` artifact or `AssessmentResult` JSON |
+| Cloud/object storage | new implementation of the job repository contract |
+| New regulations (Unani, Siddha, PG…) | new ruleset directory + report template registration (only Ayurveda-UG rules exist today, so non-Ayurveda cases process but assessment fails loudly) |
 
-**Planned — Phase 3 (post-visitation lifecycle; NOT built):** uploads-as-cases + an `applications`/
-`assessments` DB state machine (Draft→…→Approved/Archived), the review workflow (maker-checker
-submit/approve/reject), clarification + hearing letters, board meetings + decisions, audit log,
-reports/analytics. New roles: **visitor, secretariat, hearing_committee, college,
-commission_observer**. Pipeline routing change (visitor uploads the 20–50pg report + selects
-region → routes to the allotted junior consultant via `staff_allotments`). See
-[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
+**Planned (NOT built):** compliance/penalty tracking + letter/order template validation + dispatch
+log (**3d**); a generalized append-only `audit_log` interceptor (**Phase 4** — the per-case
+`application_events` timeline exists; this generalizes it); reports/analytics (**Phase 5**); a
+ruleset version editor + activation + RBAC-matrix/E2E hardening + non-Ayurveda rulesets (**Phase 6**).
+See [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
 
 ## Domain sources
 

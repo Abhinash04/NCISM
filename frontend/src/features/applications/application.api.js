@@ -20,10 +20,15 @@ export async function getEvents(id) {
   return data.events || [];
 }
 
-export async function uploadApplication({ institutionId, session, file }) {
+export async function uploadApplication({ institutionId, session, file, intake, permissionType, visitationFrom, visitationTo, visitationMode }) {
   const form = new FormData();
   form.append('institutionId', institutionId);
   if (session) form.append('session', session);
+  if (intake) form.append('intake', intake);
+  if (permissionType) form.append('permissionType', permissionType);
+  if (visitationFrom) form.append('visitationFrom', visitationFrom);
+  if (visitationTo) form.append('visitationTo', visitationTo);
+  if (visitationMode) form.append('visitationMode', visitationMode);
   form.append('file', file);
   const { data } = await apiClient.post('/applications', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -50,6 +55,17 @@ export async function getHearings(id) {
 export async function getCommitteeMembers() {
   const { data } = await apiClient.get('/applications/committee-members');
   return data.members || [];
+}
+
+export async function getLetters(id) {
+  const { data } = await apiClient.get(`/applications/${id}/letters`);
+  return data.letters || [];
+}
+
+/** Returns a drafted (unstored) letter markdown of the given kind for the actor to edit. */
+export async function previewLetter(id, kind) {
+  const { data } = await apiClient.post(`/applications/${id}/letters/preview`, { kind });
+  return data.content || '';
 }
 
 /** Board issues a clarification letter. */

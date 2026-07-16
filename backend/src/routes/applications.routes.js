@@ -34,4 +34,8 @@ router.post('/:id/appoint-committee', requirePermission('hearing:appoint'), (req
 router.post('/:id/hearing/minutes', requirePermission('hearing:conduct'), (req, res, next) => controller.recordMinutes(req, res, next));
 router.post('/:id/dispatch', requirePermission('order:dispatch'), (req, res, next) => controller.dispatchOrder(req, res, next));
 
+// Letters / orders (Phase 3d)
+router.get('/:id/letters', requirePermission('application:read'), (req, res, next) => controller.letters(req, res, next));
+router.post('/:id/letters/preview', requirePermission('application:read'), (req, res, next) => controller.previewLetter(req, res, next));
+
 module.exports = router;

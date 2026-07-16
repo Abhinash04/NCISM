@@ -6,6 +6,7 @@ const appRepo = require('../repositories/application.repository');
 const clarificationRepo = require('../repositories/clarification.repository');
 const hearingRepo = require('../repositories/hearing.repository');
 const userRepo = require('../repositories/user.repository');
+const letterService = require('./letter.service');
 const institutionRepo = require('../repositories/institution.repository');
 const jobService = require('./job.service');
 const extractionService = require('./extraction.service');
@@ -73,7 +74,7 @@ function events(id) {
 }
 
 /** Visitor uploads a report for an institution → a new case in `uploaded`. */
-async function createUpload({ file, institutionId, session, user }) {
+async function createUpload({ file, institutionId, session, user, intake, level, permissionType, visitationFrom, visitationTo, visitationMode }) {
   if (!file) throw ApiError.badRequest('NO_FILE', 'A report PDF is required');
   const institution = await institutionRepo.getById(institutionId);
   if (!institution) throw ApiError.badRequest('VALIDATION_ERROR', 'Unknown institution');
@@ -85,6 +86,12 @@ async function createUpload({ file, institutionId, session, user }) {
     session: session || null,
     status: 'uploaded',
     uploaded_by: user.id,
+    intake: intake ? parseInt(intake, 10) : null,
+    level: level || 'UG',
+    permission_type: permissionType || null,
+    visitation_from: visitationFrom || null,
+    visitation_to: visitationTo || null,
+    visitation_mode: visitationMode || 'hybrid',
   });
 
   // Persist the raw PDF outside temp/ so job retention can't purge it before processing.
@@ -149,13 +156,18 @@ async function review(id, user, { action, note }) {
   return updated;
 }
 
-/** Board approves (grant) or rejects (back to junior). */
-async function decide(id, user, { action, note }) {
+/** Board approves (grant) or rejects (back to junior). Approve carries a structured outcome. */
+async function decide(id, user, { action, note, outcome, approvedSeats }) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, action); // 'approve' | 'reject'
   const toState = action === 'approve' ? 'approved' : 'rejected';
-  const updated = await appRepo.update(id, { status: toState, decision: toState, decision_note: note || null, decided_by: user.id });
-  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState, actorId: user.id, note: note || `Board ${toState}` });
+  const patch = { status: toState, decision: toState, decision_note: note || null, decided_by: user.id };
+  if (action === 'approve') {
+    patch.outcome = outcome || 'grant';
+    patch.approved_seats = Number.isFinite(approvedSeats) ? approvedSeats : (approvedSeats ? parseInt(approvedSeats, 10) : null);
+  }
+  const updated = await appRepo.update(id, patch);
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState, actorId: user.id, note: note || `Board ${toState}${action === 'approve' && outcome ? ` (${outcome})` : ''}` });
   return updated;
 }
 
@@ -167,6 +179,8 @@ async function requestClarification(id, user, { letterText }) {
 
   const round = (await clarificationRepo.countFor(id)) + 1;
   await clarificationRepo.create({ application_id: id, round, letter_text: letterText, issued_by: user.id, status: 'open' });
+  // The confirmed text is the edited Clarification Letter → store it as an issued letter too.
+  await letterService.issue(app, { kind: 'clarification', content: letterText, actor: user });
   const updated = await appRepo.update(id, { status: 'clarification_open' });
   await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'clarification_open', actorId: user.id, note: `Clarification requested (round ${round})` });
   return updated;
@@ -220,6 +234,10 @@ async function appointCommittee(id, user, { memberIds, scheduledAt }) {
   await hearingRepo.addMembers(hearing.id, members);
   const updated = await appRepo.update(id, { status: 'hearing_scheduled' });
   await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'hearing_scheduled', actorId: user.id, note: 'Hearing committee appointed' });
+  // Auto-issue the Hearing Notice (with/without prior clarification depending on the case history).
+  const hadClarification = (await clarificationRepo.countFor(id)) > 0;
+  const kind = hadClarification ? 'hearing_with_clarification' : 'hearing_without_clarification';
+  await letterService.issue(app, { kind, actor: user });
   return updated;
 }
 
@@ -243,6 +261,8 @@ async function recordMinutes(id, user, { minutes, verdict }) {
 async function dispatchOrder(id, user, { orderText } = {}) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, 'dispatch_order');
+  // Issue the Final Order (edited text if provided, else generated from the outcome + punitive data).
+  await letterService.issue(app, { kind: 'final_order', content: orderText || null, actor: user });
   const updated = await appRepo.update(id, { status: 'closed', decision_note: orderText || app.decision_note });
   await appRepo.addEvent({ applicationId: id, fromState: app.status, toState: 'closed', actorId: user.id, note: orderText || 'Final order dispatched' });
   return updated;
@@ -254,6 +274,18 @@ function hearings(id) {
 
 function committeeMembers() {
   return userRepo.listByRole('hearing_committee');
+}
+
+/** Issued letters for a case (Letters tab). */
+function letters(id) {
+  return letterService.list(id);
+}
+
+/** A drafted (unstored) letter of the given kind, for the board to review/edit before issuing. */
+async function previewLetter(id, user, kind) {
+  const { app } = await getForUser(id, user);
+  const { contentMarkdown } = await letterService.render(kind, app, user);
+  return contentMarkdown;
 }
 
 /** Junior reopens a rejected case for rework. */
@@ -270,4 +302,5 @@ module.exports = {
   createUpload, process, submit, review, decide, revise,
   requestClarification, respondClarification, clarifications,
   requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,
+  letters, previewLetter,
 };

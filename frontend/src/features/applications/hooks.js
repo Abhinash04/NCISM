@@ -3,7 +3,7 @@ import {
   listApplications, getApplication, getAllowedActions, getEvents,
   uploadApplication, actOnApplication,
   getClarifications, issueClarification, respondClarification,
-  getHearings, getCommitteeMembers,
+  getHearings, getCommitteeMembers, getLetters, previewLetter,
 } from './application.api';
 
 export function useApplications() {
@@ -68,3 +68,9 @@ export function useHearings(id) {
 export function useCommitteeMembers(enabled) {
   return useQuery({ queryKey: ['committee-members'], queryFn: getCommitteeMembers, enabled: !!enabled, staleTime: 5 * 60 * 1000 });
 }
+
+export function useLetters(id) {
+  return useQuery({ queryKey: ['application', id, 'letters'], queryFn: () => getLetters(id), enabled: !!id });
+}
+
+export { previewLetter };

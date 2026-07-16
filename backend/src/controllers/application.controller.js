@@ -4,11 +4,12 @@ class ApplicationController {
   /** POST /applications — visitor upload (multipart: file + institutionId + session). */
   async create(req, res, next) {
     try {
+      const b = req.body || {};
       const app = await applicationService.createUpload({
-        file: req.file,
-        institutionId: req.body.institutionId,
-        session: req.body.session,
-        user: req.user,
+        file: req.file, user: req.user,
+        institutionId: b.institutionId, session: b.session,
+        intake: b.intake, level: b.level, permissionType: b.permissionType,
+        visitationFrom: b.visitationFrom, visitationTo: b.visitationTo, visitationMode: b.visitationMode,
       });
       res.status(201).json({ success: true, application: app });
     } catch (error) {
@@ -179,6 +180,24 @@ class ApplicationController {
     try {
       const members = await applicationService.committeeMembers();
       res.json({ success: true, members });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async letters(req, res, next) {
+    try {
+      const letters = await applicationService.letters(req.params.id);
+      res.json({ success: true, letters });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async previewLetter(req, res, next) {
+    try {
+      const content = await applicationService.previewLetter(req.params.id, req.user, req.body?.kind);
+      res.json({ success: true, content });
     } catch (error) {
       next(error);
     }

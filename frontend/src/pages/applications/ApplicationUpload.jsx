@@ -20,6 +20,10 @@ export function ApplicationUpload() {
   const [q, setQ] = useState('');
   const [institutionId, setInstitutionId] = useState('');
   const [session, setSession] = useState('');
+  const [intake, setIntake] = useState('');
+  const [permissionType, setPermissionType] = useState('');
+  const [visitationFrom, setVisitationFrom] = useState('');
+  const [visitationTo, setVisitationTo] = useState('');
   const [file, setFile] = useState(null);
 
   const { data: instData } = useInstitutions({ q, limit: 25 });
@@ -31,7 +35,7 @@ export function ApplicationUpload() {
   const onSubmit = (e) => {
     e.preventDefault();
     if (!canSubmit) return;
-    mutate({ institutionId, session, file }, {
+    mutate({ institutionId, session, file, intake, permissionType, visitationFrom, visitationTo }, {
       onSuccess: (app) => navigate(`${listPath}/${app.id}`),
     });
   };
@@ -73,11 +77,28 @@ export function ApplicationUpload() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="session">Session / year</Label>
-              <Input id="session" placeholder="e.g. 2026-27" value={session}
-                onChange={(e) => setSession(e.target.value)} />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="session">Session / year</Label>
+                <Input id="session" placeholder="e.g. 2026-27" value={session} onChange={(e) => setSession(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="intake">Intake capacity (seats)</Label>
+                <Input id="intake" type="number" placeholder="e.g. 100" value={intake} onChange={(e) => setIntake(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="perm">Permission type</Label>
+                <Input id="perm" placeholder="e.g. yearly / 2nd renewal / extended" value={permissionType} onChange={(e) => setPermissionType(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Visitation dates</Label>
+                <div className="flex gap-2">
+                  <Input type="date" value={visitationFrom} onChange={(e) => setVisitationFrom(e.target.value)} />
+                  <Input type="date" value={visitationTo} onChange={(e) => setVisitationTo(e.target.value)} />
+                </div>
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground -mt-2">These optional details populate the generated letters/orders; leave blank to fill later.</p>
 
             <div className="space-y-2">
               <Label>Report PDF</Label>

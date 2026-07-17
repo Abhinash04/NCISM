@@ -38,4 +38,8 @@ router.post('/:id/dispatch', requirePermission('order:dispatch'), (req, res, nex
 router.get('/:id/letters', requirePermission('application:read'), (req, res, next) => controller.letters(req, res, next));
 router.post('/:id/letters/preview', requirePermission('application:read'), (req, res, next) => controller.previewLetter(req, res, next));
 
+// Compliance / penalties (Phase 5a)
+router.get('/:id/penalties', requirePermission('compliance:read'), (req, res, next) => controller.penalties(req, res, next));
+router.post('/:id/penalties', requirePermission('compliance:manage'), (req, res, next) => controller.addPenalty(req, res, next));
+
 module.exports = router;

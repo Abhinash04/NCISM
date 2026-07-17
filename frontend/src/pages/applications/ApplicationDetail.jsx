@@ -21,8 +21,16 @@ import {
   useApplication, useAllowedActions, useApplicationEvents, useApplicationAction,
   useClarifications, useIssueClarification, useRespondClarification,
   useHearings, useCommitteeMembers, useLetters, previewLetter,
+  usePenalties, useAddPenalty, useUpdatePenalty,
 } from '@/features/applications/hooks';
+import { useAuth } from '@/features/auth/AuthContext';
 import { STATUS_META } from './ApplicationsList';
+
+const PENALTY_LABELS = {
+  seat_reduction: 'Seat reduction', denial: 'Denial', monetary: 'Monetary penalty',
+  teacher_code_revocation: 'Teacher-code revocation',
+};
+const PENALTY_STATUSES = ['pending', 'applied', 'paid', 'waived'];
 
 const SYSTEM_LABELS = { ayurveda: 'Ayurveda', unani: 'Unani', siddha: 'Siddha', sowa_rigpa: 'Sowa-Rigpa' };
 
@@ -84,6 +92,14 @@ export function ApplicationDetail() {
   const { data: rounds = [] } = useClarifications(id);
   const { data: hearings = [] } = useHearings(id);
   const { data: letters = [] } = useLetters(id);
+  const { data: penalties = [] } = usePenalties(id);
+  const { hasPermission } = useAuth();
+  const canManagePenalties = hasPermission('compliance:manage');
+  const addPenalty = useAddPenalty(id);
+  const updatePenalty = useUpdatePenalty(id);
+  const [pType, setPType] = useState('monetary');
+  const [pDesc, setPDesc] = useState('');
+  const [pAmount, setPAmount] = useState('');
   const action = useApplicationAction(id);
   const issue = useIssueClarification(id);
   const respond = useRespondClarification(id);
@@ -175,6 +191,11 @@ export function ApplicationDetail() {
                 {app.outcome === 'reduce_intake' && app.approved_seats != null ? ` · ${app.approved_seats} seats` : ''}
               </Badge>
             )}
+            {app.compliance_status && (
+              <Badge variant={app.compliance_status === 'complied' ? 'default' : 'secondary'}>
+                compliance: {app.compliance_status}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -224,6 +245,7 @@ export function ApplicationDetail() {
           <TabsTrigger value="clarifications">Clarifications{rounds.length ? ` (${rounds.length})` : ''}</TabsTrigger>
           <TabsTrigger value="hearings">Hearings{hearings.length ? ` (${hearings.length})` : ''}</TabsTrigger>
           <TabsTrigger value="letters">Letters{letters.length ? ` (${letters.length})` : ''}</TabsTrigger>
+          <TabsTrigger value="penalties">Penalties{penalties.length ? ` (${penalties.length})` : ''}</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
 
@@ -290,6 +312,65 @@ export function ApplicationDetail() {
                 {h.verdict && <p className="text-sm"><span className="text-muted-foreground">Verdict: </span>{h.verdict}</p>}
               </div>
             )) : <p className="text-sm text-muted-foreground">No hearings.</p>}
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="penalties">
+          <Card><CardContent className="pt-6 space-y-4">
+            {penalties.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase border-b">
+                    <tr><th className="py-2">Type</th><th className="py-2">Detail</th><th className="py-2">Seats/Amount</th><th className="py-2">Source</th><th className="py-2">Status</th></tr>
+                  </thead>
+                  <tbody>
+                    {penalties.map((p) => (
+                      <tr key={p.id} className="border-b last:border-0">
+                        <td className="py-2 font-medium">{PENALTY_LABELS[p.type] || p.type}</td>
+                        <td className="py-2 text-muted-foreground max-w-[280px] truncate" title={p.description}>{p.description || '—'}</td>
+                        <td className="py-2">{p.type === 'monetary' ? `₹${Number(p.amount).toLocaleString('en-IN')}` : (p.seats != null ? `${p.seats} seats` : '—')}</td>
+                        <td className="py-2 text-muted-foreground">{p.source}</td>
+                        <td className="py-2">
+                          {canManagePenalties ? (
+                            <Select value={p.status} onValueChange={(status) => updatePenalty.mutate({ penaltyId: p.id, status })}>
+                              <SelectTrigger className="h-7 w-28"><SelectValue /></SelectTrigger>
+                              <SelectContent>{PENALTY_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                            </Select>
+                          ) : <Badge variant={p.status === 'paid' || p.status === 'waived' ? 'default' : 'secondary'}>{p.status}</Badge>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="text-sm text-muted-foreground">No penalties. Seat-reduction / denial penalties are derived automatically once the board decides.</p>}
+
+            {canManagePenalties && (
+              <div className="border-t pt-4 space-y-3">
+                <p className="text-sm font-medium">Add a penalty (monetary / teacher-code revocation)</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Select value={pType} onValueChange={setPType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monetary">Monetary penalty</SelectItem>
+                      <SelectItem value="teacher_code_revocation">Teacher-code revocation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {pType === 'monetary' && (
+                    <Input type="number" placeholder="Amount (₹) e.g. 2500000" value={pAmount} onChange={(e) => setPAmount(e.target.value)} />
+                  )}
+                </div>
+                <Textarea placeholder="Description (e.g. Ghost faculty — Dr. X)" value={pDesc} onChange={(e) => setPDesc(e.target.value)} />
+                <Button
+                  disabled={addPenalty.isPending || (pType === 'monetary' && !pAmount)}
+                  onClick={() => addPenalty.mutate(
+                    { type: pType, description: pDesc, amount: pType === 'monetary' ? Number(pAmount) : undefined },
+                    { onSuccess: () => { setPDesc(''); setPAmount(''); } },
+                  )}>
+                  {addPenalty.isPending ? 'Adding…' : 'Add penalty'}
+                </Button>
+              </div>
+            )}
           </CardContent></Card>
         </TabsContent>
 

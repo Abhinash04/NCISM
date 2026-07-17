@@ -7,6 +7,7 @@ const clarificationRepo = require('../repositories/clarification.repository');
 const hearingRepo = require('../repositories/hearing.repository');
 const userRepo = require('../repositories/user.repository');
 const letterService = require('./letter.service');
+const penaltyService = require('./penalty.service');
 const institutionRepo = require('../repositories/institution.repository');
 const jobService = require('./job.service');
 const extractionService = require('./extraction.service');
@@ -166,9 +167,21 @@ async function decide(id, user, { action, note, outcome, approvedSeats }) {
     patch.outcome = outcome || 'grant';
     patch.approved_seats = Number.isFinite(approvedSeats) ? approvedSeats : (approvedSeats ? parseInt(approvedSeats, 10) : null);
   }
-  const updated = await appRepo.update(id, patch);
+  let updated = await appRepo.update(id, patch);
   await appRepo.addEvent({ applicationId: id, fromState: app.status, toState, actorId: user.id, note: note || `Board ${toState}${action === 'approve' && outcome ? ` (${outcome})` : ''}` });
+  // Auto-derive the seat-reduction / denial penalty ledger from the punitive summary.
+  if (action === 'approve') { await penaltyService.deriveForCase(updated, user); updated = await appRepo.getById(id); }
   return updated;
+}
+
+/** Penalty ledger for a case. */
+function penalties(id) {
+  return penaltyService.list(id);
+}
+
+/** Dealing staff adds a manual penalty (monetary / teacher-code revocation). */
+function addPenalty(id, user, body) {
+  return penaltyService.addManual(id, body || {}, user);
 }
 
 /** Board issues a clarification letter to the college → opens a response window. */
@@ -302,5 +315,5 @@ module.exports = {
   createUpload, process, submit, review, decide, revise,
   requestClarification, respondClarification, clarifications,
   requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,
-  letters, previewLetter,
+  letters, previewLetter, penalties, addPenalty,
 };

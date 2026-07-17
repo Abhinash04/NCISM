@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound, FileStack, Gavel, ScrollText } from 'lucide-react';
+import { Home, Settings, FileText, Info, LogOut, Building2, Upload, Users, Shield, KeyRound, FileStack, Gavel, ScrollText, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ export function DashboardLayout() {
       { name: 'Users', path: '/admin/users', icon: Users },
       { name: 'Roles', path: '/admin/roles', icon: Shield },
       { name: 'Permissions', path: '/admin/permissions', icon: KeyRound },
+      { name: 'Compliance', path: '/admin/compliance', icon: ClipboardCheck, perm: 'compliance:read' },
       { name: 'Audit', path: '/admin/audit', icon: ScrollText },
       { name: 'Documents', path: '/documents', icon: FileText },
     ],
@@ -45,6 +46,7 @@ export function DashboardLayout() {
       { name: 'Dashboard', path: '/commission_observer/dashboard', icon: Home },
       { name: 'Cases', path: '/commission_observer/applications', icon: FileStack },
       { name: 'Meetings', path: '/commission_observer/meetings', icon: Gavel },
+      { name: 'Compliance', path: '/commission_observer/compliance', icon: ClipboardCheck, perm: 'compliance:read' },
       { name: 'Audit', path: '/commission_observer/audit', icon: ScrollText },
       { name: 'Settings', path: '/commission_observer/settings', icon: Settings },
     ],
@@ -53,6 +55,7 @@ export function DashboardLayout() {
       { name: 'Cases', path: '/board_member/applications', icon: FileStack },
       { name: 'Meetings', path: '/board_member/meetings', icon: Gavel },
       { name: 'Institutions', path: '/board_member/institutions', icon: Building2 },
+      { name: 'Compliance', path: '/board_member/compliance', icon: ClipboardCheck, perm: 'compliance:read' },
       { name: 'Audit', path: '/board_member/audit', icon: ScrollText },
       { name: 'Settings', path: '/board_member/settings', icon: Settings },
     ],
@@ -61,18 +64,21 @@ export function DashboardLayout() {
       { name: 'Cases', path: '/president/applications', icon: FileStack },
       { name: 'Meetings', path: '/president/meetings', icon: Gavel },
       { name: 'Institutions', path: '/president/institutions', icon: Building2 },
+      { name: 'Compliance', path: '/president/compliance', icon: ClipboardCheck, perm: 'compliance:read' },
       { name: 'Audit', path: '/president/audit', icon: ScrollText },
       { name: 'Settings', path: '/president/settings', icon: Settings },
     ],
   };
-  const navItems = NAV_BY_ROLE[role] || [
+  const navItems = (NAV_BY_ROLE[role] || [
     { name: 'Dashboard', path: `/${role}/dashboard`, icon: Home },
     { name: role === 'visitor' ? 'My Uploads' : 'Applications', path: `/${role}/applications`, icon: FileStack },
     { name: 'Institutions', path: `/${role}/institutions`, icon: Building2 },
+    { name: 'Compliance', path: `/${role}/compliance`, icon: ClipboardCheck, perm: 'compliance:read' },
     { name: 'Documents', path: '/documents', icon: FileText },
     { name: 'Settings', path: `/${role}/settings`, icon: Settings },
     { name: 'About', path: `/${role}/about`, icon: Info },
-  ];
+    // `perm` (optional) hides an item unless the user holds that permission.
+  ]).filter((i) => !i.perm || auth.hasPermission(i.perm));
 
   async function onLogout() {
     await auth.logout();

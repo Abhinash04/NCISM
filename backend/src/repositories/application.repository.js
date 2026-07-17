@@ -6,7 +6,7 @@ const FIELDS = [
   'applications.decision_note', 'applications.error',
   'applications.outcome', 'applications.approved_seats', 'applications.intake', 'applications.level',
   'applications.permission_type', 'applications.visitation_from', 'applications.visitation_to',
-  'applications.visitation_mode',
+  'applications.visitation_mode', 'applications.compliance_status',
   'applications.uploaded_by', 'applications.assigned_to', 'applications.submitted_by',
   'applications.reviewed_by', 'applications.decided_by',
   'applications.created_at', 'applications.updated_at',

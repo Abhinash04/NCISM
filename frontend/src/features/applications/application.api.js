@@ -68,6 +68,27 @@ export async function previewLetter(id, kind) {
   return data.content || '';
 }
 
+export async function getPenalties(id) {
+  const { data } = await apiClient.get(`/applications/${id}/penalties`);
+  return data.penalties || [];
+}
+
+export async function addPenalty(id, body) {
+  const { data } = await apiClient.post(`/applications/${id}/penalties`, body);
+  return data.penalty;
+}
+
+/** Cross-case compliance queue. */
+export async function listPenalties(status) {
+  const { data } = await apiClient.get('/penalties', { params: status ? { status } : {} });
+  return data.penalties || [];
+}
+
+export async function updatePenaltyStatus(penaltyId, status) {
+  const { data } = await apiClient.patch(`/penalties/${penaltyId}`, { status });
+  return data.penalty;
+}
+
 /** Board issues a clarification letter. */
 export async function issueClarification(id, letterText) {
   const { data } = await apiClient.post(`/applications/${id}/clarification`, { letterText });

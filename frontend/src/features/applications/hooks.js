@@ -4,6 +4,7 @@ import {
   uploadApplication, actOnApplication,
   getClarifications, issueClarification, respondClarification,
   getHearings, getCommitteeMembers, getLetters, previewLetter,
+  getPenalties, addPenalty, listPenalties, updatePenaltyStatus,
 } from './application.api';
 
 export function useApplications() {
@@ -71,6 +72,34 @@ export function useCommitteeMembers(enabled) {
 
 export function useLetters(id) {
   return useQuery({ queryKey: ['application', id, 'letters'], queryFn: () => getLetters(id), enabled: !!id });
+}
+
+export function usePenalties(id) {
+  return useQuery({ queryKey: ['application', id, 'penalties'], queryFn: () => getPenalties(id), enabled: !!id });
+}
+
+export function useAddPenalty(id) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body) => addPenalty(id, body),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['application', id] }); qc.invalidateQueries({ queryKey: ['penalties'] }); },
+  });
+}
+
+/** Status change usable from the case tab and the cross-case queue. */
+export function useUpdatePenalty(applicationId) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ penaltyId, status }) => updatePenaltyStatus(penaltyId, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['penalties'] });
+      if (applicationId) qc.invalidateQueries({ queryKey: ['application', applicationId] });
+    },
+  });
+}
+
+export function useComplianceQueue(status) {
+  return useQuery({ queryKey: ['penalties', status || 'all'], queryFn: () => listPenalties(status) });
 }
 
 export { previewLetter };

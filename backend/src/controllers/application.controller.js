@@ -202,6 +202,24 @@ class ApplicationController {
       next(error);
     }
   }
+
+  async penalties(req, res, next) {
+    try {
+      const penalties = await applicationService.penalties(req.params.id);
+      res.json({ success: true, penalties });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async addPenalty(req, res, next) {
+    try {
+      const penalty = await applicationService.addPenalty(req.params.id, req.user, req.body || {});
+      res.status(201).json({ success: true, penalty });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ApplicationController();

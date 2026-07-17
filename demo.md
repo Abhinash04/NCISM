@@ -1,4 +1,4 @@
-# NCISM Assessment Portal — Demo & Verification Guide (through Phase 4)
+# NCISM Assessment Portal — Demo & Verification Guide (through Phase 5a)
 
 A follow-along tutorial to run the platform locally and walk the **entire post-visitation case
 lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review →
@@ -160,7 +160,9 @@ Log in as **`member.mehra@ncism.local`**. Open **Cases** → the case. You'll se
 ### 3.6 Board approves with a structured outcome → `approved`
 Back as **`member.mehra@ncism.local`**, open the case → **Approve (decide)** → the dialog shows an
 **outcome** select pre-seeded from the punitive summary (e.g. *reduce-intake*); adjust seats if
-needed → Confirm → status **approved**, and the outcome shows in the case header.
+needed → Confirm → status **approved**, and the outcome shows in the case header. The **Penalties**
+tab now lists the **auto-derived** seat-reduction / denial penalties, and the header shows
+`compliance: monitoring`.
 
 ### 3.7 Secretariat: board meeting + dispatch → `closed`
 Log in as **`secretariat@ncism.local`**:
@@ -170,6 +172,13 @@ Log in as **`secretariat@ncism.local`**:
   (outcome + seats + penalties) → review → Confirm → status **closed**; the **Letters** tab shows the
   Final Order.
 - Back on the meeting → **Confirm minutes** → meeting status **confirmed**. Log out.
+
+### 3.7b Compliance monitoring (dealing junior)
+Log in as **`smarnika@ncism.local`** → open the case → **Penalties** tab: the auto seat-reduction /
+denial rows are listed. Add a **Monetary penalty** (₹2,500,000 — ghost faculty) and a
+**Teacher-code revocation** via the add form. Move each penalty's status to **paid** — once none are
+pending/applied the header flips to `compliance: complied`. Open **Compliance** in the sidebar for
+the cross-case penalty queue (filter by status). Log out.
 
 ### 3.8 Commission Observer (read-only) + Audit
 Log in as **`observer@ncism.local`** → **Cases** / **Meetings**: everything is viewable but there
@@ -193,6 +202,9 @@ insert/update + exception-queue summary.
 - **Clarifications** and **Hearings** tabs list each round (letter/response; panel/minutes/verdict).
 - **Letters** tab lists every issued document (Clarification Letter, Hearing Notice, Final Order),
   rendered in the official format with the case's institution + shortcoming tables + signatory.
+- **Penalties** tab: seat-reduction/denial auto-derived on approve; the junior adds monetary/
+  revocation and drives status to `paid` → case `compliance: complied`. **Compliance** queue lists
+  penalties across cases. RBAC: senior/board/observer read; only junior/admin manage.
 - **Audit** (admin/board/president/observer) records every write; GET browsing adds no rows.
 - **Action buttons differ per role** — they render only from the backend `allowedActions`, never from
   role literals in the UI.
@@ -230,6 +242,7 @@ approved ─(secretariat dispatch)→ closed        (closed = terminal, immutabl
 - **Guard:** `backend/src/services/workflow.service.js` (`allowedActions` / `assertCan`).
 - **Letters:** `backend/src/services/letter.service.js` (built — reproduces the NCISM formats from
   the assessment result). **Audit:** `backend/src/middlewares/audit.middleware.js` → `audit_log`.
+- **Compliance:** `backend/src/services/penalty.service.js` (auto-derive + manual + status rollup).
 - **Roles/logins:** [AuthCred.md](AuthCred.md). **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
-- **Next (Phase 5, not built):** compliance/penalty ledger + reports/analytics (compliance/punitive
-  summaries, throughput, exports). Phase 6: ruleset editor + non-Ayurveda rulesets + async worker.
+- **Next (Phase 5b, not built):** reports/analytics (compliance/punitive summaries, throughput,
+  exports). Phase 6: ruleset editor + non-Ayurveda rulesets + async worker.

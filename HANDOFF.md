@@ -1,8 +1,9 @@
-# NCISM Assessment Portal — Developer Handoff (end of Phase 4)
+# NCISM Assessment Portal — Developer Handoff (end of Phase 5a)
 
 > Cold-start context for a new developer or AI agent. Describes **only what exists in the codebase
-> today** (Phases 0–4 — full case lifecycle + official letter/order generation + a system-wide audit
-> log). Items tagged **Planned** are not yet implemented (compliance ledger, Phase 5/6). Companion
+> today** (Phases 0–5a — full case lifecycle + official letter/order generation + audit log +
+> compliance/penalty ledger). Items tagged **Planned** are not yet implemented (Phase 5b reports,
+> Phase 6). Companion
 > docs: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (as-built reference),
 > [docs/INTERNAL-PORTAL-BLUEPRINT.md](docs/INTERNAL-PORTAL-BLUEPRINT.md) (design blueprint + roadmap),
 > [AuthCred.md](AuthCred.md) (mock logins), [backend/src/engines/extraction/cdm/](backend/src/engines/extraction/cdm/)
@@ -45,8 +46,9 @@ reference superset, not the build target.
 | 13 roles incl. visitor/college/hearing_committee/secretariat/observer | ✅ Phase 3 |
 | Structured board outcomes + official letter/order generation | ✅ Phase 3d |
 | System-wide append-only audit log + viewer | ✅ Phase 4 |
-| Compliance/penalty ledger | 🔜 Planned (3d remainder) |
-| Reports/analytics · ruleset editor · non-Ayurveda rulesets | 🔜 Phase 5–6 — Planned |
+| Compliance/penalty ledger + monitoring | ✅ Phase 5a |
+| Reports/analytics | 🔜 Phase 5b — Planned |
+| Ruleset editor · non-Ayurveda rulesets · async worker | 🔜 Phase 6 — Planned |
 
 ## 3. Completed phases
 
@@ -80,13 +82,17 @@ reference superset, not the build target.
   `applications` (intake, level, permission_type, visitation_*).
 - **Phase 4 — Audit log:** an app-wide `audit.middleware` records every successful write to an
   append-only `audit_log`; `GET /audit` + an Audit viewer (admin / board / president / observer).
+- **Phase 5a — Compliance/penalty ledger:** on board approve, `penalty.service.deriveForCase` reads
+  `report_json.punitiveSummary.contributions` → auto `seat_reduction`/`denial` penalty rows; the
+  dealing junior adds **manual** `monetary` (₹25-lakh ghost-faculty) + `teacher_code_revocation`
+  penalties and tracks status (pending → applied → paid/waived); the case rolls to
+  `compliance_status='complied'` when nothing is pending. `penalties` table; roles `compliance:{read,
+  manage}`; a **Penalties** tab + a cross-case **Compliance** queue.
 
 ## 4. Remaining phases (Planned)
 
-- **Compliance/penalty ledger (3d remainder):** monetary penalties (₹25-lakh ghost-faculty),
-  seat-reduction/compliance tracking as first-class records (the data is computed in `punitiveSummary`
-  today and rendered into the Final Order).
-- **Phase 5 — Reports/analytics:** compliance/punitive summaries, throughput, exports.
+- **Phase 5b — Reports/analytics:** compliance/punitive summaries, throughput, institution trends,
+  exports (the penalty ledger + `audit_log` + `application_events` + `report_json` feed this).
 - **Phase 6 — Admin hardening:** ruleset version editor + activation (SoD); **non-Ayurveda rulesets**
   (Unani/Siddha/Sowa-Rigpa/PG); async processing worker; RBAC matrix tests, per-role E2E. See
   blueprint §6.
@@ -146,12 +152,12 @@ President (Mukul Patel)
                                                                         Ritu Saini, Abdulla, Steave
 ```
 
-**Permission catalogue (33):** `institution:{create,read,update,delete}`, `assessment:*` (legacy),
+**Permission catalogue (35):** `institution:{create,read,update,delete}`, `assessment:*` (legacy),
 `application:{create,read,process,submit,review,decide}`, `clarification:{issue,respond}`,
-`hearing:{appoint,conduct}`, `meeting:manage`, `order:dispatch`, `issue:{read,resolve}`,
-`user:manage`, `role:read`, `ruleset:{read,create,activate}`, `report:read`, `audit:read`. Per-role
-bundles seeded across `001_rbac`, `003_org_roles`, `006_application_rbac`, `008_college_rbac`,
-`010_hearing_meeting_rbac`.
+`hearing:{appoint,conduct}`, `meeting:manage`, `order:dispatch`, `compliance:{read,manage}`,
+`issue:{read,resolve}`, `user:manage`, `role:read`, `ruleset:{read,create,activate}`, `report:read`,
+`audit:read`. Per-role bundles seeded across `001_rbac`, `003_org_roles`, `006_application_rbac`,
+`008_college_rbac`, `010_hearing_meeting_rbac`, `012_compliance_rbac`.
 
 **Case guard (`workflow.service`):** `allowedActions(app, user, ctx)` returns the actions a user may
 take given `status × roles × ownership`; `assertCan` throws **403** (`ACTION_NOT_ALLOWED`) or **423**
@@ -200,12 +206,12 @@ viewer` (`features/auth/AuthContext.jsx`).
 ```
 app.js / ../server.js   express assembly / bootstrap (asserts DB connection, starts retention)
 config/index.js         only place env is read (adds auth: jwtSecret, TTLs, bcryptRounds)
-db/index.js             singleton Knex; db/migrations (001–008); db/seeds (001–011)
+db/index.js             singleton Knex; db/migrations (001–009); db/seeds (001–012)
 routes/index.js         mounts /auth /(extract) /jobs /assessments /institutions /admin
-                        /applications /meetings /audit  (+ /health)
-controllers/            auth · institution · org · application · meeting · audit · assessments · extract · jobs · health
-services/               auth · institution · workflow · application · letter · meeting · audit · job · extraction · assessment · retention
-repositories/           user · token · institution · application · clarification · hearing · meeting · letter · audit · job (disk)
+                        /applications /meetings /audit /penalties  (+ /health)
+controllers/            auth · institution · org · application · meeting · audit · penalty · assessments · extract · jobs · health
+services/               auth · institution · workflow · application · letter · meeting · audit · penalty · job · extraction · assessment · retention
+repositories/           user · token · institution · application · clarification · hearing · meeting · letter · penalty · audit · job (disk)
 middlewares/            auth (authenticate) · rbac (requirePermission/requireRole) · upload (multer) · audit (records writes)
 engines/                extraction (OpenDataLoader→CDM) · assessment (extractors→evaluator→punitive→reporter)
 utils/                  jwt · api-error (ApiError) · master-data.parser · mesar-catalog · logger
@@ -234,6 +240,7 @@ features/applications/  application.api · hooks (queue/detail/allowedActions/tr
                         clarifications/hearings/committee-members/letters/previewLetter)
 features/meetings/      meeting.api · hooks (list/get/create/addItem/confirm)
 features/audit/         audit.api · useAuditLog
+pages/compliance/       ComplianceQueue (cross-case penalty ledger)
 features/admin/         admin.api · hooks (useOrgUsers/useOrgUser/useRoles/usePermissions)
 features/documents/     + features/workspace/ (legacy Dexie-backed workflow + reusable viewers)
 components/ui/          shadcn primitives (table, select, input, card, badge, …)
@@ -246,7 +253,8 @@ lib/api/                client (axios + Bearer + silent refresh) · endpoints
 
 ## 11. Database overview
 
-17 domain tables (Knex; + knex bookkeeping). Auth/RBAC + registry + case lifecycle + letters + audit.
+18 domain tables (Knex; + knex bookkeeping). Auth/RBAC + registry + case lifecycle + letters +
+penalties + audit.
 
 ```
 users ──< user_roles >── roles ──< role_permissions >── permissions
@@ -257,7 +265,8 @@ users ──< user_roles >── roles ──< role_permissions >── permissi
 institutions ──1:N── applications ──1:N── application_events
                           ├──1:N── clarifications
                           ├──1:N── hearings ──1:N── hearing_members
-                          └──1:N── letters (clarification / hearing notice / final order)
+                          ├──1:N── letters (clarification / hearing notice / final order)
+                          └──1:N── penalties (seat_reduction / denial / monetary / revocation)
 board_meetings ──1:N── board_meeting_items ──→ applications
 audit_log (append-only; actor · action · entity · entity_id · status · created_at)
 ```
@@ -266,10 +275,10 @@ audit_log (append-only; actor · action · entity · entity_id · status · crea
 |---|---|
 | Auth/RBAC (6) | `users` (+`supervisor_id`, `institution_id`) · `roles` · `permissions` · `role_permissions` · `user_roles` · `refresh_tokens` |
 | Registry (2) | `institutions` (unique `institute_id`) · `staff_allotments` |
-| Cases (8) | `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`, `visitation_*`) · `application_events` · `clarifications` · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` · `letters` |
+| Cases (9) | `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`, `visitation_*`, `compliance_status`) · `application_events` · `clarifications` · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` · `letters` · `penalties` |
 | Governance (1) | `audit_log` (append-only) |
 
-**[Planned]:** compliance/penalty tables, `ruleset_versions`, report tables.
+**[Planned]:** `ruleset_versions`, report tables.
 
 ## 12. Document-processing pipeline (built, pre-portal)
 
@@ -304,6 +313,7 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 | Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
 | Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `POST /:id/clarification` · `POST /:id/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) |
 | Letters | ✅ | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` |
+| Compliance | ✅ | `GET/POST /applications/:id/penalties` (`compliance:read`/`:manage`) · `GET /penalties` (cross-case queue) · `PATCH /penalties/:id` `{status}` |
 | Meetings | ✅ | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |
 | Audit | ✅ | `GET /audit` (entity/actor/date filters; `audit:read`) |
 | Extraction/Jobs | ✅ | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run) |
@@ -368,12 +378,12 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
 - **Frontend bundle** is a single large chunk (build warns >500 kB); code-splitting deferred.
 - Phase-1 roles (`reviewer`/`analyst`/`viewer`) are retained but unused by org users.
 
-## 16. Pending work (next: Phase 5)
+## 16. Pending work (next: Phase 5b)
 
-- **Compliance/penalty ledger:** first-class penalty + seat-reduction + compliance-status records
-  (data already computed in `punitiveSummary`); a dispatch log; stricter letter template validation.
-- **Phase 5 — reports/analytics:** compliance/punitive summaries, throughput, institution trends,
-  exports (the `audit_log` + `application_events` + `report_json` feed this).
+- **Phase 5b — reports/analytics:** compliance/punitive summaries, throughput, institution trends,
+  exports (the `penalties` ledger + `audit_log` + `application_events` + `report_json` feed this).
+- **Letter/dispatch polish:** stricter template validation (dates/session/copy-to); a dispatch log;
+  monetary-penalty auto-derivation would need the engine to compute ghost-faculty penalties.
 - **Hardening backlog:** move processing to an **async worker/queue** (pg-boss/BullMQ); add
   **non-Ayurveda rulesets**; ruleset version editor; RBAC-matrix + per-role E2E tests; code-split
   the frontend bundle.
@@ -413,7 +423,7 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
   `ROLE_PRIORITY` + a `DashboardLayout` nav branch; seed mock users.
 - **Adding an endpoint:** route → controller → service → repository; guard with `authenticate` +
   `requirePermission`. Keep the `{ success, ... }` / `ApiError` envelope.
-- **Adding a migration/seed:** next numbers are migration `009_*`, seed `012_*`. Enum `ADD VALUE`
+- **Adding a migration/seed:** next numbers are migration `010_*`, seed `013_*`. Enum `ADD VALUE`
   needs `exports.config = { transaction: false }` (see `005`/`006`). Keep seeds idempotent.
 - **Adding a generated letter kind:** add a renderer in `services/letter.service.js` (reuse
   `report_json.findings`/`punitiveSummary`) + wire `issue()` into the relevant case action; add a

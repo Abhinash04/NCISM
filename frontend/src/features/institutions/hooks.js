@@ -30,6 +30,16 @@ export function useInstitutions(params) {
   });
 }
 
+/** Loads the full registry once (~672 rows) for client-side combobox filtering. */
+export function useAllInstitutions() {
+  return useQuery({
+    queryKey: ['institutions', 'all'],
+    queryFn: () => listInstitutions({ limit: 1000 }),
+    staleTime: 5 * 60 * 1000,
+    select: (data) => data.rows || [],
+  });
+}
+
 export function useInstitution(id) {
   return useQuery({
     queryKey: ['institution', id],

@@ -12,7 +12,7 @@ const COLUMNS = [
  */
 async function list({ system, state, q, page = 1, limit = 25 } = {}) {
   const p = Math.max(1, parseInt(page, 10) || 1);
-  const l = Math.min(200, Math.max(1, parseInt(limit, 10) || 25));
+  const l = Math.min(1000, Math.max(1, parseInt(limit, 10) || 25));
 
   const base = db('institutions');
   if (system) base.where({ system });

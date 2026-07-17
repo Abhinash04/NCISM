@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/dialog';
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
 import { DragDropZone } from '@/features/documents/components/DragDropZone';
+import { StructureViewer } from '@/features/workspace/components/StructureViewer';
+import { useJob } from '@/features/workspace/hooks/useJob';
 import {
   useApplication, useAllowedActions, useApplicationEvents, useApplicationAction, useDeleteApplication,
   useClarifications, useIssueClarification, useRespondClarification,
@@ -94,6 +96,7 @@ export function ApplicationDetail() {
   const { data: hearings = [] } = useHearings(id);
   const { data: letters = [] } = useLetters(id);
   const { data: penalties = [] } = usePenalties(id);
+  const { data: job, isPending: jobPending } = useJob(app?.job_id);
   const { hasPermission } = useAuth();
   const canManagePenalties = hasPermission('compliance:manage');
   const addPenalty = useAddPenalty(id);
@@ -259,6 +262,7 @@ export function ApplicationDetail() {
       <Tabs defaultValue="report">
         <TabsList>
           <TabsTrigger value="report">Assessment report</TabsTrigger>
+          {app.job_id && <TabsTrigger value="structure">Extracted structure</TabsTrigger>}
           <TabsTrigger value="clarifications">Clarifications{rounds.length ? ` (${rounds.length})` : ''}</TabsTrigger>
           <TabsTrigger value="hearings">Hearings{hearings.length ? ` (${hearings.length})` : ''}</TabsTrigger>
           <TabsTrigger value="letters">Letters{letters.length ? ` (${letters.length})` : ''}</TabsTrigger>
@@ -273,6 +277,24 @@ export function ApplicationDetail() {
               : <p className="text-sm text-muted-foreground">No report yet. Run <strong>Process</strong> to generate the assessment.</p>}
           </CardContent></Card>
         </TabsContent>
+
+        {app.job_id && (
+          <TabsContent value="structure">
+            <Card><CardContent className="p-0">
+              <div className="h-[70vh] min-h-0">
+                {jobPending ? (
+                  <div className="flex h-full items-center justify-center text-muted-foreground">Loading extracted structure…</div>
+                ) : job ? (
+                  <StructureViewer job={job} />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+                    Extracted structure is no longer available (processing artifacts expired). Re-run <strong className="mx-1">Process</strong> to regenerate it.
+                  </div>
+                )}
+              </div>
+            </CardContent></Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="clarifications">
           <Card><CardContent className="pt-6 space-y-4">

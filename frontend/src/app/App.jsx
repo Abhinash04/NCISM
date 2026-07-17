@@ -14,7 +14,7 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { Forbidden } from '@/pages/Forbidden';
-import { Dashboard } from '@/pages/Dashboard';
+import { RoleDashboard } from '@/pages/dashboard/RoleDashboard';
 import { Profile } from '@/pages/Profile';
 import { Settings } from '@/pages/Settings';
 import { About } from '@/pages/About';
@@ -90,7 +90,7 @@ function App() {
             {/* Role-scoped portal: /:role/dashboard etc. RoleLayout validates the segment. */}
             <Route path="/:role" element={<ProtectedRoute><RoleLayout /></ProtectedRoute>}>
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="dashboard" element={<RoleDashboard />} />
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Settings />} />
               <Route path="about" element={<About />} />
@@ -116,6 +116,8 @@ function App() {
               <Route path="users/:userId" element={<UserDetail />} />
               <Route path="roles" element={<RolesList />} />
               <Route path="permissions" element={<PermissionsList />} />
+              <Route path="applications" element={<ApplicationsList />} />
+              <Route path="applications/:id" element={<ApplicationDetail />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="compliance" element={<ComplianceQueue />} />
               <Route path="reports" element={<Reports />} />

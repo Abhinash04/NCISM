@@ -34,6 +34,7 @@ import { MeetingsList } from '@/pages/meetings/MeetingsList';
 import { MeetingDetail } from '@/pages/meetings/MeetingDetail';
 import { AuditLog } from '@/pages/audit/AuditLog';
 import { ComplianceQueue } from '@/pages/compliance/ComplianceQueue';
+import { Reports } from '@/pages/reports/Reports';
 
 import { DocumentsList } from '@/pages/documents/DocumentsList';
 import { DocumentDetails } from '@/pages/documents/DocumentDetails';
@@ -102,6 +103,7 @@ function App() {
               <Route path="meetings/:id" element={<MeetingDetail />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="compliance" element={<ComplianceQueue />} />
+              <Route path="reports" element={<Reports />} />
             </Route>
 
             {/* Admin console (admin-only) */}
@@ -116,6 +118,7 @@ function App() {
               <Route path="permissions" element={<PermissionsList />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="compliance" element={<ComplianceQueue />} />
+              <Route path="reports" element={<Reports />} />
             </Route>
 
             {/* Post-login landing → role-scoped dashboard */}

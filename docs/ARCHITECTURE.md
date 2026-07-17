@@ -179,7 +179,7 @@ src/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
 │   ├── migrations/            001_auth_rbac … 006_hearings_meetings · 007_letters_outcomes ·
 │   │                          008_audit_log · 009_penalties
-│   └── seeds/                 001_rbac … 013_report_rbac (RBAC, 672 institutions, org + lifecycle
+│   └── seeds/                 001_rbac … 014_application_delete_rbac (RBAC, 672 institutions, org + lifecycle
 │                              mock users)
 ├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs · /assessments
 │                              · /institutions · /admin · /applications · /meetings · /audit · /penalties · /reports
@@ -189,7 +189,7 @@ src/
 │   ├── institution.service.js list/get/create/update · facets · importFromMarkdown (exception queue)
 │   ├── workflow.service.js    case guard — allowedActions / assertCan (status × role × ownership)
 │   ├── application.service.js case lifecycle: upload · process · submit · review · decide (+outcome) ·
-│   │                          clarification · hearing · dispatch · letters · buildContext
+│   │                          clarification · hearing · dispatch · delete · letters · buildContext
 │   ├── letter.service.js      generates + issues the official letters/orders from the assessment result
 │   ├── meeting.service.js     board meetings (create / agenda / confirm minutes)
 │   ├── penalty.service.js     compliance ledger: derive (auto) + manual penalties + status rollup
@@ -338,7 +338,7 @@ workflow errors — **401** (`NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/
 | Institutions (write) | `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` | `institution:create`/`:update` |
 | Admin | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` | `admin` + `user:manage`/`role:read` |
 | Cases | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/allowed-actions` · `/:id/events` · `/:id/hearings` · `/:id/clarifications` | `application:create`/`:read` |
-| Case transitions | `POST /applications/:id/{process,submit,review,decide,revise}` · `/request-hearing` · `/appoint-committee` · `/hearing/minutes` · `/dispatch` · `/clarification` · `/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) | per-action perm (workflow guard re-checks state×role×ownership) |
+| Case transitions | `POST /applications/:id/{process,submit,review,decide,revise}` · `/request-hearing` · `/appoint-committee` · `/hearing/minutes` · `/dispatch` · `/clarification` · `/clarification/respond` · `DELETE /applications/:id` (uploader pre-processing or admin override) (`decide` carries `outcome`+`approvedSeats`) | per-action perm (workflow guard re-checks state×role×ownership) |
 | Letters | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` | `application:read` |
 | Compliance | `GET/POST /applications/:id/penalties` · `GET /penalties` · `PATCH /penalties/:id` | `compliance:read`/`:manage` |
 | Meetings | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` | `meeting:manage` (writes) |

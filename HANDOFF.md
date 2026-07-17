@@ -158,13 +158,14 @@ President (Mukul Patel)
                                                                         Ritu Saini, Abdulla, Steave
 ```
 
-**Permission catalogue (35):** `institution:{create,read,update,delete}`, `assessment:*` (legacy),
-`application:{create,read,process,submit,review,decide}`, `clarification:{issue,respond}`,
+**Permission catalogue (36):** `institution:{create,read,update,delete}`, `assessment:*` (legacy),
+`application:{create,read,process,submit,review,decide,delete}`, `clarification:{issue,respond}`,
 `hearing:{appoint,conduct}`, `meeting:manage`, `order:dispatch`, `compliance:{read,manage}`,
 `issue:{read,resolve}`, `user:manage`, `role:read`, `ruleset:{read,create,activate}`, `report:read`,
 `audit:read`. Per-role bundles seeded across `001_rbac`, `003_org_roles`, `006_application_rbac`,
 `008_college_rbac`, `010_hearing_meeting_rbac`, `012_compliance_rbac`, `013_report_rbac`
-(`report:read` → observer + secretariat).
+(`report:read` → observer + secretariat), `014_application_delete_rbac` (`application:delete` →
+visitor + admin).
 
 **Case guard (`workflow.service`):** `allowedActions(app, user, ctx)` returns the actions a user may
 take given `status × roles × ownership`; `assertCan` throws **403** (`ACTION_NOT_ALLOWED`) or **423**
@@ -213,7 +214,7 @@ viewer` (`features/auth/AuthContext.jsx`).
 ```
 app.js / ../server.js   express assembly / bootstrap (asserts DB connection, starts retention)
 config/index.js         only place env is read (adds auth: jwtSecret, TTLs, bcryptRounds)
-db/index.js             singleton Knex; db/migrations (001–009); db/seeds (001–013)
+db/index.js             singleton Knex; db/migrations (001–009); db/seeds (001–014)
 routes/index.js         mounts /auth /(extract) /jobs /assessments /institutions /admin
                         /applications /meetings /audit /penalties /reports  (+ /health)
 controllers/            auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
@@ -320,7 +321,7 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 | Institutions | ✅ | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` · `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` |
 | Admin | ✅ | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` |
 | Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
-| Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `POST /:id/clarification` · `POST /:id/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) |
+| Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `DELETE /applications/:id` (`application:delete` — uploader pre-processing or admin override) · `POST /:id/clarification` · `POST /:id/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) |
 | Letters | ✅ | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` |
 | Compliance | ✅ | `GET/POST /applications/:id/penalties` (`compliance:read`/`:manage`) · `GET /penalties` (cross-case queue) · `PATCH /penalties/:id` `{status}` |
 | Meetings | ✅ | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |

@@ -1,10 +1,7 @@
 # NCISM Assessment Portal — Demo & Verification Guide (through Phase 5b)
 
-A follow-along tutorial to run the platform locally and walk the **entire post-visitation case
-lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review →
-clarification cycle → hearing → board meeting → **structured decision + auto-generated official
-letters** → final-order dispatch → **Closed**, plus the **audit log**. Companion docs:
-[HANDOFF.md](HANDOFF.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [AuthCred.md](AuthCred.md).
+A follow-along tutorial to run the platform locally and walk the **entire post-visitation case lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review → clarification cycle → hearing → board meeting → **structured decision + auto-generated official letters** → final-order dispatch → **Closed**, plus the **audit log**. 
+Companion docs: [HANDOFF.md](HANDOFF.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [AuthCred.md](AuthCred.md).
 
 ---
 
@@ -13,26 +10,12 @@ letters** → final-order dispatch → **Closed**, plus the **audit log**. Compa
 **Yes — aligned** with what is built (Phases 3a–3d + 4), with **two minor labelling caveats**:
 
 1. **First-pass junior state is `processed`, not `under_validation`.** After the junior clicks
-   **Process**, the case is `processed` (report generated) and the junior submits from there.
-   `under_validation` is only reached when a senior **returns** a case or a **rejected** case is
-   revised. Both are junior-owned pre-submit states, so the diagram's *"Junior Verification
-   (under_validation)"* node is conceptually right but mislabels the first pass.
-2. **A college response goes junior `submit` → `senior_review` directly.** In code,
-   `clarification_responded` lets the junior re-**process** or **submit**; **submit** returns the
-   case to `senior_review` (not to a separate "junior verification" node first).
+   **Process**, the case is `processed` (report generated) and the junior submits from there. `under_validation` is only reached when a senior **returns** a case or a **rejected** case is revised. Both are junior-owned pre-submit states, so the diagram's *"Junior Verification (under_validation)"* node is conceptually right but mislabels the first pass.
+2. **A college response goes junior `submit` → `senior_review` directly.** In code, `clarification_responded` lets the junior re-**process** or **submit**; **submit** returns the case to `senior_review` (not to a separate "junior verification" node first).
 
-**Now resolved (Phase 3d):** the four outcomes **are** structured — on Approve the board picks
-`grant / grant-with-conditions / reduce-intake (+ seats) / deny` (pre-seeded from the punitive
-summary), stored on the case; and the Clarification Letter, Hearing Notice (with/without prior
-clarification), and Final Order are **auto-generated in the approved NCISM formats** from the
-assessment result (institution + shortcoming tables + regulation + signatory) — the board edits and
-issues them, and the college sees them on its case. (`reject` still loops to `revise`; a *denial* is
-an Approve-path `deny` outcome that dispatches to Closed.)
+**Now resolved (Phase 3d):** the four outcomes **are** structured — on Approve the board picks `grant / grant-with-conditions / reduce-intake (+ seats) / deny` (pre-seeded from the punitive summary), stored on the case; and the Clarification Letter, Hearing Notice (with/without prior clarification), and Final Order are **auto-generated in the approved NCISM formats** from the assessment result (institution + shortcoming tables + regulation + signatory) — the board edits and issues them, and the college sees them on its case. (`reject` still loops to `revise`; a *denial* is an Approve-path `deny` outcome that dispatches to Closed.)
 
-Everything else matches: allotment-based routing, extraction → CDM → parameter extraction → rule
-evaluation → punitive policy → Assessment Report, the junior → senior → board review chain, the
-clarification → college → junior loop, the hearing (President appoints committee → minutes → board),
-and approve → secretariat dispatch → **closed**.
+Everything else matches: allotment-based routing, extraction → CDM → parameter extraction → rule evaluation → punitive policy → Assessment Report, the junior → senior → board review chain, the clarification → college → junior loop, the hearing (President appoints committee → minutes → board), and approve → secretariat dispatch → **closed**.
 
 ---
 
@@ -51,12 +34,11 @@ VITE_API_URL=http://localhost:3000/api/v1
 `backend/.env` already has `DATABASE_URL` for the docker Postgres. Nothing to change for a local run.
 
 ### 1c. Start Postgres with a clean volume (uniform demo passwords)
-The seed does **not** overwrite an existing user's password, so a database that was seeded earlier
-can drift from the current `MOCK_PASSWORD`. For a predictable demo, start fresh:
+The seed does **not** overwrite an existing user's password, so a database that was seeded earlier can drift from the current `MOCK_PASSWORD`. For a predictable demo, start fresh:
 
 ```bash
-docker compose down -v          # wipes the DB volume (safe for a demo)
-docker compose up -d db         # Postgres 16 on :5432
+docker compose down -v # wipes the DB volume (safe for a demo)
+docker compose up -d db # Postgres 16 on :5432
 ```
 
 ### 1d. Migrate + seed, then run both servers
@@ -74,17 +56,13 @@ npm run dev                     # SPA on http://localhost:5173
 ```
 CORS already allows `http://localhost:5173` by default.
 
-> First `Process` run spawns the OpenDataLoader CLI (`OPENDATALOADER_CLI_PATH` in `backend/.env`);
-> the golden-path fixture below is an Ayurveda report, and only the **Ayurveda-UG ruleset** exists —
-> non-Ayurveda cases upload/route fine but `Process` fails loudly (a known limit).
+> First `Process` run spawns the OpenDataLoader CLI (`OPENDATALOADER_CLI_PATH` in `backend/.env`); the golden-path fixture below is an Ayurveda report, and only the **Ayurveda-UG ruleset** exists — non-Ayurveda cases upload/route fine but `Process` fails loudly (a known limit).
 
 ---
 
 ## 2. Demo cast
 
-Everyone below is wired for institution **AYU0140 — Maharashtra (Ayurveda)** so allotment routing
-and the college binding line up. **Password for every org/portal user: `Password123`.** Admin uses
-`ChangeMe123!`.
+Everyone below is wired for institution **AYU0140 — Maharashtra (Ayurveda)** so allotment routing and the college binding line up. **Password for every org/portal user: `Password123`.** Admin uses `ChangeMe123!`.
 
 | Step role | Email | Password |
 |---|---|---|
@@ -111,116 +89,73 @@ and the college binding line up. **Password for every org/portal user: `Password
 Each step lists **who logs in · what to click · the expected case status after**.
 
 ### 3.1 Landing → Login
-Open `http://localhost:5173` → click **Open Dashboard** → you're redirected to `/login` (you're not
-authenticated yet).
+Open `http://localhost:5173` → click **Open Dashboard** → you're redirected to `/login` (you're not authenticated yet).
 
 ### 3.2 Visitor uploads the report → `uploaded`
 Log in as **`visitor@ncism.local`**. In the sidebar open **My Uploads → New upload**:
 - **Institution:** type `AYU0140` (or `Maharashtra`) in the search box, then pick it from the select.
-- **Session/year:** `2026-27`; **Intake:** `100`; **Permission type:** `yearly`; **Visitation dates:**
-  pick two dates. (These optional fields populate the generated letters — leave blank to fill later.)
+- **Session/year:** `2026-27`; **Intake:** `100`; **Permission type:** `yearly`; **Visitation dates:** pick two dates. (These optional fields populate the generated letters — leave blank to fill later.)
 - **Report PDF:** drag in the sample PDF.
 - Click **Create case** → you land on the case, status **Uploaded**. Log out.
 
+> **Delete a mistaken upload:** while the case is still **uploaded** (or **failed**), the visitor sees a **trash icon** on the row in *My uploads* and in the case header. Confirm → the case + its PDF are hard-deleted (a `DELETE` row is kept in the audit log). Once a junior **Processes** it, the icon disappears — only **admin** can delete from then on (any case except an `approved`/`closed` one, which stays immutable → **423**).
+
 ### 3.3 Junior processes + submits → `processed` → `senior_review`
-Log in as **`smarnika@ncism.local`** (the dealing staff allotted Maharashtra). Open **Applications**
-in the sidebar (the page is titled *My case queue*) → click the case:
-- Click **Process (run engine)**. After a few seconds the status becomes **Processed** and the
-  **Assessment report** tab is populated (the deterministic MARB report).
+Log in as **`smarnika@ncism.local`** (the dealing staff allotted Maharashtra). Open **Applications** in the sidebar (the page is titled *My case queue*) → click the case:
+- Click **Process (run engine)**. After a few seconds the status becomes **Processed** and the **Assessment report** tab is populated (the deterministic MARB report).
 - Click **Submit for review** → status **senior_review**. Log out.
 
 ### 3.4 Senior reviews → `board_review`
-Log in as **`gaurav.bhandari@ncism.local`** (smarnika's supervisor). Open **Applications** (titled
-*Review queue*) → the case → click **Forward to board** → status **board_review**. *(Return to junior
-loops it back to the junior instead.)* Log out.
+Log in as **`gaurav.bhandari@ncism.local`** (smarnika's supervisor). Open **Applications** (titled *Review queue*) → the case → click **Forward to board** → status **board_review**. *(Return to junior loops it back to the junior instead.)* Log out.
 
 ### 3.5 Board decides — do both branches to see the loop
-Log in as **`member.mehra@ncism.local`**. Open **Cases** → the case. You'll see **Approve**,
-**Reject**, **Request clarification**, **Request hearing**.
+Log in as **`member.mehra@ncism.local`**. Open **Cases** → the case. You'll see **Approve**, **Reject**, **Request clarification**, **Request hearing**.
 
 **Branch A — Clarification cycle**
-1. Click **Request clarification** → the dialog is **pre-filled with the drafted Clarification
-   Letter** (real institution block, subject, the assessment shortcomings, signatory, copy-to) —
-   review/edit it → Confirm → status **clarification_open**. The **Letters** tab now shows the issued
-   letter (the college sees it too). Log out.
-2. Log in as **`college.ayu0140@ncism.local`** → **My Cases** → the case shows a **Respond to
-   clarification** panel → enter response text (+ optional PDF) → **Submit response** → status
-   **clarification_responded**. Log out.
-3. Log in as **`smarnika@ncism.local`** → open the case → **Submit for review** → **senior_review**.
-   Log in as **`gaurav.bhandari@`** → **Forward to board** → back to **board_review**.
+1. Click **Request clarification** → the dialog is **pre-filled with the drafted Clarification Letter** (real institution block, subject, the assessment shortcomings, signatory, copy-to) — review/edit it → Confirm → status **clarification_open**. The **Letters** tab now shows the issued letter (the college sees it too). Log out.
+2. Log in as **`college.ayu0140@ncism.local`** → **My Cases** → the case shows a **Respond to clarification** panel → enter response text (+ optional PDF) → **Submit response** → status **clarification_responded**. Log out.
+3. Log in as **`smarnika@ncism.local`** → open the case → **Submit for review** → **senior_review**. Log in as **`gaurav.bhandari@`** → **Forward to board** → back to **board_review**.
 
 **Branch B — Hearing** (from board_review again as `member.mehra@`)
 1. Click **Request hearing** → status **hearing_requested**. Log out.
-2. Log in as **`president@ncism.local`** → open the case → **Appoint hearing committee** → tick
-   **hearing1** and **hearing2**, set a date → status **hearing_scheduled**. Log out.
-3. Log in as **`hearing1@ncism.local`** → **Hearings** queue → the case → **Record hearing minutes**
-   → enter minutes + a verdict (e.g. *submission not considered*) → status returns to
-   **board_review**. The **Hearings** tab now shows the panel, minutes, and verdict.
+2. Log in as **`president@ncism.local`** → open the case → **Appoint hearing committee** → tick **hearing1** and **hearing2**, set a date → status **hearing_scheduled**. Log out.
+3. Log in as **`hearing1@ncism.local`** → **Hearings** queue → the case → **Record hearing minutes** → enter minutes + a verdict (e.g. *submission not considered*) → status returns to **board_review**. The **Hearings** tab now shows the panel, minutes, and verdict.
 
 ### 3.6 Board approves with a structured outcome → `approved`
-Back as **`member.mehra@ncism.local`**, open the case → **Approve (decide)** → the dialog shows an
-**outcome** select pre-seeded from the punitive summary (e.g. *reduce-intake*); adjust seats if
-needed → Confirm → status **approved**, and the outcome shows in the case header. The **Penalties**
-tab now lists the **auto-derived** seat-reduction / denial penalties, and the header shows
+Back as **`member.mehra@ncism.local`**, open the case → **Approve (decide)** → the dialog shows an **outcome** select pre-seeded from the punitive summary (e.g. *reduce-intake*); adjust seats if needed → Confirm → status **approved**, and the outcome shows in the case header. The **Penalties** tab now lists the **auto-derived** seat-reduction / denial penalties, and the header shows
 `compliance: monitoring`.
 
 ### 3.7 Secretariat: board meeting + dispatch → `closed`
 Log in as **`secretariat@ncism.local`**:
 - **Meetings → New meeting** (number `MARB/2026/07`, pick a date) → open the meeting.
 - **Add a board-ready case** → select the case → it appears on the agenda.
-- Open the case → **Dispatch final order** → the dialog is **pre-filled with the drafted Final Order**
-  (outcome + seats + penalties) → review → Confirm → status **closed**; the **Letters** tab shows the
-  Final Order.
+- Open the case → **Dispatch final order** → the dialog is **pre-filled with the drafted Final Order** (outcome + seats + penalties) → review → Confirm → status **closed**; the **Letters** tab shows the Final Order.
 - Back on the meeting → **Confirm minutes** → meeting status **confirmed**. Log out.
 
 ### 3.7b Compliance monitoring (dealing junior)
-Log in as **`smarnika@ncism.local`** → open the case → **Penalties** tab: the auto seat-reduction /
-denial rows are listed. Add a **Monetary penalty** (₹2,500,000 — ghost faculty) and a
-**Teacher-code revocation** via the add form. Move each penalty's status to **paid** — once none are
-pending/applied the header flips to `compliance: complied`. Open **Compliance** in the sidebar for
-the cross-case penalty queue (filter by status). Log out.
+Log in as **`smarnika@ncism.local`** → open the case → **Penalties** tab: the auto seat-reduction / denial rows are listed. Add a **Monetary penalty** (₹2,500,000 — ghost faculty) and a **Teacher-code revocation** via the add form. Move each penalty's status to **paid** — once none are pending/applied the header flips to `compliance: complied`. Open **Compliance** in the sidebar for the cross-case penalty queue (filter by status). Log out.
 
 ### 3.8 Commission Observer (read-only) + Audit
-Log in as **`observer@ncism.local`** → **Cases** / **Meetings**: everything is viewable but there
-are **no action buttons** (read-only oversight). Open **Audit** → the append-only trail shows a row
-for every write in this run (login, process, submit, review, clarification, decide, dispatch, meeting
-create/confirm) with actor, action, entity, and status; filter by entity/actor. Still as the
-observer, open **Reports** (next section). Log out.
+Log in as **`observer@ncism.local`** → **Cases** / **Meetings**: everything is viewable but there are **no action buttons** (read-only oversight). Open **Audit** → the append-only trail shows a row for every write in this run (login, process, submit, review, clarification, decide, dispatch, meeting create/confirm) with actor, action, entity, and status; filter by entity/actor. Still as the observer, open **Reports** (next section). Log out.
 
 ### 3.8b Reports & analytics
-Any `report:read` holder (board member, president, **commission observer**, secretariat, admin) sees
-**Reports** in the sidebar. Open it: **KPI tiles** (total / decided cases, avg days-to-decision,
-seat reductions, ₹ penalties, complied cases), **bar lists** for status / approvals-per-month /
-outcomes / compliance, and tables for **by-system**, the **penalty ledger** (type × status), and
-**top institutions** by penalty. Click **Cases CSV** and **Penalties CSV** — each downloads a CSV of
-the live data. (Figures reflect whatever cases you drove above; the approved case contributes the
-seat reduction + monetary penalty.)
+Any `report:read` holder (board member, president, **commission observer**, secretariat, admin) sees **Reports** in the sidebar. Open it: **KPI tiles** (total / decided cases, avg days-to-decision, seat reductions, ₹ penalties, complied cases), **bar lists** for status / approvals-per-month / outcomes / compliance, and tables for **by-system**, the **penalty ledger** (type × status), and **top institutions** by penalty. Click **Cases CSV** and **Penalties CSV** — each downloads a CSV of the live data. (Figures reflect whatever cases you drove above; the approved case contributes the seat reduction + monetary penalty.)
 
 ### 3.9 Administrator
-Log in as **`admin@ncism.local`** (`ChangeMe123!`) → sidebar **Users / Roles / Permissions /
-Institutions / Import** under `/admin`. Try **Import** with a `.md`/`.csv` master to see the
-insert/update + exception-queue summary.
+Log in as **`admin@ncism.local`** (`ChangeMe123!`) → sidebar **Users / Roles / Permissions / Institutions / Import** under `/admin`. Try **Import** with a `.md`/`.csv` master to see the insert/update + exception-queue summary.
 
 ---
 
 ## 4. What to verify
 
-- **Timeline tab** on the case shows the full chain, e.g.
-  `uploaded → processing → processed → senior_review → board_review → clarification_open →
-  clarification_responded → … → hearing_requested → hearing_scheduled → board_review → approved →
-  closed`.
+- **Timeline tab** on the case shows the full chain, e.g. `uploaded → processing → processed → senior_review → board_review → clarification_open → clarification_responded → … → hearing_requested → hearing_scheduled → board_review → approved → closed`.
 - **Clarifications** and **Hearings** tabs list each round (letter/response; panel/minutes/verdict).
-- **Letters** tab lists every issued document (Clarification Letter, Hearing Notice, Final Order),
-  rendered in the official format with the case's institution + shortcoming tables + signatory.
-- **Penalties** tab: seat-reduction/denial auto-derived on approve; the junior adds monetary/
-  revocation and drives status to `paid` → case `compliance: complied`. **Compliance** queue lists
-  penalties across cases. RBAC: senior/board/observer read; only junior/admin manage.
+- **Letters** tab lists every issued document (Clarification Letter, Hearing Notice, Final Order), rendered in the official format with the case's institution + shortcoming tables + signatory.
+- **Penalties** tab: seat-reduction/denial auto-derived on approve; the junior adds monetary/revocation and drives status to `paid` → case `compliance: complied`. **Compliance** queue lists penalties across cases. RBAC: senior/board/observer read; only junior/admin manage.
 - **Audit** (admin/board/president/observer) records every write; GET browsing adds no rows.
-- **Reports** (`report:read` roles) show non-zero KPIs + grouped bar lists/tables after you drive
-  a case to approval; the Cases/Penalties CSV buttons download live data. A visitor/college hitting
-  `/reports/overview` gets **403**.
-- **Action buttons differ per role** — they render only from the backend `allowedActions`, never from
-  role literals in the UI.
+- **Reports** (`report:read` roles) show non-zero KPIs + grouped bar lists/tables after you drive a case to approval; the Cases/Penalties CSV buttons download live data. A visitor/college hitting `/reports/overview` gets **403**.
+- **Delete is scoped:** a visitor deletes only their **own** `uploaded`/`failed` case (a second visitor gets **403**); admin deletes any non-finalized case; `approved`/`closed` → **423**. The `DELETE` is recorded in the audit log.
+- **Action buttons differ per role** — they render only from the backend `allowedActions`, never from role literals in the UI.
 - **Segregation of duties** holds:
   - A junior **not** allotted the case's state doesn't see it in their queue.
   - A junior has no **Approve/Reject** (that's board-only) → backend returns **403** if forced.
@@ -253,10 +188,10 @@ approved ─(secretariat dispatch)→ closed        (closed = terminal, immutabl
 ```
 
 - **Guard:** `backend/src/services/workflow.service.js` (`allowedActions` / `assertCan`).
-- **Letters:** `backend/src/services/letter.service.js` (built — reproduces the NCISM formats from
-  the assessment result). **Audit:** `backend/src/middlewares/audit.middleware.js` → `audit_log`.
+- **Letters:** `backend/src/services/letter.service.js` (built — reproduces the NCISM formats from the assessment result). 
+- **Audit:** `backend/src/middlewares/audit.middleware.js` → `audit_log`.
 - **Compliance:** `backend/src/services/penalty.service.js` (auto-derive + manual + status rollup).
 - **Reports:** `backend/src/services/report.service.js` (read-only aggregations + CSV export).
-- **Roles/logins:** [AuthCred.md](AuthCred.md). **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
-- **Next (Phase 6, not built):** ruleset version editor + activation; non-Ayurveda rulesets;
-  async processing worker; RBAC-matrix + per-role E2E; MFA; frontend code-splitting.
+- **Roles/logins:** [AuthCred.md](AuthCred.md). 
+- **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
+- **Next (Phase 6, not built):** ruleset version editor + activation; non-Ayurveda rulesets; async processing worker; RBAC-matrix + per-role E2E; MFA; frontend code-splitting.

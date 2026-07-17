@@ -1,16 +1,54 @@
-# React + Vite
+# NCISM Portal — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + Vite SPA for the MARB-ISM assessment portal. Role-prefixed routing (`/:role/*`),
+TanStack Query for server state, shadcn/ui + Tailwind for UI. Talks to the backend API at
+`/api/v1` (Bearer access token + silent refresh).
 
-Currently, two official plugins are available:
+See the repo root **[README.md](../README.md)** for the full-stack setup, and
+**[../HANDOFF.md](../HANDOFF.md)** / **[../demo.md](../demo.md)** for architecture and a
+follow-along walkthrough.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Prerequisites
 
-## React Compiler
+- **Node.js 20+**
+- The **backend API running on `http://localhost:3000`** (see the root README) — the SPA is useless
+  without it (login, cases, reports all hit the API).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Create `frontend/.env` pointing at the local API:
+
+```
+VITE_API_URL=http://localhost:3000/api/v1
+```
+
+## Commands
+
+```bash
+npm run dev      # Vite dev server + HMR on http://localhost:5173
+npm run build    # production build → dist/
+npm run preview  # serve the production build locally
+npm run lint     # eslint
+```
+
+Log in with a mock account from **[../AuthCred.md](../AuthCred.md)** (org/portal users `Password123`,
+admin `Admin123`).
+
+## Structure
+
+```
+src/
+  app/          router, layouts (DashboardLayout nav is role-driven), providers
+  features/     one folder per domain (api + hooks): auth, applications, meetings,
+                audit, compliance, institutions, reports, …
+  pages/        route screens grouped by domain
+  components/ui shadcn/ui primitives + local widgets (BarList, Tabs, …)
+  lib/          apiClient (axios + refresh), utils
+```
+
+The dashboard nav and every case action bar are **driven by the backend** (permissions +
+`allowed-actions`) — there are no role literals gating UI actions, so RBAC stays server-authoritative.

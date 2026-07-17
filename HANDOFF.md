@@ -1,9 +1,9 @@
-# NCISM Assessment Portal — Developer Handoff (end of Phase 5a)
+# NCISM Assessment Portal — Developer Handoff (end of Phase 5b)
 
 > Cold-start context for a new developer or AI agent. Describes **only what exists in the codebase
-> today** (Phases 0–5a — full case lifecycle + official letter/order generation + audit log +
-> compliance/penalty ledger). Items tagged **Planned** are not yet implemented (Phase 5b reports,
-> Phase 6). Companion
+> today** (Phases 0–5b — full case lifecycle + official letter/order generation + audit log +
+> compliance/penalty ledger + reports/analytics). Items tagged **Planned** are not yet implemented
+> (Phase 6). Companion
 > docs: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (as-built reference),
 > [docs/INTERNAL-PORTAL-BLUEPRINT.md](docs/INTERNAL-PORTAL-BLUEPRINT.md) (design blueprint + roadmap),
 > [AuthCred.md](AuthCred.md) (mock logins), [backend/src/engines/extraction/cdm/](backend/src/engines/extraction/cdm/)
@@ -47,7 +47,7 @@ reference superset, not the build target.
 | Structured board outcomes + official letter/order generation | ✅ Phase 3d |
 | System-wide append-only audit log + viewer | ✅ Phase 4 |
 | Compliance/penalty ledger + monitoring | ✅ Phase 5a |
-| Reports/analytics | 🔜 Phase 5b — Planned |
+| Reports/analytics + CSV export | ✅ Phase 5b |
 | Ruleset editor · non-Ayurveda rulesets · async worker | 🔜 Phase 6 — Planned |
 
 ## 3. Completed phases
@@ -88,11 +88,17 @@ reference superset, not the build target.
   penalties and tracks status (pending → applied → paid/waived); the case rolls to
   `compliance_status='complied'` when nothing is pending. `penalties` table; roles `compliance:{read,
   manage}`; a **Penalties** tab + a cross-case **Compliance** queue.
+- **Phase 5b — Reports/analytics:** `report.service` runs read-only Knex group-by aggregations (no
+  schema change) → headline KPIs (total/decided cases, avg days-to-decision, seat-reduction +
+  monetary totals), status/outcome/compliance distributions, throughput (approvals per month from
+  `application_events`, open vs decided), by-system counts, penalty ledger by type×status, and top
+  institutions by penalty. `GET /reports/overview` + `GET /reports/export?dataset=cases|penalties`
+  (CSV attachment), both `report:read`; seed 013 grants `report:read` to observer + secretariat.
+  Frontend: a **Reports** page (KPI tiles + dependency-free `BarList` bars + tables + CSV export),
+  perm-gated in the nav.
 
 ## 4. Remaining phases (Planned)
 
-- **Phase 5b — Reports/analytics:** compliance/punitive summaries, throughput, institution trends,
-  exports (the penalty ledger + `audit_log` + `application_events` + `report_json` feed this).
 - **Phase 6 — Admin hardening:** ruleset version editor + activation (SoD); **non-Ayurveda rulesets**
   (Unani/Siddha/Sowa-Rigpa/PG); async processing worker; RBAC matrix tests, per-role E2E. See
   blueprint §6.
@@ -157,7 +163,8 @@ President (Mukul Patel)
 `hearing:{appoint,conduct}`, `meeting:manage`, `order:dispatch`, `compliance:{read,manage}`,
 `issue:{read,resolve}`, `user:manage`, `role:read`, `ruleset:{read,create,activate}`, `report:read`,
 `audit:read`. Per-role bundles seeded across `001_rbac`, `003_org_roles`, `006_application_rbac`,
-`008_college_rbac`, `010_hearing_meeting_rbac`, `012_compliance_rbac`.
+`008_college_rbac`, `010_hearing_meeting_rbac`, `012_compliance_rbac`, `013_report_rbac`
+(`report:read` → observer + secretariat).
 
 **Case guard (`workflow.service`):** `allowedActions(app, user, ctx)` returns the actions a user may
 take given `status × roles × ownership`; `assertCan` throws **403** (`ACTION_NOT_ALLOWED`) or **423**
@@ -206,11 +213,11 @@ viewer` (`features/auth/AuthContext.jsx`).
 ```
 app.js / ../server.js   express assembly / bootstrap (asserts DB connection, starts retention)
 config/index.js         only place env is read (adds auth: jwtSecret, TTLs, bcryptRounds)
-db/index.js             singleton Knex; db/migrations (001–009); db/seeds (001–012)
+db/index.js             singleton Knex; db/migrations (001–009); db/seeds (001–013)
 routes/index.js         mounts /auth /(extract) /jobs /assessments /institutions /admin
-                        /applications /meetings /audit /penalties  (+ /health)
-controllers/            auth · institution · org · application · meeting · audit · penalty · assessments · extract · jobs · health
-services/               auth · institution · workflow · application · letter · meeting · audit · penalty · job · extraction · assessment · retention
+                        /applications /meetings /audit /penalties /reports  (+ /health)
+controllers/            auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
+services/               auth · institution · workflow · application · letter · meeting · audit · penalty · report · job · extraction · assessment · retention
 repositories/           user · token · institution · application · clarification · hearing · meeting · letter · penalty · audit · job (disk)
 middlewares/            auth (authenticate) · rbac (requirePermission/requireRole) · upload (multer) · audit (records writes)
 engines/                extraction (OpenDataLoader→CDM) · assessment (extractors→evaluator→punitive→reporter)
@@ -241,6 +248,8 @@ features/applications/  application.api · hooks (queue/detail/allowedActions/tr
 features/meetings/      meeting.api · hooks (list/get/create/addItem/confirm)
 features/audit/         audit.api · useAuditLog
 pages/compliance/       ComplianceQueue (cross-case penalty ledger)
+pages/reports/          Reports (KPI tiles + BarList distributions + tables + CSV export)
+features/reports/       report.api · useReportsOverview
 features/admin/         admin.api · hooks (useOrgUsers/useOrgUser/useRoles/usePermissions)
 features/documents/     + features/workspace/ (legacy Dexie-backed workflow + reusable viewers)
 components/ui/          shadcn primitives (table, select, input, card, badge, …)
@@ -316,8 +325,9 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 | Compliance | ✅ | `GET/POST /applications/:id/penalties` (`compliance:read`/`:manage`) · `GET /penalties` (cross-case queue) · `PATCH /penalties/:id` `{status}` |
 | Meetings | ✅ | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |
 | Audit | ✅ | `GET /audit` (entity/actor/date filters; `audit:read`) |
+| Reports | ✅ | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) — both `report:read` |
 | Extraction/Jobs | ✅ | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run) |
-| Reports / Rulesets | 🔜 Planned | Phase 5–6; see blueprint §10 |
+| Rulesets | 🔜 Planned | Phase 6; see blueprint §10 |
 
 **Guards:** institution read/write per `institution:*`; admin group per `admin` + `user:manage`/
 `role:read`; case transitions per `application:*`/`clarification:*`/`hearing:*`/`order:dispatch`,
@@ -378,10 +388,13 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
 - **Frontend bundle** is a single large chunk (build warns >500 kB); code-splitting deferred.
 - Phase-1 roles (`reviewer`/`analyst`/`viewer`) are retained but unused by org users.
 
-## 16. Pending work (next: Phase 5b)
+## 16. Pending work (next: Phase 6)
 
-- **Phase 5b — reports/analytics:** compliance/punitive summaries, throughput, institution trends,
-  exports (the `penalties` ledger + `audit_log` + `application_events` + `report_json` feed this).
+- **Phase 6 — Admin hardening:** ruleset version editor + activation (SoD); **non-Ayurveda rulesets**
+  (Unani/Siddha/Sowa-Rigpa/PG); async processing worker; RBAC-matrix + per-role E2E; MFA; bundle
+  code-splitting.
+- **Reports follow-ups:** report figures are read-only aggregations over live tables (no snapshot
+  table); date-range filters and per-institution drill-down are not yet built.
 - **Letter/dispatch polish:** stricter template validation (dates/session/copy-to); a dispatch log;
   monetary-penalty auto-derivation would need the engine to compute ghost-faculty penalties.
 - **Hardening backlog:** move processing to an **async worker/queue** (pg-boss/BullMQ); add

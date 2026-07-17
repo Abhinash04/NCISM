@@ -1,4 +1,4 @@
-# NCISM Assessment Portal — Demo & Verification Guide (through Phase 5a)
+# NCISM Assessment Portal — Demo & Verification Guide (through Phase 5b)
 
 A follow-along tutorial to run the platform locally and walk the **entire post-visitation case
 lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review →
@@ -184,7 +184,17 @@ the cross-case penalty queue (filter by status). Log out.
 Log in as **`observer@ncism.local`** → **Cases** / **Meetings**: everything is viewable but there
 are **no action buttons** (read-only oversight). Open **Audit** → the append-only trail shows a row
 for every write in this run (login, process, submit, review, clarification, decide, dispatch, meeting
-create/confirm) with actor, action, entity, and status; filter by entity/actor. Log out.
+create/confirm) with actor, action, entity, and status; filter by entity/actor. Still as the
+observer, open **Reports** (next section). Log out.
+
+### 3.8b Reports & analytics
+Any `report:read` holder (board member, president, **commission observer**, secretariat, admin) sees
+**Reports** in the sidebar. Open it: **KPI tiles** (total / decided cases, avg days-to-decision,
+seat reductions, ₹ penalties, complied cases), **bar lists** for status / approvals-per-month /
+outcomes / compliance, and tables for **by-system**, the **penalty ledger** (type × status), and
+**top institutions** by penalty. Click **Cases CSV** and **Penalties CSV** — each downloads a CSV of
+the live data. (Figures reflect whatever cases you drove above; the approved case contributes the
+seat reduction + monetary penalty.)
 
 ### 3.9 Administrator
 Log in as **`admin@ncism.local`** (`ChangeMe123!`) → sidebar **Users / Roles / Permissions /
@@ -206,6 +216,9 @@ insert/update + exception-queue summary.
   revocation and drives status to `paid` → case `compliance: complied`. **Compliance** queue lists
   penalties across cases. RBAC: senior/board/observer read; only junior/admin manage.
 - **Audit** (admin/board/president/observer) records every write; GET browsing adds no rows.
+- **Reports** (`report:read` roles) show non-zero KPIs + grouped bar lists/tables after you drive
+  a case to approval; the Cases/Penalties CSV buttons download live data. A visitor/college hitting
+  `/reports/overview` gets **403**.
 - **Action buttons differ per role** — they render only from the backend `allowedActions`, never from
   role literals in the UI.
 - **Segregation of duties** holds:
@@ -243,6 +256,7 @@ approved ─(secretariat dispatch)→ closed        (closed = terminal, immutabl
 - **Letters:** `backend/src/services/letter.service.js` (built — reproduces the NCISM formats from
   the assessment result). **Audit:** `backend/src/middlewares/audit.middleware.js` → `audit_log`.
 - **Compliance:** `backend/src/services/penalty.service.js` (auto-derive + manual + status rollup).
+- **Reports:** `backend/src/services/report.service.js` (read-only aggregations + CSV export).
 - **Roles/logins:** [AuthCred.md](AuthCred.md). **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
-- **Next (Phase 5b, not built):** reports/analytics (compliance/punitive summaries, throughput,
-  exports). Phase 6: ruleset editor + non-Ayurveda rulesets + async worker.
+- **Next (Phase 6, not built):** ruleset version editor + activation; non-Ayurveda rulesets;
+  async processing worker; RBAC-matrix + per-role E2E; MFA; frontend code-splitting.

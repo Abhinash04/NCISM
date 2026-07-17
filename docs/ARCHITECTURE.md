@@ -5,15 +5,16 @@ Authoritative reference for the NCISM Assessment Platform foundation. Anything u
 
 > **Scope note (2026-07):** the project is an **internal** review/validation portal wrapped around
 > the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. Built
-> **through Phase 5a**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
+> **through Phase 5b**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
 > institutions master registry, the **full post-visitation case lifecycle** (visitor upload → allotted
 > junior → engine → senior/board review → clarification (college) → hearings (President-appointed
 > committee) → board meetings (secretariat) → final-order dispatch → Closed), **structured board
 > outcomes + official letter/order generation** (3d), a **system-wide append-only audit log** (4),
-> and a **compliance/penalty ledger + monitoring** (5a). Design blueprint + roadmap:
+> a **compliance/penalty ledger + monitoring** (5a), and **reports/analytics + CSV export** (5b).
+> Design blueprint + roadmap:
 > **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; cold-start handoff:
 > **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
-> reference superset. **Planned (not built):** reports/analytics (Phase 5b), a ruleset editor +
+> reference superset. **Planned (not built):** a ruleset editor +
 > non-Ayurveda rulesets + async worker (Phase 6).
 
 ## System overview
@@ -45,15 +46,15 @@ persists the resulting `report_markdown`/`report_json` onto the `applications` r
 truth, immutable once approved). The legacy `/documents` workflow keeps its own disk job + **Dexie**
 local store.
 
-## Portal layer (Phases 0–5a)
+## Portal layer (Phases 0–5b)
 
 A DB-backed governed multi-user layer wraps the pipeline. Built: authentication, RBAC (13 roles),
 the NCISM org hierarchy, the institutions master registry, the **full case lifecycle**
 (upload → review → clarification → hearing → board meeting → dispatch → Closed) driven by a
 workflow-state guard, **structured board outcomes + official letter/order generation** (3d), a
-**system-wide audit log** (4), and a **compliance/penalty ledger + monitoring** (5a). Not built
-(Planned): reports/analytics (Phase 5b), a ruleset editor + non-Ayurveda rulesets + async worker
-(Phase 6).
+**system-wide audit log** (4), a **compliance/penalty ledger + monitoring** (5a), and
+**reports/analytics + CSV export** (5b). Not built (Planned): a ruleset editor + non-Ayurveda
+rulesets + async worker (Phase 6).
 
 ### Authentication & session flow
 
@@ -145,6 +146,16 @@ penalty rows; the dealing junior adds **manual** `monetary` (₹25-lakh ghost-fa
 `compliance_status='complied'`. `penalties` table; `compliance:{read,manage}` perms; a **Penalties**
 tab + a cross-case **Compliance** queue (`GET /penalties`).
 
+**Reports/analytics (Phase 5b).** `services/report.service.js` runs **read-only Knex group-by
+aggregations** over the live tables — no schema change, no snapshot table. `overview()` bundles:
+headline KPIs (total/decided cases, avg days-to-decision, total seat reduction + monetary penalty),
+status/outcome/`compliance_status` distributions, throughput (approvals per month from
+`application_events`, open vs decided), by-system counts, the penalty ledger by `type × status`, and
+top institutions by penalty. `exportCsv(dataset)` generates a `cases` | `penalties` CSV string
+(escaped inline; no library). `GET /reports/overview` + `GET /reports/export` are both `report:read`
+(seed 013 extends it to observer + secretariat). Frontend: a **Reports** page — KPI tiles, a
+dependency-free `BarList` for distributions, tables, and Cases/Penalties CSV export.
+
 ### Institutions registry
 
 `institutions` holds the full 672-college master (590 Ayurveda / 58 Unani / 17 Siddha /
@@ -168,11 +179,11 @@ src/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
 │   ├── migrations/            001_auth_rbac … 006_hearings_meetings · 007_letters_outcomes ·
 │   │                          008_audit_log · 009_penalties
-│   └── seeds/                 001_rbac … 012_compliance_rbac (RBAC, 672 institutions, org + lifecycle
+│   └── seeds/                 001_rbac … 013_report_rbac (RBAC, 672 institutions, org + lifecycle
 │                              mock users)
 ├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs · /assessments
-│                              · /institutions · /admin · /applications · /meetings · /audit · /penalties
-├── controllers/               auth · institution · org · application · meeting · audit · penalty · assessments · extract · jobs · health
+│                              · /institutions · /admin · /applications · /meetings · /audit · /penalties · /reports
+├── controllers/               auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
 ├── services/
 │   ├── auth.service.js        login / refresh / logout / me
 │   ├── institution.service.js list/get/create/update · facets · importFromMarkdown (exception queue)
@@ -182,6 +193,7 @@ src/
 │   ├── letter.service.js      generates + issues the official letters/orders from the assessment result
 │   ├── meeting.service.js     board meetings (create / agenda / confirm minutes)
 │   ├── penalty.service.js     compliance ledger: derive (auto) + manual penalties + status rollup
+│   ├── report.service.js      read-only analytics aggregations + CSV export (no schema change)
 │   ├── audit.service.js       append-only audit record + query
 │   ├── job.service.js         business ops over the repository; owns toJobDto()
 │   ├── extraction.service.js  dispatches to the pipeline registered for a mimetype
@@ -331,9 +343,9 @@ workflow errors — **401** (`NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/
 | Compliance | `GET/POST /applications/:id/penalties` · `GET /penalties` · `PATCH /penalties/:id` | `compliance:read`/`:manage` |
 | Meetings | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` | `meeting:manage` (writes) |
 | Audit | `GET /audit` (entity/actor/date filters) | `audit:read` |
+| Reports | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) | `report:read` |
 
-Institution/case list DTO: `{ success, rows[], … }`. **Planned:** reports + ruleset endpoints
-(Phase 5–6).
+Institution/case list DTO: `{ success, rows[], … }`. **Planned:** ruleset endpoints (Phase 6).
 
 ### Database (Postgres — high level)
 
@@ -460,8 +472,7 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 | Cloud/object storage | new implementation of the job repository contract |
 | New regulations (Unani, Siddha, PG…) | new ruleset directory + report template registration (only Ayurveda-UG rules exist today, so non-Ayurveda cases process but assessment fails loudly) |
 
-**Planned (NOT built):** reports/analytics (**Phase 5b** — the penalty ledger + `audit_log` +
-`report_json` feed this); a ruleset version editor + activation + async worker + RBAC-matrix/E2E
+**Planned (NOT built):** a ruleset version editor + activation + async worker + RBAC-matrix/E2E
 hardening + non-Ayurveda rulesets (**Phase 6**). See
 [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
 

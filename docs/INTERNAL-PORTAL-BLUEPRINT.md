@@ -11,13 +11,13 @@ build; the SRS remains the **reference superset**, not the build target.
 
 ---
 
-## Implementation status — as-built through Phase 5a (2026-07)
+## Implementation status — as-built through Phase 5b (2026-07)
 
-Phases 0–5a are built on branch `abhi-dev`. The **post-visitation lifecycle is implemented**
+Phases 0–5b are built on branch `abhi-dev`. The **post-visitation lifecycle is implemented**
 (3a case model + review chain · 3b clarification + college · 3c hearings + board meetings +
 dispatch), plus **3d structured board outcomes + official letter/order generation**, **Phase 4 a
-system-wide append-only `audit_log`**, and **Phase 5a a compliance/penalty ledger + monitoring**.
-**Notable divergences** from the original blueprint:
+system-wide append-only `audit_log`**, **Phase 5a a compliance/penalty ledger + monitoring**, and
+**Phase 5b reports/analytics + CSV export**. **Notable divergences** from the original blueprint:
 
 1. **Role model expanded to 13.** The blueprint's 4 roles were kept as legacy, but the real NCISM
    hierarchy + lifecycle actors are the **primary** roles: `president`, `board_member`,
@@ -27,8 +27,8 @@ system-wide append-only `audit_log`**, and **Phase 5a a compliance/penalty ledge
    the flat `/uploads`/`/assessments` scheme in §5. Legacy `/documents/*` is retained.
 3. **Schema — 18 domain tables.** Auth/RBAC + registry + the case lifecycle (`applications`,
    `application_events`, `clarifications`, `hearings`, `hearing_members`, `board_meetings`,
-   `board_meeting_items`) + `letters` + `penalties` + `audit_log`. Still **[Planned]**:
-   `ruleset_versions`, report tables.
+   `board_meeting_items`) + `letters` + `penalties` + `audit_log`. Reports (5b) add **no** table —
+   they aggregate live data. Still **[Planned]**: `ruleset_versions`.
 4. **State machine names differ** from §3 (uploaded→processing→processed→under_validation→
    senior_review→board_review→approved→closed, with clarification/hearing branches) and the
    maker-checker is the **org chain** (junior→senior→board), not a flat Analyst→Reviewer.
@@ -40,15 +40,15 @@ system-wide append-only `audit_log`**, and **Phase 5a a compliance/penalty ledge
 | §3 Application state machine | **Built** (names differ; see status note above) |
 | §4 Portal per role | **Built** — shell, role nav, institutions, admin, case queues/detail, meetings |
 | §5 Routing | **Built, changed** to `/:role/*` + `/admin/*` (+ `/applications`, `/meetings`) |
-| §6 Roadmap | Phases **0–4 + 5a = DONE**; 5b + 6 **[Planned]** |
-| §7 Database | **Built:** auth/RBAC + registry + cases + `letters` + `audit_log`. compliance/ruleset/report tables = **[Planned]** |
-| §8 Backend services | **Built:** auth, user/org, institution, workflow-guard, application (lifecycle), **letter, meeting, audit**. report/ruleset/notification = **[Planned]**; processing is synchronous inline (no async worker yet) |
-| §9 Frontend modules | **Built:** auth, institutions, admin, applications, meetings, **audit**, (legacy documents/workspace). reports = **[Planned]** |
-| §10 API grouping | **Built:** Auth, Institutions, Admin, Applications (+transitions), **Letters, Meetings, Audit**. Reports/Rulesets = **[Planned]** |
+| §6 Roadmap | Phases **0–4 + 5a + 5b = DONE**; 6 **[Planned]** |
+| §7 Database | **Built:** auth/RBAC + registry + cases + `letters` + `audit_log` + `penalties`. `ruleset_versions` = **[Planned]** (reports add no table) |
+| §8 Backend services | **Built:** auth, user/org, institution, workflow-guard, application (lifecycle), **letter, meeting, audit, penalty, report**. ruleset/notification = **[Planned]**; processing is synchronous inline (no async worker yet) |
+| §9 Frontend modules | **Built:** auth, institutions, admin, applications, meetings, **audit, compliance, reports**, (legacy documents/workspace) |
+| §10 API grouping | **Built:** Auth, Institutions, Admin, Applications (+transitions), **Letters, Meetings, Audit, Compliance, Reports**. Rulesets = **[Planned]** |
 
-> **Phases 3d + 4 + 5a are done** (structured outcomes + official letters; audit log; compliance/
-> penalty ledger). Remaining: Phase 5b reports/analytics, Phase 6 ruleset editor + async worker +
-> hardening. Sections below still marked **[Planned]** describe those.
+> **Phases 3d + 4 + 5a + 5b are done** (structured outcomes + official letters; audit log;
+> compliance/penalty ledger; reports/analytics). Remaining: Phase 6 ruleset editor + non-Ayurveda
+> rulesets + async worker + hardening. Sections below still marked **[Planned]** describe those.
 
 ---
 
@@ -225,7 +225,8 @@ record — the same screen shows different actions to Analyst vs Reviewer automa
 > **As-built differs:** actual routing is `/:role/*` (per-tier portal) + `/admin/*` (console) +
 > legacy `/documents/*`. Case + meeting screens live at `/:role/{applications,applications/new,
 > applications/:id,meetings,meetings/:id}`; institutions at `/:role/institutions`; admin under
-> `/admin/*`. `/reports`, `/audit`, `/admin/rulesets` are **[Planned]** (Phase 4–6). See
+> `/admin/*`. `/reports` + `/audit` are **built** (`/:role/reports`, `/:role/audit`); `/admin/rulesets`
+> is **[Planned]** (Phase 6). See
 > [ARCHITECTURE.md](ARCHITECTURE.md) → Frontend for the real map.
 
 ```
@@ -268,7 +269,7 @@ actions from `allowedActions`.
 | **3d — Outcomes + letters** | ✅ Done | Structured decisions + official documents | board `outcome` (grant/with-conditions/reduce-intake+seats/deny); `letter.service` generates the Clarification Letter, Hearing Notice (with/without prior clarification) and Final Order from the assessment result (`letters` table). |
 | **4 — Audit** | ✅ Done | Traceability | app-wide `audit.middleware` → append-only `audit_log`; `GET /audit` + viewer. Generalizes the per-case `application_events`. |
 | **5a — Compliance/penalty ledger** | ✅ Done | Punitive monitoring | `penalties` table; auto seat_reduction/denial from the punitive summary on approve + manual monetary/revocation; status workflow → `compliance_status`; a Penalties tab + cross-case Compliance queue. |
-| **5b — Reports & Analytics** | 🔜 Planned | Insight | compliance/punitive summaries, throughput, exports. |
+| **5b — Reports & Analytics** | ✅ Done | Insight | `report.service` read-only aggregations → KPIs (cases, avg days-to-decision, seat/monetary totals), status/outcome/compliance distributions, throughput, by-system, penalty ledger, top institutions; `GET /reports/overview` + CSV export (`report:read`); a Reports page (KPI tiles + BarList + tables). |
 | **6 — Admin & hardening** | 🔜 Planned | Config + safety | ruleset version editor + activation (SoD); non-Ayurveda rulesets; async worker; RBAC matrix + E2E. |
 
 Each phase ships an end-to-end vertical slice.

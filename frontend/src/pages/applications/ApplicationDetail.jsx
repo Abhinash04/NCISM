@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel } from 'lucide-react';
+import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ import {
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
 import { DragDropZone } from '@/features/documents/components/DragDropZone';
 import {
-  useApplication, useAllowedActions, useApplicationEvents, useApplicationAction,
+  useApplication, useAllowedActions, useApplicationEvents, useApplicationAction, useDeleteApplication,
   useClarifications, useIssueClarification, useRespondClarification,
   useHearings, useCommitteeMembers, useLetters, previewLetter,
   usePenalties, useAddPenalty, useUpdatePenalty,
@@ -103,8 +104,10 @@ export function ApplicationDetail() {
   const action = useApplicationAction(id);
   const issue = useIssueClarification(id);
   const respond = useRespondClarification(id);
+  const del = useDeleteApplication();
 
   const [dialog, setDialog] = useState(null); // { key, kind }
+  const [confirmDel, setConfirmDel] = useState(false);
   const committeeOpen = dialog?.kind === 'committee';
   const { data: committee = [] } = useCommitteeMembers(committeeOpen);
 
@@ -124,7 +127,13 @@ export function ApplicationDetail() {
 
   const meta = STATUS_META[app.status] || { label: app.status, variant: 'secondary' };
   const busy = action.isPending || issue.isPending || respond.isPending;
-  const buttonActions = actions.filter((a) => a !== 'respond');
+  const canDelete = actions.includes('delete');
+  const buttonActions = actions.filter((a) => a !== 'respond' && a !== 'delete');
+
+  const onDelete = () => del.mutate(id, {
+    onSuccess: () => { toast.success('Case deleted.'); navigate(listPath); },
+    onError: () => { toast.error('Could not delete this case.'); setConfirmDel(false); },
+  });
 
   const openDialog = async (key) => {
     setText(''); setVerdict(''); setMembers([]); setWhen('');
@@ -177,7 +186,7 @@ export function ApplicationDetail() {
 
       <div className="flex items-start gap-4">
         <div className="p-3 bg-primary/10 rounded-lg text-primary shrink-0"><Building2 className="h-6 w-6" /></div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight break-words">{app.institution_name}</h1>
           <p className="text-muted-foreground mt-1 font-mono text-sm">
             {app.institute_id} · {SYSTEM_LABELS[app.system] || app.system} · {app.state}
@@ -198,6 +207,14 @@ export function ApplicationDetail() {
             )}
           </div>
         </div>
+        {canDelete && (
+          <Button
+            variant="ghost" size="icon"
+            className="shrink-0 text-muted-foreground hover:text-destructive"
+            title="Delete case" onClick={() => setConfirmDel(true)}>
+            <Trash2 className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       {app.status === 'failed' && app.error && (
@@ -462,6 +479,22 @@ export function ApplicationDetail() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialog(null)}>Cancel</Button>
             <Button onClick={confirmDialog} disabled={confirmDisabled}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmDel} onOpenChange={(o) => !o && setConfirmDel(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Delete this case?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This permanently removes the case for {app.institution_name} and its uploaded file from
+            the system. This cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDel(false)} disabled={del.isPending}>Cancel</Button>
+            <Button variant="destructive" onClick={onDelete} disabled={del.isPending}>
+              {del.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

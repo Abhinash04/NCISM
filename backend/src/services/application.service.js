@@ -39,13 +39,15 @@ async function buildContext(app, user) {
   const isCollegeOwner = (user.roles || []).includes('college')
     && !!user.institution_id && user.institution_id === app.institution_id;
 
+  const isUploader = !!app.uploaded_by && app.uploaded_by === user.id;
+
   let isHearingMember = false;
   if ((user.roles || []).includes('hearing_committee')) {
     const active = await hearingRepo.activeForCase(app.id);
     isHearingMember = !!active && (await hearingRepo.isMember(active.id, user.id));
   }
 
-  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter, isCollegeOwner, isHearingMember };
+  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter, isCollegeOwner, isHearingMember, isUploader };
 }
 
 async function getForUser(id, user) {
@@ -301,6 +303,27 @@ async function previewLetter(id, user, kind) {
   return contentMarkdown;
 }
 
+/**
+ * Hard-deletes a case. The uploader (visitor) may remove their own pre-processing
+ * upload; admin may delete any non-finalized case (the guard enforces both). Row
+ * children cascade via FK; the on-disk PDF(s) are removed here. The DELETE is
+ * recorded in audit_log (path-derived, survives the cascade).
+ */
+async function remove(id, user) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'delete');
+
+  // Remove the raw upload + any clarification-response PDFs (all named `<id>*.pdf`).
+  if (fs.existsSync(UPLOADS_DIR)) {
+    for (const name of fs.readdirSync(UPLOADS_DIR)) {
+      if (name.startsWith(app.id)) fs.unlinkSync(path.join(UPLOADS_DIR, name));
+    }
+  }
+
+  await appRepo.deleteById(id);
+  return { id };
+}
+
 /** Junior reopens a rejected case for rework. */
 async function revise(id, user) {
   const { app, ctx } = await getForUser(id, user);
@@ -312,7 +335,7 @@ async function revise(id, user) {
 
 module.exports = {
   list, getDetail, allowedActionsFor, events,
-  createUpload, process, submit, review, decide, revise,
+  createUpload, process, submit, review, decide, revise, remove,
   requestClarification, respondClarification, clarifications,
   requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,
   letters, previewLetter, penalties, addPenalty,

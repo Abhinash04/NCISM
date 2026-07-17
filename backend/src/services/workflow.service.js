@@ -10,8 +10,8 @@ const ApiError = require('../utils/api-error');
 
 // status → { action: [capability, ...] }  (any capability satisfies the action)
 const POLICY = {
-  uploaded: { process: ['junior_allotted'] },
-  failed: { process: ['junior_allotted'] },
+  uploaded: { process: ['junior_allotted'], delete: ['uploader'] },
+  failed: { process: ['junior_allotted'], delete: ['uploader'] },
   processing: {},
   processed: { process: ['junior_owner'], submit: ['junior_owner'] },
   under_validation: { process: ['junior_owner'], submit: ['junior_owner'] },
@@ -39,6 +39,7 @@ function hasCapability(cap, user, ctx) {
     case 'committee_member': return roles.includes('hearing_committee') && ctx.isHearingMember;
     case 'secretariat': return roles.includes('secretariat');
     case 'college_owner': return roles.includes('college') && ctx.isCollegeOwner;
+    case 'uploader': return roles.includes('visitor') && ctx.isUploader;
     default: return false;
   }
 }
@@ -46,9 +47,15 @@ function hasCapability(cap, user, ctx) {
 /** Actions the user may take on this case right now. */
 function allowedActions(app, user, ctx) {
   const forState = POLICY[app.status] || {};
-  return Object.entries(forState)
+  const actions = Object.entries(forState)
     .filter(([, caps]) => caps.some((c) => hasCapability(c, user, ctx)))
     .map(([action]) => action);
+  // Admin override: may delete any case that is not finalized (approved/closed stay immutable).
+  if ((user.roles || []).includes('admin') && app.status !== 'approved' && app.status !== 'closed'
+    && !actions.includes('delete')) {
+    actions.push('delete');
+  }
+  return actions;
 }
 
 /** Throws 403 (or 423 for a finalized case) unless the action is allowed. */

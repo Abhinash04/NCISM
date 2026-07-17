@@ -42,6 +42,11 @@ async function update(id, patch) {
   return getById(id);
 }
 
+/** Hard-deletes a case; children (events, letters, penalties, …) cascade via FK. */
+function deleteById(id) {
+  return db('applications').where({ id }).del();
+}
+
 async function addEvent({ applicationId, fromState, toState, actorId, note }) {
   await db('application_events').insert({
     application_id: applicationId, from_state: fromState, to_state: toState, actor_id: actorId, note: note || null,
@@ -103,4 +108,4 @@ async function queueFor(user) {
   return q.whereRaw('false');
 }
 
-module.exports = { create, getById, getWithReport, update, addEvent, listEvents, queueFor };
+module.exports = { create, getById, getWithReport, update, deleteById, addEvent, listEvents, queueFor };

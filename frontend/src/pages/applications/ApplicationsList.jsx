@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FileStack, Plus } from 'lucide-react';
+import { FileStack, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuth } from '@/features/auth/AuthContext';
-import { useApplications } from '@/features/applications/hooks';
+import { useApplications, useDeleteApplication } from '@/features/applications/hooks';
 
 const SYSTEM_LABELS = { ayurveda: 'Ayurveda', unani: 'Unani', siddha: 'Siddha', sowa_rigpa: 'Sowa-Rigpa' };
 
@@ -33,11 +38,30 @@ const TITLE_BY_ROLE = {
   president: 'Board decisions',
 };
 
+// Which rows the viewer may delete (server enforces; this only decides the icon).
+function canDelete(role, status) {
+  if (role === 'visitor') return ['uploaded', 'failed'].includes(status);
+  if (role === 'admin') return !['approved', 'closed'].includes(status);
+  return false;
+}
+
 export function ApplicationsList() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { primaryRole } = useAuth();
   const { data: rows = [], isLoading, isError } = useApplications();
+  const del = useDeleteApplication();
+  const [pending, setPending] = useState(null); // { id, name } awaiting delete confirmation
+
+  const showActions = rows.some((r) => canDelete(primaryRole, r.status));
+
+  function confirmDelete() {
+    if (!pending) return;
+    del.mutate(pending.id, {
+      onSuccess: () => { toast.success('Upload deleted.'); setPending(null); },
+      onError: () => toast.error('Could not delete this case.'),
+    });
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-6xl mx-auto">
@@ -63,13 +87,14 @@ export function ApplicationsList() {
                 <th className="px-4 py-3 font-medium">State</th>
                 <th className="px-4 py-3 font-medium">Session</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                {showActions && <th className="px-4 py-3 font-medium sr-only">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan="5" className="px-4 py-12 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={showActions ? 6 : 5} className="px-4 py-12 text-center text-muted-foreground">Loading…</td></tr>
               ) : isError ? (
-                <tr><td colSpan="5" className="px-4 py-12 text-center text-destructive">Failed to load cases.</td></tr>
+                <tr><td colSpan={showActions ? 6 : 5} className="px-4 py-12 text-center text-destructive">Failed to load cases.</td></tr>
               ) : rows.length ? (
                 rows.map((r) => {
                   const meta = STATUS_META[r.status] || { label: r.status, variant: 'secondary' };
@@ -85,12 +110,25 @@ export function ApplicationsList() {
                       <td className="px-4 py-3 text-muted-foreground">{r.state}</td>
                       <td className="px-4 py-3 text-muted-foreground">{r.session || '—'}</td>
                       <td className="px-4 py-3"><Badge variant={meta.variant}>{meta.label}</Badge></td>
+                      {showActions && (
+                        <td className="px-4 py-3 text-right">
+                          {canDelete(primaryRole, r.status) && (
+                            <Button
+                              variant="ghost" size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              title="Delete upload"
+                              onClick={(e) => { e.stopPropagation(); setPending({ id: r.id, name: r.institution_name }); }}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={showActions ? 6 : 5} className="px-4 py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <FileStack className="h-8 w-8 opacity-20" />
                       <p>No cases in your queue.</p>
@@ -102,6 +140,22 @@ export function ApplicationsList() {
           </table>
         </div>
       </div>
+
+      <Dialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Delete this upload?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This permanently removes the case{pending?.name ? ` for ${pending.name}` : ''} and its
+            uploaded file from the system. This cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPending(null)} disabled={del.isPending}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={del.isPending}>
+              {del.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

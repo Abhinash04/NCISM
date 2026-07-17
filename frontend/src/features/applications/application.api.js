@@ -42,6 +42,12 @@ export async function actOnApplication(id, action, body = {}) {
   return data.application;
 }
 
+/** Hard-deletes a case (uploader pre-processing, or admin override). */
+export async function deleteApplication(id) {
+  const { data } = await apiClient.delete(`/applications/${id}`);
+  return data;
+}
+
 export async function getClarifications(id) {
   const { data } = await apiClient.get(`/applications/${id}/clarifications`);
   return data.clarifications || [];

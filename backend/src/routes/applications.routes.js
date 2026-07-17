@@ -21,6 +21,7 @@ router.post('/:id/submit', requirePermission('application:submit'), (req, res, n
 router.post('/:id/review', requirePermission('application:review'), (req, res, next) => controller.review(req, res, next));
 router.post('/:id/decide', requirePermission('application:decide'), (req, res, next) => controller.decide(req, res, next));
 router.post('/:id/revise', requirePermission('application:process'), (req, res, next) => controller.revise(req, res, next));
+router.delete('/:id', requirePermission('application:delete'), (req, res, next) => controller.remove(req, res, next));
 
 // Clarification cycle
 router.get('/:id/clarifications', requirePermission('application:read'), (req, res, next) => controller.clarifications(req, res, next));

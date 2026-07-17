@@ -100,6 +100,16 @@ class ApplicationController {
     }
   }
 
+  /** DELETE /applications/:id — hard-delete (uploader pre-processing, or admin override). */
+  async remove(req, res, next) {
+    try {
+      const result = await applicationService.remove(req.params.id, req.user);
+      res.json({ success: true, ...result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /** POST /applications/:id/clarification — board issues a clarification letter. */
   async requestClarification(req, res, next) {
     try {

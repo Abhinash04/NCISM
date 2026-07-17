@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listApplications, getApplication, getAllowedActions, getEvents,
-  uploadApplication, actOnApplication,
+  uploadApplication, actOnApplication, deleteApplication,
   getClarifications, issueClarification, respondClarification,
   getHearings, getCommitteeMembers, getLetters, previewLetter,
   getPenalties, addPenalty, listPenalties, updatePenaltyStatus,
@@ -40,6 +40,14 @@ export function useApplicationAction(id) {
       qc.invalidateQueries({ queryKey: ['application', id] });
       qc.invalidateQueries({ queryKey: ['applications'] });
     },
+  });
+}
+
+export function useDeleteApplication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteApplication,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   });
 }
 

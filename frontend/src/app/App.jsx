@@ -27,6 +27,7 @@ import { UsersList } from '@/pages/admin/UsersList';
 import { UserDetail } from '@/pages/admin/UserDetail';
 import { RolesList } from '@/pages/admin/RolesList';
 import { PermissionsList } from '@/pages/admin/PermissionsList';
+import { AdminOverview } from '@/pages/admin/AdminOverview';
 import { ApplicationsList } from '@/pages/applications/ApplicationsList';
 import { ApplicationUpload } from '@/pages/applications/ApplicationUpload';
 import { ApplicationDetail } from '@/pages/applications/ApplicationDetail';
@@ -108,7 +109,7 @@ function App() {
 
             {/* Admin console (admin-only) */}
             <Route path="/admin" element={<ProtectedRoute roles={['admin']}><DashboardLayout /></ProtectedRoute>}>
-              <Route index element={<Navigate to="users" replace />} />
+              <Route index element={<AdminOverview />} />
               <Route path="institutions" element={<InstitutionsList />} />
               <Route path="institutions/import" element={<InstitutionImport />} />
               <Route path="institutions/:id" element={<InstitutionDetail />} />

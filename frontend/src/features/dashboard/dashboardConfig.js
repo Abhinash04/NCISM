@@ -74,6 +74,81 @@ export const DASHBOARD_CONFIG = {
       { label: 'Decided', statuses: DECIDED },
     ],
   },
+
+  president: {
+    title: 'President queue',
+    subtitle: 'Board decisions and hearings awaiting constitution.',
+    kpis: [
+      { label: 'To constitute', statuses: ['hearing_requested'] },
+      { label: 'Awaiting decision', statuses: ['board_review'] },
+      { label: 'In hearing', statuses: ['hearing_scheduled'] },
+      { label: 'Decided', statuses: DECIDED },
+    ],
+    groups: [
+      { label: 'Hearings to constitute', statuses: ['hearing_requested'], hint: 'Appoint a 2-member hearing committee.' },
+      { label: 'Awaiting board decision', statuses: ['board_review'], hint: 'Approve, reject, request clarification or a hearing.' },
+      { label: 'In hearing', statuses: ['hearing_scheduled'] },
+      { label: 'Decided', statuses: DECIDED },
+    ],
+  },
+
+  hearing_committee: {
+    title: 'My hearings',
+    subtitle: 'Hearings you have been appointed to conduct.',
+    kpis: [
+      { label: 'Awaiting minutes', statuses: ['hearing_scheduled'] },
+      { label: 'Concluded', statuses: ['board_review', ...DECIDED] },
+    ],
+    groups: [
+      { label: 'Awaiting minutes', statuses: ['hearing_scheduled'], hint: 'Record minutes and the verdict; the case returns to the board.' },
+      { label: 'Concluded', statuses: ['board_review', ...DECIDED] },
+    ],
+  },
+
+  secretariat: {
+    title: 'Secretariat',
+    subtitle: 'Board meetings and final-order dispatch.',
+    kpis: [
+      { label: 'Ready to dispatch', statuses: ['approved'] },
+      { label: 'In board / hearing', statuses: ['board_review', 'hearing_requested', 'hearing_scheduled'] },
+      { label: 'Closed', statuses: ['closed'] },
+    ],
+    groups: [
+      { label: 'Ready to dispatch', statuses: ['approved'], hint: 'Issue and dispatch the final order to close the case.' },
+      { label: 'In board / hearing', statuses: ['board_review', 'hearing_requested', 'hearing_scheduled'] },
+      { label: 'Closed', statuses: ['closed'] },
+    ],
+  },
+
+  commission_observer: {
+    title: 'Portfolio overview',
+    subtitle: 'Read-only oversight across the assessment pipeline.',
+    kpis: [
+      { label: 'In review', statuses: ['uploaded', 'failed', ...IN_FLIGHT] },
+      { label: 'Approved', statuses: ['approved'] },
+      { label: 'Closed', statuses: ['closed'] },
+      { label: 'Rejected', statuses: ['rejected'] },
+    ],
+    groups: [
+      { label: 'In the pipeline', statuses: ['uploaded', 'failed', ...IN_FLIGHT] },
+      { label: 'Decided', statuses: DECIDED },
+    ],
+  },
+
+  college: {
+    title: 'My case',
+    subtitle: 'The assessment of your institution.',
+    kpis: [
+      { label: 'Action required', statuses: ['clarification_open'] },
+      { label: 'In progress', statuses: ['uploaded', 'processing', 'processed', 'under_validation', 'senior_review', 'board_review', 'clarification_responded', 'hearing_requested', 'hearing_scheduled'] },
+      { label: 'Decided', statuses: DECIDED },
+    ],
+    groups: [
+      { label: 'Action required', statuses: ['clarification_open'], hint: 'Respond to the board clarification.' },
+      { label: 'In progress', statuses: ['uploaded', 'processing', 'processed', 'under_validation', 'senior_review', 'board_review', 'clarification_responded', 'hearing_requested', 'hearing_scheduled'] },
+      { label: 'Decided', statuses: DECIDED },
+    ],
+  },
 };
 
 /** Fallback for roles without a tailored config: group by broad lifecycle stage. */

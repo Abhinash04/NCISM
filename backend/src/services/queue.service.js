@@ -1,4 +1,4 @@
-const PgBoss = require('pg-boss');
+const { PgBoss } = require('pg-boss'); // pg-boss v12 exports the class as a named export
 const config = require('../config');
 const createLogger = require('../utils/logger');
 

@@ -1,9 +1,10 @@
-# NCISM Assessment Portal — Developer Handoff (end of Phase 5b)
+# NCISM Assessment Portal — Developer Handoff (end of Phase 6)
 
 > Cold-start context for a new developer or AI agent. Describes **only what exists in the codebase
-> today** (Phases 0–5b — full case lifecycle + official letter/order generation + audit log +
-> compliance/penalty ledger + reports/analytics). Items tagged **Planned** are not yet implemented
-> (Phase 6). Companion
+> today** (Phases 0–6 — full case lifecycle + official letter/order generation + audit log +
+> compliance/penalty ledger + reports/analytics + multi-ruleset registry/activation + async
+> processing worker + TOTP MFA). Items tagged **Planned** are not yet implemented
+> (Phase 7+). Companion
 > docs: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (as-built reference),
 > [docs/INTERNAL-PORTAL-BLUEPRINT.md](docs/INTERNAL-PORTAL-BLUEPRINT.md) (design blueprint + roadmap),
 > [AuthCred.md](AuthCred.md) (mock logins), [backend/src/engines/extraction/cdm/](backend/src/engines/extraction/cdm/)
@@ -48,7 +49,11 @@ reference superset, not the build target.
 | System-wide append-only audit log + viewer | ✅ Phase 4 |
 | Compliance/penalty ledger + monitoring | ✅ Phase 5a |
 | Reports/analytics + CSV export | ✅ Phase 5b |
-| Ruleset editor · non-Ayurveda rulesets · async worker | 🔜 Phase 6 — Planned |
+| Ruleset registry + activation (SoD) + per-case resolution | ✅ Phase 6a |
+| Async processing worker (pg-boss) | ✅ Phase 6b |
+| RBAC-matrix test + per-role E2E | ✅ Phase 6c |
+| TOTP MFA (self-enroll + login step-up) + frontend code-splitting | ✅ Phase 6d |
+| Non-Ayurveda ruleset **content** (Unani/Siddha/Sowa-Rigpa/PG) | 🔜 Phase 7 — Planned (infra ready) |
 
 ## 3. Completed phases
 
@@ -97,11 +102,35 @@ reference superset, not the build target.
   Frontend: a **Reports** page (KPI tiles + dependency-free `BarList` bars + tables + CSV export),
   perm-gated in the nav.
 
+- **Phase 6 — Admin hardening & multi-ruleset:**
+  - **6a — Ruleset registry + activation:** `ruleset_versions` table (migration 010) tracks the
+    file-based rulesets and which one is **active** per (system, level) — partial unique index enforces
+    one active each. `ruleset.service` `activate()` requires a Board ref (SoD → 422 without it) and
+    retires the previous active; `resolveForCase(system, level)` returns the active ruleset (or a loud
+    `NO_ACTIVE_RULESET`). `application.process` now **resolves per case** instead of hardcoding
+    Ayurveda. `GET /rulesets`, `GET /rulesets/:id`, `POST /rulesets/:id/activate` + an admin
+    **Rulesets** page. Seed 015 registers `mesar-ug-ayurveda-2024/v1` active for (ayurveda, UG).
+  - **6b — Async worker:** `queue.service` runs the ~3–35 s engine on a **pg-boss** queue
+    (`case-process`, own `pgboss` schema on `DATABASE_URL`). `process()` guards → marks `processing`
+    → enqueues; the worker settles the case. `ASYNC_PROCESSING=false` keeps the inline path (tests /
+    golden E2E). Frontend polls while `processing`.
+  - **6c — RBAC tests:** `tests/workflow.matrix.test.js` (pure golden table over status × role ×
+    ownership, in `npm test` → 68 tests) + `scripts/e2e-rbac.mjs` (DB-backed per-role lifecycle E2E,
+    run on demand).
+  - **6d — MFA + code-splitting:** TOTP self-enroll + login step-up (`otplib`/`qrcode`, migration 011
+    `users.mfa_secret`/`mfa_enabled`); `React.lazy` splits the heavy routes (pdf/markdown/admin/
+    reports/meetings) out of the initial bundle.
+
 ## 4. Remaining phases (Planned)
 
-- **Phase 6 — Admin hardening:** ruleset version editor + activation (SoD); **non-Ayurveda rulesets**
-  (Unani/Siddha/Sowa-Rigpa/PG); async processing worker; RBAC matrix tests, per-role E2E. See
-  blueprint §6.
+- **Phase 7 — Non-Ayurveda ruleset content** *(unblocked by 6a)*: author Unani/Siddha/Sowa-Rigpa/PG
+  rulesets from `markdown/MESAR_*.md` (rules + punitive policy + per-system report template + golden
+  fixtures), then register + activate. Infra is ready — this is pure content work.
+- **Phase 8 — Notifications / "next action" feed** (in-app + email on queue hand-off).
+- **Phase 9 — Production readiness** (real secrets, CORS/HTTPS, rate-limiting, backups, CI/CD, deploy,
+  observability; replace all mock credentials).
+- **Phase 10 — Reports depth & document polish** (date-range/per-institution drill-down, PDF export,
+  retire the legacy Dexie `/documents` workflow). See blueprint §6.
 
 ## 5. System architecture
 
@@ -214,7 +243,7 @@ viewer` (`features/auth/AuthContext.jsx`).
 ```
 app.js / ../server.js   express assembly / bootstrap (asserts DB connection, starts retention)
 config/index.js         only place env is read (adds auth: jwtSecret, TTLs, bcryptRounds)
-db/index.js             singleton Knex; db/migrations (001–009); db/seeds (001–014)
+db/index.js             singleton Knex; db/migrations (001–011); db/seeds (001–015)
 routes/index.js         mounts /auth /(extract) /jobs /assessments /institutions /admin
                         /applications /meetings /audit /penalties /reports  (+ /health)
 controllers/            auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
@@ -283,12 +312,15 @@ audit_log (append-only; actor · action · entity · entity_id · status · crea
 
 | Group | Tables |
 |---|---|
-| Auth/RBAC (6) | `users` (+`supervisor_id`, `institution_id`) · `roles` · `permissions` · `role_permissions` · `user_roles` · `refresh_tokens` |
+| Auth/RBAC (6) | `users` (+`supervisor_id`, `institution_id`, `mfa_secret`, `mfa_enabled`) · `roles` · `permissions` · `role_permissions` · `user_roles` · `refresh_tokens` |
 | Registry (2) | `institutions` (unique `institute_id`) · `staff_allotments` |
 | Cases (9) | `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`, `visitation_*`, `compliance_status`) · `application_events` · `clarifications` · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` · `letters` · `penalties` |
+| Rulesets (1) | `ruleset_versions` (one `active` per system+level; `board_ref`, `dir_path`, `activated_by`) |
 | Governance (1) | `audit_log` (append-only) |
 
-**[Planned]:** `ruleset_versions`, report tables.
+pg-boss manages its own `pgboss` schema (job queue) on the same `DATABASE_URL`.
+
+**[Planned]:** report tables.
 
 ## 12. Document-processing pipeline (built, pre-portal)
 
@@ -306,18 +338,20 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 - Rulesets: `backend/data/rulesets/<id>/<version>/` (rules + punitive policy JSON).
 - Golden tests: `npm test` (fixtures AYU0659/AYU0265/AYU0038 → asserted punitive totals + report
   snapshots). Pipeline internals: `backend/src/engines/extraction/cdm/` (CDM builder sub-stages).
-- **Wired to the case flow (Phase 3):** `application.service.process` runs the engine synchronously
-  (create job → extract → assess) and persists `report_markdown`/`report_json` onto the case. The
-  legacy `/documents` route still runs the same engine ad-hoc. **Only the Ayurveda-UG ruleset exists**,
-  so non-Ayurveda cases upload/route fine but `process` fails loudly (`status = failed`) — documented
-  limit, not a bug.
+- **Wired to the case flow (Phase 3 → 6a/6b):** `application.service.process` guards → marks the case
+  `processing` → **enqueues** the run on the pg-boss worker (`ASYNC_PROCESSING=false` runs it inline);
+  `runProcessing` resolves the case's **active ruleset** for its (system, level) via
+  `ruleset.service.resolveForCase`, then extract → assess and persists `report_markdown`/`report_json`.
+  The legacy `/documents` route still runs the same engine ad-hoc. **Only the Ayurveda-UG ruleset is
+  authored/active**, so non-Ayurveda cases upload/route fine but `process` fails loudly
+  (`NO_ACTIVE_RULESET` → `status = failed`) — documented limit until Phase 7, not a bug.
 
 ## 13. API summary (`/api/v1`)
 
 | Group | Status | Endpoints |
 |---|---|---|
 | Health | ✅ | `GET /health` |
-| Auth | ✅ | `POST /auth/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` |
+| Auth | ✅ | `POST /auth/login` (→ tokens **or** `{mfaRequired, challenge}`) · `POST /auth/mfa/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` · authed `POST /auth/mfa/{enroll,verify,disable}` |
 | Institutions | ✅ | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` · `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` |
 | Admin | ✅ | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` |
 | Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
@@ -328,7 +362,7 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 | Audit | ✅ | `GET /audit` (entity/actor/date filters; `audit:read`) |
 | Reports | ✅ | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) — both `report:read` |
 | Extraction/Jobs | ✅ | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run) |
-| Rulesets | 🔜 Planned | Phase 6; see blueprint §10 |
+| Rulesets | ✅ | `GET /rulesets` · `GET /rulesets/:id` · `POST /rulesets/:id/activate` `{boardRef}` (`ruleset:read`/`:activate`; activation needs a Board ref → 422 without) |
 
 **Guards:** institution read/write per `institution:*`; admin group per `admin` + `user:manage`/
 `role:read`; case transitions per `application:*`/`clarification:*`/`hearing:*`/`order:dispatch`,
@@ -353,7 +387,8 @@ Backend `.env` (loaded from `backend/.env`):
 | `OPENDATALOADER_CLI_PATH` | Windows path | extraction CLI |
 | `HYBRID_SERVER_URL` | `http://localhost:5002` | Docling hybrid server (hybrid mode) |
 | `JOB_RETENTION_HOURS` / `KEEP_JOBS` / `MAX_UPLOAD_MB` | 24 / false / 100 | job store |
-| Seed-only: `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `MOCK_PASSWORD` | `admin@ncism.local` / `ChangeMe123!` / `Password123` | bootstrap admin + org-user mock creds (actual logins: [AuthCred.md](AuthCred.md)) |
+| `ASYNC_PROCESSING` | `true` | run the engine on the pg-boss worker; `false` = inline in-request (tests/dev) |
+| Seed-only: `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `MOCK_PASSWORD` | `admin@ncism.local` / `Admin123` / `Password123` | bootstrap admin + org-user mock creds (actual logins: [AuthCred.md](AuthCred.md)) |
 
 Frontend: `VITE_API_URL` (e.g. `http://localhost:3000/api/v1`).
 
@@ -365,44 +400,42 @@ npm run db:setup                 # migrate + seed (idempotent) → 672 instituti
 npm start                        # API on :3000
 cd ../frontend && npm install && npm run dev   # SPA on :5173
 ```
-Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 pass).
+Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (68 pass). Per-role SoD
+E2E (server + DB up): `node scripts/e2e-rbac.mjs`.
 
 ## 15. Known limitations
 
-- **Only the Ayurveda-UG ruleset exists** — non-Ayurveda cases upload/route fine but `process` fails
-  (`status = failed`). Adding Unani/Siddha/Sowa-Rigpa/PG rulesets is Phase 6.
-- **Processing is synchronous inline** — `application.service.process` runs the engine in-request
-  (~3–35s); no async worker/queue yet.
+- **Only the Ayurveda-UG ruleset is authored/active** — the multi-ruleset infra (registry + activation
+  + per-case resolution) exists (Phase 6a), but non-Ayurveda cases have no active ruleset yet, so
+  `process` fails loudly (`NO_ACTIVE_RULESET` → `status = failed`). Authoring the content is Phase 7.
 - **Letters are fully data-driven only for Ayurveda-UG** (the only ruleset produces a report);
   uncaptured subject fields render as `[[editable]]` markers the board fills before signing.
-- **Compliance/penalty ledger not built** — penalties/seat-reduction are computed in `punitiveSummary`
-  and rendered into the Final Order, but not tracked as first-class records yet.
 - **Audit is path-derived** (entity/action from the URL + status); precise before/after value diffs
   are a later refinement.
 - **Mock credentials:** org users use `MOCK_PASSWORD` (seed default `Password123`); bootstrap admin
-  uses `ADMIN_PASSWORD` (code default `ChangeMe123!`). Note: pre-existing users keep their original
+  uses `ADMIN_PASSWORD` (code default `Admin123`). Note: pre-existing users keep their original
   hash (the seed doesn't clobber), so the actual value can drift from the default — the authoritative
   logins are in [AuthCred.md](AuthCred.md) (untracked). Placeholders — replace before any non-local use.
 - **Institution `name` keeps the full address inline**; source-data quirks (typo state names) are
   preserved as-is (`/institutions/meta` surfaces exactly what's filterable).
-- **No MFA** (config is MFA-ready). `JWT_SECRET` default is dev-only.
-- **Frontend bundle** is a single large chunk (build warns >500 kB); code-splitting deferred.
+- **MFA is self-enroll + login step-up** (TOTP; Phase 6d) — org-wide enforcement (require MFA for
+  admin/board) is a later policy toggle. `JWT_SECRET` default is dev-only.
+- **Frontend initial bundle** is still ~600 kB (build warns >500 kB), but the heaviest renderers
+  (pdf ~424 kB, markdown ~951 kB) and admin/reports/meetings routes are now lazy chunks (Phase 6d);
+  vendor manual-chunking is a later refinement.
 - Phase-1 roles (`reviewer`/`analyst`/`viewer`) are retained but unused by org users.
 
-## 16. Pending work (next: Phase 6)
+## 16. Pending work (next: Phase 7)
 
-- **Phase 6 — Admin hardening:** ruleset version editor + activation (SoD); **non-Ayurveda rulesets**
-  (Unani/Siddha/Sowa-Rigpa/PG); async processing worker; RBAC-matrix + per-role E2E; MFA; bundle
-  code-splitting.
-- **Reports follow-ups:** report figures are read-only aggregations over live tables (no snapshot
-  table); date-range filters and per-institution drill-down are not yet built.
-- **Letter/dispatch polish:** stricter template validation (dates/session/copy-to); a dispatch log;
-  monetary-penalty auto-derivation would need the engine to compute ghost-faculty penalties.
-- **Hardening backlog:** move processing to an **async worker/queue** (pg-boss/BullMQ); add
-  **non-Ayurveda rulesets**; ruleset version editor; RBAC-matrix + per-role E2E tests; code-split
-  the frontend bundle.
-- **Ops:** replace mock credentials with real ones; rotate `JWT_SECRET`; consider MFA for
-  board/admin. Reconcile the `AuthCred.md` password drift (reset the DB volume or update the file).
+- **Phase 7 — Non-Ayurveda ruleset content** *(unblocked by 6a)*: author Unani/Siddha/Sowa-Rigpa/PG
+  rulesets from `markdown/MESAR_*.md` (rules + punitive policy + per-system report template + golden
+  fixtures), then register + activate. Pure content work — the infra is done.
+- **Phase 8 — Notifications / "next action" feed:** in-app + email when a case enters your queue.
+- **Phase 9 — Production readiness:** real secrets/creds, CORS/HTTPS, rate-limiting, DB backups,
+  CI/CD, container deploy, observability; replace all mock credentials; rotate `JWT_SECRET`.
+- **Phase 10 — Reports depth & document polish:** date-range + per-institution drill-down, report
+  snapshots, PDF export of assessments/letters, retire the legacy Dexie `/documents` workflow.
+- **Letter/dispatch polish:** stricter template validation (dates/session/copy-to); a dispatch log.
 
 ## 17. Assumptions & design decisions
 
@@ -415,8 +448,8 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
   only the Secretariat dispatches, a college is scoped to its own institution.
 - **Board meetings are an overlay** — the secretariat schedules a meeting + agenda and confirms
   minutes, but the board decides cases with the normal actions; meetings don't gate the decide.
-- **Processing is synchronous inline** (engine ~3–35s) — deliberate for the internal MVP; an async
-  worker is a later optimization.
+- **Processing runs on a pg-boss worker** (engine ~3–35s) off the request thread (Phase 6b);
+  `ASYNC_PROCESSING=false` keeps the inline path so the deterministic golden E2E stays simple.
 - **Report JSON is the source of truth**, immutable once approved (`closed`/`approved` edits → 423).
 - **Uploaded case PDFs live in `backend/data/applications/`** (gitignored) — outside `temp/` so job
   retention can't purge them before a junior processes the case.
@@ -437,12 +470,16 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (61 
   `ROLE_PRIORITY` + a `DashboardLayout` nav branch; seed mock users.
 - **Adding an endpoint:** route → controller → service → repository; guard with `authenticate` +
   `requirePermission`. Keep the `{ success, ... }` / `ApiError` envelope.
-- **Adding a migration/seed:** next numbers are migration `010_*`, seed `013_*`. Enum `ADD VALUE`
+- **Adding a migration/seed:** next numbers are migration `012_*`, seed `016_*`. Enum `ADD VALUE`
   needs `exports.config = { transaction: false }` (see `005`/`006`). Keep seeds idempotent.
 - **Adding a generated letter kind:** add a renderer in `services/letter.service.js` (reuse
   `report_json.findings`/`punitiveSummary`) + wire `issue()` into the relevant case action; add a
   `LETTER_LABELS` entry + a `previewLetter` prefill in `ApplicationDetail.jsx`.
 - **Frontend server data:** TanStack Query hooks; build role-relative links from the current location
   (see `InstitutionsList`/`ApplicationsList`) so pages work under `/:role/*` and `/admin/*`.
+- **Adding a ruleset (new system/level):** drop `data/rulesets/<id>/<version>/` (rules + punitive
+  policy JSON + report template), register a `ruleset_versions` row (seed like `015_rulesets.js`), then
+  `POST /rulesets/:id/activate {boardRef}`. `resolveForCase` then routes that (system, level) to it —
+  no engine code change.
 - **Run the DB before backend tests/seed** (`docker compose up -d db`). `npm test` covers the engines
-  (61 tests) and does not need the portal DB.
+  + the RBAC matrix (68 tests) and does not need the portal DB; `scripts/e2e-rbac.mjs` does.

@@ -5,17 +5,19 @@ Authoritative reference for the NCISM Assessment Platform foundation. Anything u
 
 > **Scope note (2026-07):** the project is an **internal** review/validation portal wrapped around
 > the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. Built
-> **through Phase 5b**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
+> **through Phase 6**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the
 > institutions master registry, the **full post-visitation case lifecycle** (visitor upload → allotted
 > junior → engine → senior/board review → clarification (college) → hearings (President-appointed
 > committee) → board meetings (secretariat) → final-order dispatch → Closed), **structured board
 > outcomes + official letter/order generation** (3d), a **system-wide append-only audit log** (4),
-> a **compliance/penalty ledger + monitoring** (5a), and **reports/analytics + CSV export** (5b).
-> Design blueprint + roadmap:
+> a **compliance/penalty ledger + monitoring** (5a), **reports/analytics + CSV export** (5b), a
+> **multi-ruleset registry + activation + per-case resolution** (6a), an **async processing worker**
+> (pg-boss, 6b), **RBAC-matrix + per-role E2E tests** (6c), and **TOTP MFA + frontend code-splitting**
+> (6d). Design blueprint + roadmap:
 > **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; cold-start handoff:
 > **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
-> reference superset. **Planned (not built):** a ruleset editor +
-> non-Ayurveda rulesets + async worker (Phase 6).
+> reference superset. **Planned (not built):** non-Ayurveda ruleset **content**
+> (Unani/Siddha/Sowa-Rigpa/PG — infra ready, Phase 7).
 
 ## System overview
 
@@ -52,9 +54,11 @@ A DB-backed governed multi-user layer wraps the pipeline. Built: authentication,
 the NCISM org hierarchy, the institutions master registry, the **full case lifecycle**
 (upload → review → clarification → hearing → board meeting → dispatch → Closed) driven by a
 workflow-state guard, **structured board outcomes + official letter/order generation** (3d), a
-**system-wide audit log** (4), a **compliance/penalty ledger + monitoring** (5a), and
-**reports/analytics + CSV export** (5b). Not built (Planned): a ruleset editor + non-Ayurveda
-rulesets + async worker (Phase 6).
+**system-wide audit log** (4), a **compliance/penalty ledger + monitoring** (5a),
+**reports/analytics + CSV export** (5b), a **multi-ruleset registry + activation + per-case
+resolution** (6a), an **async pg-boss processing worker** (6b), **RBAC-matrix + per-role E2E** (6c),
+and **TOTP MFA + code-splitting** (6d). Not built (Planned): non-Ayurveda ruleset **content**
+(Unani/Siddha/Sowa-Rigpa/PG — infra ready, Phase 7).
 
 ### Authentication & session flow
 
@@ -177,12 +181,11 @@ src/
 ├── config/                    the only place env vars are read (incl. auth: jwt/bcrypt)
 ├── db/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
-│   ├── migrations/            001_auth_rbac … 006_hearings_meetings · 007_letters_outcomes ·
-│   │                          008_audit_log · 009_penalties
-│   └── seeds/                 001_rbac … 014_application_delete_rbac (RBAC, 672 institutions, org + lifecycle
-│                              mock users)
+│   ├── migrations/            001_auth_rbac … 009_penalties · 010_ruleset_versions · 011_user_mfa
+│   └── seeds/                 001_rbac … 014_application_delete_rbac · 015_rulesets (RBAC, 672 institutions,
+│                              org + lifecycle mock users, Ayurveda-UG ruleset active)
 ├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs · /assessments
-│                              · /institutions · /admin · /applications · /meetings · /audit · /penalties · /reports
+│                              · /institutions · /admin · /applications · /meetings · /audit · /penalties · /reports · /rulesets
 ├── controllers/               auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
 ├── services/
 │   ├── auth.service.js        login / refresh / logout / me
@@ -344,13 +347,16 @@ workflow errors — **401** (`NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/
 | Meetings | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` | `meeting:manage` (writes) |
 | Audit | `GET /audit` (entity/actor/date filters) | `audit:read` |
 | Reports | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) | `report:read` |
+| Rulesets | `GET /rulesets[/:id]` · `POST /rulesets/:id/activate` `{boardRef}` | `ruleset:read`/`:activate` |
+| MFA | `POST /auth/mfa/login` · authed `POST /auth/mfa/{enroll,verify,disable}` | authenticated |
 
-Institution/case list DTO: `{ success, rows[], … }`. **Planned:** ruleset endpoints (Phase 6).
+Institution/case list DTO: `{ success, rows[], … }`.
 
 ### Database (Postgres — high level)
 
-18 domain tables via Knex migrations (+ knex bookkeeping): auth/RBAC + registry + case lifecycle +
-letters + penalties + audit.
+19 domain tables via Knex migrations (+ knex bookkeeping + pg-boss's own `pgboss` schema):
+auth/RBAC (with `users.mfa_*`) + registry + case lifecycle + letters + penalties + audit +
+`ruleset_versions`.
 
 ```
 users ──< user_roles >── roles ──< role_permissions >── permissions
@@ -470,10 +476,11 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 | --- | --- |
 | DOCX/XLSX/image extraction | register a pipeline in `engines/extraction/index.js` |
 | Cloud/object storage | new implementation of the job repository contract |
-| New regulations (Unani, Siddha, PG…) | new ruleset directory + report template registration (only Ayurveda-UG rules exist today, so non-Ayurveda cases process but assessment fails loudly) |
+| New regulations (Unani, Siddha, PG…) | new ruleset directory + `ruleset_versions` row + activation (`resolveForCase` routes it automatically; only Ayurveda-UG is authored/active today, so non-Ayurveda cases fail loudly with `NO_ACTIVE_RULESET`) |
 
-**Planned (NOT built):** a ruleset version editor + activation + async worker + RBAC-matrix/E2E
-hardening + non-Ayurveda rulesets (**Phase 6**). See
+**Planned (NOT built):** non-Ayurveda ruleset **content** (Unani/Siddha/Sowa-Rigpa/PG) — the
+registry/activation/resolution infra is built (Phase 6a), so this is authoring work (**Phase 7**),
+followed by notifications (8), production readiness (9), reports depth (10). See
 [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
 
 ## Domain sources

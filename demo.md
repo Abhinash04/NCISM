@@ -194,4 +194,5 @@ approved ─(secretariat dispatch)→ closed        (closed = terminal, immutabl
 - **Reports:** `backend/src/services/report.service.js` (read-only aggregations + CSV export).
 - **Roles/logins:** [AuthCred.md](AuthCred.md). 
 - **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
-- **Next (Phase 6, not built):** ruleset version editor + activation; non-Ayurveda rulesets; async processing worker; RBAC-matrix + per-role E2E; MFA; frontend code-splitting.
+- **Phase 6 (built):** ruleset registry + activation (SoD) + per-case resolution (admin **Rulesets** page); async processing worker (pg-boss; `ASYNC_PROCESSING`); RBAC-matrix test + per-role E2E (`backend/scripts/e2e-rbac.mjs`); TOTP **MFA** (Settings → Two-factor; login step-up); frontend code-splitting.
+- **Next (Phase 7, not built):** author non-Ayurveda rulesets (Unani/Siddha/Sowa-Rigpa/PG) from `markdown/MESAR_*.md`; then notifications (8), production readiness (9), reports depth (10).

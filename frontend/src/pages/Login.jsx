@@ -15,6 +15,8 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [challenge, setChallenge] = useState(null); // set → MFA step-up screen
+  const [code, setCode] = useState('');
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -25,10 +27,25 @@ export function Login() {
     setError('');
     setBusy(true);
     try {
-      await auth.login(email, password);
+      const result = await auth.login(email, password);
+      if (result?.mfaRequired) { setChallenge(result.challenge); return; } // ask for the code
       navigate(from, { replace: true });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Login failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onMfaSubmit(e) {
+    e.preventDefault();
+    setError('');
+    setBusy(true);
+    try {
+      await auth.completeMfaLogin(challenge, code);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err?.response?.data?.error?.message || 'Incorrect code');
     } finally {
       setBusy(false);
     }
@@ -42,25 +59,43 @@ export function Login() {
             <ShieldCheck className="h-6 w-6" />
           </div>
           <CardTitle>NCISM Assessment Portal</CardTitle>
-          <p className="text-sm text-muted-foreground">Sign in to continue</p>
+          <p className="text-sm text-muted-foreground">
+            {challenge ? 'Enter your authentication code' : 'Sign in to continue'}
+          </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" autoComplete="username" value={email}
-                onChange={(e) => setEmail(e.target.value)} required autoFocus />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" autoComplete="current-password" value={password}
-                onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
+          {challenge ? (
+            <form onSubmit={onMfaSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code">6-digit code</Label>
+                <Input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456" required autoFocus />
+                <p className="text-xs text-muted-foreground">From your authenticator app.</p>
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy ? 'Verifying…' : 'Verify'}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" autoComplete="username" value={email}
+                  onChange={(e) => setEmail(e.target.value)} required autoFocus />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" autoComplete="current-password" value={password}
+                  onChange={(e) => setPassword(e.target.value)} required />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy ? 'Signing in…' : 'Sign in'}
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>

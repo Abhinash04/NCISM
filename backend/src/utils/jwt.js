@@ -15,6 +15,17 @@ function verifyAccess(token) {
   return jwt.verify(token, config.auth.jwtSecret);
 }
 
+/** Short-lived token that binds an MFA login step-up to a specific user. */
+function signMfaChallenge(userId) {
+  return jwt.sign({ sub: userId, purpose: 'mfa' }, config.auth.jwtSecret, { expiresIn: '5m' });
+}
+
+function verifyMfaChallenge(token) {
+  const payload = jwt.verify(token, config.auth.jwtSecret);
+  if (payload.purpose !== 'mfa') throw new Error('Not an MFA challenge token');
+  return payload;
+}
+
 /** Opaque random refresh token (stored hashed) + its expiry Date. */
 function newRefreshToken() {
   const token = crypto.randomBytes(48).toString('hex');
@@ -29,4 +40,4 @@ function ttlToMs(ttl) {
   return n * { s: 1e3, m: 60e3, h: 3600e3, d: 86400e3 }[m[2]];
 }
 
-module.exports = { signAccess, verifyAccess, newRefreshToken };
+module.exports = { signAccess, verifyAccess, newRefreshToken, signMfaChallenge, verifyMfaChallenge };

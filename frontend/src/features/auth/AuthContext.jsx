@@ -47,8 +47,18 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:logout', onLogout);
   }, [clearSession]);
 
+  // Returns { mfaRequired, challenge } when the account has MFA on — the caller
+  // then collects a code and calls completeMfaLogin. Otherwise the session is
+  // applied and it returns nothing.
   const login = useCallback(async (email, password) => {
-    applySession(await authApi.login(email, password));
+    const result = await authApi.login(email, password);
+    if (result.mfaRequired) return result;
+    applySession(result);
+    return undefined;
+  }, [applySession]);
+
+  const completeMfaLogin = useCallback(async (challenge, token) => {
+    applySession(await authApi.mfaLogin(challenge, token));
   }, [applySession]);
 
   const logout = useCallback(async () => {
@@ -65,7 +75,7 @@ export function AuthProvider({ children }) {
     hasPermission: (p) => (user?.permissions || []).includes(p),
     hasRole: (r) => roles.includes(r),
     primaryRole: primaryRoleOf(roles),
-    login, logout,
+    login, completeMfaLogin, logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

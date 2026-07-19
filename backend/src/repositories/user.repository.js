@@ -31,12 +31,18 @@ async function findWithAccess(id) {
   return {
     id: user.id, email: user.email, name: user.name, status: user.status,
     institution_id: user.institution_id || null, // college users bind to one institution
+    mfaEnabled: !!user.mfa_enabled,
     roles, permissions,
   };
 }
 
 async function touchLastLogin(id) {
   await db('users').where({ id }).update({ last_login_at: db.fn.now() });
+}
+
+/** MFA enrollment/state writes (secret on enroll, enabled flag on verify). */
+function updateMfa(id, patch) {
+  return db('users').where({ id }).update(patch);
 }
 
 /** All users with their role keys aggregated (admin console listing). */
@@ -76,6 +82,6 @@ async function getUserWithRoles(id) {
 }
 
 module.exports = {
-  findByEmail, findById, roleKeys, permissionsForRoles, findWithAccess, touchLastLogin,
+  findByEmail, findById, roleKeys, permissionsForRoles, findWithAccess, touchLastLogin, updateMfa,
   listUsers, getUserWithRoles, listByRole,
 };

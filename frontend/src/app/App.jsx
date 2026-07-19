@@ -1,6 +1,8 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { Toaster } from '@/components/ui/sonner';
 import { importLegacyLocalStorage } from '@/lib/db/documents.repository';
 
@@ -11,6 +13,7 @@ import { RoleLayout } from '@/app/layouts/RoleLayout';
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 
+// Light shell/entry pages stay in the main bundle (no spinner on core nav).
 import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { Forbidden } from '@/pages/Forbidden';
@@ -19,34 +22,39 @@ import { Profile } from '@/pages/Profile';
 import { Settings } from '@/pages/Settings';
 import { About } from '@/pages/About';
 import { NotFound } from '@/pages/NotFound';
-
 import { InstitutionsList } from '@/pages/institutions/InstitutionsList';
-import { InstitutionDetail } from '@/pages/institutions/InstitutionDetail';
-import { InstitutionImport } from '@/pages/institutions/InstitutionImport';
-import { UsersList } from '@/pages/admin/UsersList';
-import { UserDetail } from '@/pages/admin/UserDetail';
-import { RolesList } from '@/pages/admin/RolesList';
-import { PermissionsList } from '@/pages/admin/PermissionsList';
-import { AdminOverview } from '@/pages/admin/AdminOverview';
-import { RulesetsList } from '@/pages/admin/RulesetsList';
 import { ApplicationsList } from '@/pages/applications/ApplicationsList';
-import { ApplicationUpload } from '@/pages/applications/ApplicationUpload';
-import { ApplicationDetail } from '@/pages/applications/ApplicationDetail';
-import { MeetingsList } from '@/pages/meetings/MeetingsList';
-import { MeetingDetail } from '@/pages/meetings/MeetingDetail';
-import { AuditLog } from '@/pages/audit/AuditLog';
-import { ComplianceQueue } from '@/pages/compliance/ComplianceQueue';
-import { Reports } from '@/pages/reports/Reports';
 
-import { DocumentsList } from '@/pages/documents/DocumentsList';
-import { DocumentDetails } from '@/pages/documents/DocumentDetails';
-import { PdfPage } from '@/pages/documents/PdfPage';
-import { ExtractedTextPage } from '@/pages/documents/ExtractedTextPage';
-import { StructurePage } from '@/pages/documents/StructurePage';
-import { MetadataPage } from '@/pages/documents/MetadataPage';
-import { PipelinePage } from '@/pages/documents/PipelinePage';
-import { ReportPage } from '@/pages/documents/ReportPage';
-import { UploadProcessing } from '@/pages/documents/UploadProcessing';
+// Heavy routes (pdf viewer, markdown/report rendering, admin, reports, meetings)
+// are code-split so they don't weigh down the initial bundle. `lazy` needs a
+// default export, so map the named export through.
+const named = (loader, name) => lazy(() => loader().then((m) => ({ default: m[name] })));
+
+const InstitutionDetail = named(() => import('@/pages/institutions/InstitutionDetail'), 'InstitutionDetail');
+const InstitutionImport = named(() => import('@/pages/institutions/InstitutionImport'), 'InstitutionImport');
+const UsersList = named(() => import('@/pages/admin/UsersList'), 'UsersList');
+const UserDetail = named(() => import('@/pages/admin/UserDetail'), 'UserDetail');
+const RolesList = named(() => import('@/pages/admin/RolesList'), 'RolesList');
+const PermissionsList = named(() => import('@/pages/admin/PermissionsList'), 'PermissionsList');
+const AdminOverview = named(() => import('@/pages/admin/AdminOverview'), 'AdminOverview');
+const RulesetsList = named(() => import('@/pages/admin/RulesetsList'), 'RulesetsList');
+const ApplicationUpload = named(() => import('@/pages/applications/ApplicationUpload'), 'ApplicationUpload');
+const ApplicationDetail = named(() => import('@/pages/applications/ApplicationDetail'), 'ApplicationDetail');
+const MeetingsList = named(() => import('@/pages/meetings/MeetingsList'), 'MeetingsList');
+const MeetingDetail = named(() => import('@/pages/meetings/MeetingDetail'), 'MeetingDetail');
+const AuditLog = named(() => import('@/pages/audit/AuditLog'), 'AuditLog');
+const ComplianceQueue = named(() => import('@/pages/compliance/ComplianceQueue'), 'ComplianceQueue');
+const Reports = named(() => import('@/pages/reports/Reports'), 'Reports');
+
+const DocumentsList = named(() => import('@/pages/documents/DocumentsList'), 'DocumentsList');
+const DocumentDetails = named(() => import('@/pages/documents/DocumentDetails'), 'DocumentDetails');
+const PdfPage = named(() => import('@/pages/documents/PdfPage'), 'PdfPage');
+const ExtractedTextPage = named(() => import('@/pages/documents/ExtractedTextPage'), 'ExtractedTextPage');
+const StructurePage = named(() => import('@/pages/documents/StructurePage'), 'StructurePage');
+const MetadataPage = named(() => import('@/pages/documents/MetadataPage'), 'MetadataPage');
+const PipelinePage = named(() => import('@/pages/documents/PipelinePage'), 'PipelinePage');
+const ReportPage = named(() => import('@/pages/documents/ReportPage'), 'ReportPage');
+const UploadProcessing = named(() => import('@/pages/documents/UploadProcessing'), 'UploadProcessing');
 
 // Legacy-route shims: preserve deep links into the retired 3-panel workspace.
 function WorkspaceNewRedirect() {
@@ -81,6 +89,11 @@ function App() {
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <BrowserRouter>
           <AuthProvider>
+          <Suspense fallback={(
+            <div className="grid min-h-screen place-items-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}>
           <Routes>
             {/* Public */}
             <Route element={<LandingLayout />}>
@@ -150,6 +163,7 @@ function App() {
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           </AuthProvider>
         </BrowserRouter>
         <Toaster position="bottom-right" richColors />

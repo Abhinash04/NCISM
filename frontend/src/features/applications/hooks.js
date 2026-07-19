@@ -12,15 +12,31 @@ export function useApplications() {
 }
 
 export function useApplication(id) {
-  return useQuery({ queryKey: ['application', id], queryFn: () => getApplication(id), enabled: !!id });
+  return useQuery({
+    queryKey: ['application', id],
+    queryFn: () => getApplication(id),
+    enabled: !!id,
+    // Poll while the background worker is running the engine, then stop.
+    refetchInterval: (query) => (query.state.data?.status === 'processing' ? 2500 : false),
+  });
 }
 
-export function useAllowedActions(id) {
-  return useQuery({ queryKey: ['application', id, 'actions'], queryFn: () => getAllowedActions(id), enabled: !!id });
+export function useAllowedActions(id, poll = false) {
+  return useQuery({
+    queryKey: ['application', id, 'actions'],
+    queryFn: () => getAllowedActions(id),
+    enabled: !!id,
+    refetchInterval: poll ? 2500 : false,
+  });
 }
 
-export function useApplicationEvents(id) {
-  return useQuery({ queryKey: ['application', id, 'events'], queryFn: () => getEvents(id), enabled: !!id });
+export function useApplicationEvents(id, poll = false) {
+  return useQuery({
+    queryKey: ['application', id, 'events'],
+    queryFn: () => getEvents(id),
+    enabled: !!id,
+    refetchInterval: poll ? 2500 : false,
+  });
 }
 
 export function useUploadApplication() {

@@ -34,6 +34,9 @@ const config = Object.freeze({
   openDataLoaderCliPath:
     process.env.OPENDATALOADER_CLI_PATH ||
     'D:\\opendataloader-pdf\\.venv\\Scripts\\opendataloader-pdf.exe',
+  // Run the ~3–35s engine on a pg-boss background queue (default). Set
+  // ASYNC_PROCESSING=false to run inline in-request (used by tests/simple dev).
+  asyncProcessing: process.env.ASYNC_PROCESSING !== 'false',
   jobRetentionHours: intFromEnv('JOB_RETENTION_HOURS', 24),
   keepJobs: process.env.KEEP_JOBS === 'true',
   maxUploadMb: intFromEnv('MAX_UPLOAD_MB', 100),

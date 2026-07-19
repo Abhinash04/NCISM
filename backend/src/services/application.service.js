@@ -9,6 +9,7 @@ const userRepo = require('../repositories/user.repository');
 const letterService = require('./letter.service');
 const penaltyService = require('./penalty.service');
 const rulesetService = require('./ruleset.service');
+const queueService = require('./queue.service');
 const institutionRepo = require('../repositories/institution.repository');
 const jobService = require('./job.service');
 const extractionService = require('./extraction.service');
@@ -106,7 +107,11 @@ async function createUpload({ file, institutionId, session, user, intake, level,
   return app;
 }
 
-/** Junior runs the extraction + assessment engines and attaches the report. */
+/**
+ * Junior triggers processing: guards, marks the case `processing`, then either
+ * enqueues the engine run on the background worker (default) or runs it inline
+ * (`ASYNC_PROCESSING=false`). Returns immediately in async mode.
+ */
 async function process(id, user) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, 'process');
@@ -118,6 +123,21 @@ async function process(id, user) {
   await appRepo.update(id, { status: 'processing', assigned_to: app.assigned_to || user.id, error: null });
   await appRepo.addEvent({ applicationId: id, fromState: from, toState: 'processing', actorId: user.id, note: 'Processing started' });
 
+  if (config.asyncProcessing) {
+    await queueService.enqueueProcessing(id, user.id);
+    return appRepo.getById(id); // status: processing — the worker settles it
+  }
+  return runProcessing(id, user.id);
+}
+
+/**
+ * Runs the extraction + assessment engines for a case already marked
+ * `processing` and persists the report (→ `processed`) or the error (→ `failed`).
+ * Called inline by `process` or by the background worker (queue.service).
+ */
+async function runProcessing(id, actorId) {
+  const app = await appRepo.getById(id);
+  const pdfPath = path.join(UPLOADS_DIR, `${app.id}.pdf`);
   try {
     // Resolve the active ruleset for this case's (system, level) — fails loudly
     // for systems whose ruleset has not been authored/activated yet.
@@ -135,12 +155,12 @@ async function process(id, user) {
       status: 'processed', job_id: jobId,
       report_markdown: output.reportMarkdown, report_json: JSON.stringify(output.result),
     });
-    await appRepo.addEvent({ applicationId: id, fromState: 'processing', toState: 'processed', actorId: user.id, note: 'Assessment report generated' });
+    await appRepo.addEvent({ applicationId: id, fromState: 'processing', toState: 'processed', actorId, note: 'Assessment report generated' });
     return updated;
   } catch (error) {
     logger.error(`Processing failed for case ${id}:`, error);
     const updated = await appRepo.update(id, { status: 'failed', error: error.message });
-    await appRepo.addEvent({ applicationId: id, fromState: 'processing', toState: 'failed', actorId: user.id, note: error.message });
+    await appRepo.addEvent({ applicationId: id, fromState: 'processing', toState: 'failed', actorId, note: error.message });
     return updated;
   }
 }
@@ -340,7 +360,7 @@ async function revise(id, user) {
 
 module.exports = {
   list, getDetail, allowedActionsFor, events,
-  createUpload, process, submit, review, decide, revise, remove,
+  createUpload, process, runProcessing, submit, review, decide, revise, remove,
   requestClarification, respondClarification, clarifications,
   requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,
   letters, previewLetter, penalties, addPenalty,

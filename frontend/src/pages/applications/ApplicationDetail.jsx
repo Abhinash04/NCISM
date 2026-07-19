@@ -90,8 +90,9 @@ export function ApplicationDetail() {
   const listPath = pathname.replace(/\/[^/]+$/, '');
 
   const { data: app, isLoading, isError } = useApplication(id);
-  const { data: actions = [] } = useAllowedActions(id);
-  const { data: events = [] } = useApplicationEvents(id);
+  const processing = app?.status === 'processing';
+  const { data: actions = [] } = useAllowedActions(id, processing);
+  const { data: events = [] } = useApplicationEvents(id, processing);
   const { data: rounds = [] } = useClarifications(id);
   const { data: hearings = [] } = useHearings(id);
   const { data: letters = [] } = useLetters(id);

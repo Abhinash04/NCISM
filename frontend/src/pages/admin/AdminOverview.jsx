@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import {
-  Building2, Upload, Users, Shield, KeyRound, FileStack, ClipboardCheck, BarChart3, ScrollText, LayoutDashboard,
+  Building2, Upload, Users, Shield, KeyRound, FileStack, ClipboardCheck, BarChart3, ScrollText, LayoutDashboard, Layers,
 } from 'lucide-react';
 import { useReportsOverview } from '@/features/reports/hooks';
 
@@ -8,6 +8,7 @@ const TILES = [
   { name: 'Users', path: '/admin/users', icon: Users, desc: 'Accounts, roles & the reporting chain' },
   { name: 'Roles', path: '/admin/roles', icon: Shield, desc: 'Role definitions' },
   { name: 'Permissions', path: '/admin/permissions', icon: KeyRound, desc: 'Permission catalogue' },
+  { name: 'Rulesets', path: '/admin/rulesets', icon: Layers, desc: 'Assessment ruleset activation' },
   { name: 'Institutions', path: '/admin/institutions', icon: Building2, desc: '672-college registry' },
   { name: 'Import', path: '/admin/institutions/import', icon: Upload, desc: 'Bulk registry import' },
   { name: 'Cases', path: '/admin/applications', icon: FileStack, desc: 'All assessment cases' },

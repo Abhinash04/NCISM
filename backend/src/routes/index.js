@@ -11,6 +11,7 @@ const meetingsRoutes = require('./meetings.routes');
 const auditRoutes = require('./audit.routes');
 const penaltiesRoutes = require('./penalties.routes');
 const reportsRoutes = require('./reports.routes');
+const rulesetsRoutes = require('./rulesets.routes');
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use('/meetings', meetingsRoutes);
 router.use('/audit', auditRoutes);
 router.use('/penalties', penaltiesRoutes);
 router.use('/reports', reportsRoutes);
+router.use('/rulesets', rulesetsRoutes);
 
 module.exports = router;

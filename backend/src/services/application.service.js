@@ -8,6 +8,7 @@ const hearingRepo = require('../repositories/hearing.repository');
 const userRepo = require('../repositories/user.repository');
 const letterService = require('./letter.service');
 const penaltyService = require('./penalty.service');
+const rulesetService = require('./ruleset.service');
 const institutionRepo = require('../repositories/institution.repository');
 const jobService = require('./job.service');
 const extractionService = require('./extraction.service');
@@ -118,13 +119,17 @@ async function process(id, user) {
   await appRepo.addEvent({ applicationId: id, fromState: from, toState: 'processing', actorId: user.id, note: 'Processing started' });
 
   try {
+    // Resolve the active ruleset for this case's (system, level) — fails loudly
+    // for systems whose ruleset has not been authored/activated yet.
+    const { rulesetId, version: rulesetVersion } = await rulesetService.resolveForCase(app.system, app.level);
+
     const { jobId, jobDir, outputDir } = jobService.createJob();
     fs.copyFileSync(pdfPath, path.join(jobDir, 'input.pdf'));
     const result = await extractionService.extract(path.join(jobDir, 'input.pdf'), outputDir, 'application/pdf');
     jobService.createManifest(jobId, `${app.institute_id || app.id}.pdf`, fs.statSync(pdfPath).size, '0',
       result.artifacts || {}, result.status || 'success', result.warnings || [], result.failedPages || []);
 
-    const output = await assessmentService.generate({ jobId });
+    const output = await assessmentService.generate({ jobId, rulesetId, rulesetVersion });
 
     const updated = await appRepo.update(id, {
       status: 'processed', job_id: jobId,

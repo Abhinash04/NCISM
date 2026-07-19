@@ -28,6 +28,7 @@ import { UserDetail } from '@/pages/admin/UserDetail';
 import { RolesList } from '@/pages/admin/RolesList';
 import { PermissionsList } from '@/pages/admin/PermissionsList';
 import { AdminOverview } from '@/pages/admin/AdminOverview';
+import { RulesetsList } from '@/pages/admin/RulesetsList';
 import { ApplicationsList } from '@/pages/applications/ApplicationsList';
 import { ApplicationUpload } from '@/pages/applications/ApplicationUpload';
 import { ApplicationDetail } from '@/pages/applications/ApplicationDetail';
@@ -117,6 +118,7 @@ function App() {
               <Route path="users/:userId" element={<UserDetail />} />
               <Route path="roles" element={<RolesList />} />
               <Route path="permissions" element={<PermissionsList />} />
+              <Route path="rulesets" element={<RulesetsList />} />
               <Route path="applications" element={<ApplicationsList />} />
               <Route path="applications/:id" element={<ApplicationDetail />} />
               <Route path="audit" element={<AuditLog />} />

@@ -25,12 +25,20 @@ const CASES = [
     // QC-lab non-teaching vacancies map to "No seat reduction" in the policy.
     expect: { totalSeatReduction: 0, percentOfIntake: 0, outcome: 'compliant' },
   },
+  {
+    id: 'UNA001',
+    // UG Unani (synthetic): OPD daily average short (10% -> 1 seat) + no central
+    // registration (1 seat) = 2 seats; other criteria compliant, staff manual.
+    rulesetId: 'mesar-ug-unani-2023',
+    rulesetVersion: 'v1',
+    expect: { totalSeatReduction: 2, percentOfIntake: 2, outcome: 'seat-reduction' },
+  },
 ];
 
-for (const { id, expect } of CASES) {
+for (const { id, expect, rulesetId, rulesetVersion } of CASES) {
   test(`golden assessment for ${id}: punitive summary and full report`, () => {
     const parameters = loadParamsFixture(path.join(__dirname, 'fixtures', 'parameters', `${id}.params.json`));
-    const { result, reportMarkdown } = engine.runFromParameters({ parameters, generatedDate: 'GOLDEN' });
+    const { result, reportMarkdown } = engine.runFromParameters({ parameters, rulesetId, rulesetVersion, generatedDate: 'GOLDEN' });
 
     assert.strictEqual(result.punitiveSummary.totalSeatReduction, expect.totalSeatReduction, `${id} totalSeatReduction`);
     assert.strictEqual(result.punitiveSummary.percentOfIntake, expect.percentOfIntake, `${id} percentOfIntake`);

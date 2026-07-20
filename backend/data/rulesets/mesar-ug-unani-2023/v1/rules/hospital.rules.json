@@ -1,0 +1,127 @@
+[
+  {
+    "id": "hospital.opd-average-daily",
+    "category": "hospital",
+    "title": "Average attendance of patients in OPD per day",
+    "regulationRef": "Table-6, MESAR (UG) Unani 2023",
+    "parameter": "opdAverageDaily",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 120, "100": 200, "150": 300, "200": 400 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "opd-average" },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Average attendance of patient in OPD per day is {actual} against the minimum requirement of {expected}.",
+      "fail": "Average attendance of patient in OPD per day is {actual} against the minimum requirement of {expected} - not fulfilling.",
+      "missing": "Average daily OPD attendance could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.ipd-beds",
+    "category": "hospital",
+    "title": "In-Patient Department - total number of beds",
+    "regulationRef": "Table-7 & Table-8, MESAR (UG) Unani 2023",
+    "parameter": "ipdBeds",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 60, "100": 100, "150": 150, "200": 200 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Total number of IPD beds is {actual} against the minimum requirement of {expected}.",
+      "fail": "Total number of IPD beds is {actual} against the minimum requirement of {expected} - not fulfilling.",
+      "missing": "Total number of IPD beds could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.medical-section-beds",
+    "category": "hospital",
+    "title": "Medical In-Patient Section beds (55%)",
+    "regulationRef": "Table-7, MESAR (UG) Unani 2023",
+    "parameter": "medicalSectionBeds",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 33, "100": 55, "150": 82, "200": 110 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Medical In-Patient Section beds are {actual} against the requirement of {expected}.",
+      "fail": "Medical In-Patient Section beds are {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Medical In-Patient Section bed count could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.surgical-section-beds",
+    "category": "hospital",
+    "title": "Surgical In-Patient Section beds (45%)",
+    "regulationRef": "Table-7, MESAR (UG) Unani 2023",
+    "parameter": "surgicalSectionBeds",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 27, "100": 45, "150": 68, "200": 90 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Surgical In-Patient Section beds are {actual} against the requirement of {expected}.",
+      "fail": "Surgical In-Patient Section beds are {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Surgical In-Patient Section bed count could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.bed-occupancy",
+    "category": "hospital",
+    "title": "Minimum average bed occupancy",
+    "regulationRef": "Table-8, MESAR (UG) Unani 2023",
+    "parameter": "bedOccupancy",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 24, "100": 40, "150": 60, "200": 80 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "bed-occupancy" },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Average bed occupancy is {actual} against the minimum requirement of {expected}.",
+      "fail": "Average bed occupancy is {actual} against the minimum requirement of {expected} - not fulfilling.",
+      "missing": "Average bed occupancy could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.central-registration",
+    "category": "hospital",
+    "title": "Computerized central registration system",
+    "regulationRef": "MESAR (UG) Unani 2023 - hospital functionality",
+    "parameter": "centralRegistrationAvailable",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "central-registration" },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Computerized central registration system is available.",
+      "fail": "Computerized central registration system is not available.",
+      "missing": "Computerized central registration availability could not be determined - manual verification required."
+    }
+  }
+]

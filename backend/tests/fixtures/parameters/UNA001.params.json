@@ -1,0 +1,36 @@
+{
+  "description": "Synthetic golden ParameterSet for a UG Unani college (UNA001, 100 intake). Infrastructure/library largely compliant; libraryBooks short (no seats), OPD daily average short (1 seat) and no computerized central registration (1 seat) → seat-reduction outcome. Staff params omitted → insufficient-data (extraction not yet tuned for Unani reports).",
+  "values": {
+    "institutionName": "National Unani Medical College & Hospital",
+    "institutionId": "UNA001",
+    "location": "Lucknow, Uttar Pradesh",
+    "intake": 100,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-Un.(07)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-06-02",
+    "visitationEndDate": "2026-06-03",
+    "visitors": [
+      { "name": "Dr. Mohd Aslam", "id": "V04120" },
+      { "name": "Dr. Shabnam Ansari", "id": "V04188" }
+    ],
+    "landAcres": 5.0,
+    "constructedAreaCollegeSqm": 5100,
+    "constructedAreaHospitalSqm": 4475,
+    "constructedAreaTotalSqm": 9600,
+    "clinicalSkillRooms": 2,
+    "libraryBooks": 9500,
+    "libraryJournals": 12,
+    "librarySittingCapacity": 120,
+    "libraryDigitalStations": 25,
+    "librarySeatingAdequate": true,
+    "opdAverageDaily": 180,
+    "ipdBeds": 100,
+    "medicalSectionBeds": 55,
+    "surgicalSectionBeds": 45,
+    "bedOccupancy": 40,
+    "centralRegistrationAvailable": false,
+    "aebasImplemented": true,
+    "websiteFunctional": true
+  }
+}

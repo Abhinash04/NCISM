@@ -28,7 +28,9 @@ exports.seed = async function seed(knex) {
     rows.push({
       ruleset_id: id,
       version,
-      system: String(manifest.system || '').toLowerCase() || 'ayurveda',
+      // Normalize to the institutions `system` enum key (ayurveda|unani|siddha|
+      // sowa_rigpa) — "Sowa-Rigpa" -> "sowa_rigpa" so resolveForCase can match.
+      system: String(manifest.system || '').toLowerCase().replace(/-/g, '_') || 'ayurveda',
       level: deriveLevel(id),
       title: manifest.title || id,
       supported_intakes: JSON.stringify(manifest.supportedIntakes || []),

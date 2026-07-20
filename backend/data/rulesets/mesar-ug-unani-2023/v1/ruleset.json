@@ -1,0 +1,17 @@
+{
+  "id": "mesar-ug-unani-2023",
+  "version": "v1",
+  "title": "Minimum Essential Standards, Assessment and Rating for Undergraduate Unani Colleges and Attached Teaching Hospitals Regulations, 2023",
+  "system": "Unani",
+  "course": "UG (BUMS)",
+  "supportedIntakes": [60, 100, 150, 200],
+  "ruleFiles": [
+    "rules/infrastructure.rules.json",
+    "rules/library.rules.json",
+    "rules/hospital.rules.json",
+    "rules/staffing.rules.json",
+    "rules/compliance.rules.json"
+  ],
+  "punitivePolicy": "punitive-policy-2026.json",
+  "notes": "Thresholds transcribed from MESAR (UG) Unani 2023 (markdown/MESAR_UG_Unani.md): Table-1 (land), Table-2 (constructed area), Table-3/4 (library, digital), Table-5 (clinical skill), Table-6 (OPD), Table-7/8 (IPD beds, occupancy). The source markdown abbreviates Schedules II-XXIII, so the teaching/non-teaching/hospital faculty cadre schedules are not machine-transcribed here; those rules reuse the Ayurveda staff-table/roster mechanism and depend on parameters the current extractors do not yet emit for Unani reports (documented extraction gap). Punitive policy is the ASU-wide board policy (2026-27), shared with Ayurveda."
+}

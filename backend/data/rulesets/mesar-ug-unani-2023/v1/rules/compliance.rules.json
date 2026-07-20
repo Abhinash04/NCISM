@@ -1,0 +1,42 @@
+[
+  {
+    "id": "compliance.aebas",
+    "category": "compliance",
+    "title": "Aadhaar Enabled Biometric Attendance System (AEBAS)",
+    "regulationRef": "Regulation 9, MESAR (UG) Unani 2023",
+    "parameter": "aebasImplemented",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "critical",
+    "punitive": { "policyKey": "aebas" },
+    "report": {
+      "section": "biometric-attendance",
+      "order": 9,
+      "pass": "Fulfilling the criteria as per Regulation 9 of MESAR (UG) Unani 2023",
+      "fail": "Not fulfilling the criteria as per Regulation 9 of MESAR (UG) Unani 2023",
+      "missing": "AEBAS implementation status could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "compliance.website",
+    "category": "compliance",
+    "title": "College website",
+    "regulationRef": "Regulation 11, MESAR (UG) Unani 2023",
+    "parameter": "websiteFunctional",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "website",
+      "order": 10,
+      "pass": "Functional",
+      "fail": "Not functional",
+      "missing": "College website status could not be determined - manual verification required."
+    }
+  }
+]

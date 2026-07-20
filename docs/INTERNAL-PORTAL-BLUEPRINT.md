@@ -51,8 +51,9 @@ MFA + code-splitting). **Notable divergences** from the original blueprint:
 
 > **Phases 3d + 4 + 5a + 5b + 6 are done** (structured outcomes + official letters; audit log;
 > compliance/penalty ledger; reports/analytics; ruleset registry + activation + per-case resolution;
-> async worker; RBAC-matrix + E2E; MFA + code-splitting). Remaining: Phase 7 non-Ayurveda ruleset
-> **content** (infra ready), then notifications (8) + production readiness (9) + reports depth (10).
+> async worker; RBAC-matrix + E2E; MFA + code-splitting). **Phase 7a/7b** added UG Unani + UG
+> Sowa-Rigpa rulesets (authored + active). Remaining: Phase 7 UG Siddha + PG content + non-Ayurveda
+> extractor tuning, then notifications (8) + production readiness (9) + reports depth (10).
 > Sections below still marked **[Planned]** describe those.
 
 ---
@@ -277,7 +278,7 @@ actions from `allowedActions`.
 | **5a — Compliance/penalty ledger** | ✅ Done | Punitive monitoring | `penalties` table; auto seat_reduction/denial from the punitive summary on approve + manual monetary/revocation; status workflow → `compliance_status`; a Penalties tab + cross-case Compliance queue. |
 | **5b — Reports & Analytics** | ✅ Done | Insight | `report.service` read-only aggregations → KPIs (cases, avg days-to-decision, seat/monetary totals), status/outcome/compliance distributions, throughput, by-system, penalty ledger, top institutions; `GET /reports/overview` + CSV export (`report:read`); a Reports page (KPI tiles + BarList + tables). |
 | **6 — Admin & hardening** | ✅ Done | Config + safety | **6a** `ruleset_versions` registry + activation (SoD, Board ref) + `resolveForCase` per case (engine stops hardcoding Ayurveda) + admin **Rulesets** page; **6b** async pg-boss worker (`ASYNC_PROCESSING`); **6c** RBAC-matrix test (`npm test`) + per-role E2E (`scripts/e2e-rbac.mjs`); **6d** TOTP MFA (self-enroll + login step-up) + frontend code-splitting. |
-| **7 — Non-Ayurveda ruleset content** | 🔜 Planned | Coverage | author Unani/Siddha/Sowa-Rigpa/PG rulesets from `markdown/MESAR_*.md` (rules + punitive + report template + golden fixtures), then register + activate. Infra ready (6a). |
+| **7 — Non-Ayurveda rulesets** | 🟡 In progress | Coverage | **7a** UG Unani + **7b** UG Sowa-Rigpa authored from `markdown/MESAR_*.md` (rules + punitive + report-template module + synthetic golden fixture) and **active**. Remaining: UG Siddha + PG content + tuning the parameter extractors to real non-Ayurveda report layouts. |
 | **8 — Notifications** | 🔜 Planned | UX | in-app + email "next action" feed on queue hand-off. |
 | **9 — Production readiness** | 🔜 Planned | Ops | real secrets/creds, CORS/HTTPS, rate-limiting, backups, CI/CD, deploy, observability. |
 | **10 — Reports depth & doc polish** | 🔜 Planned | Insight+ | date-range/per-institution drill-down, report snapshots, PDF export, retire legacy Dexie `/documents`. |

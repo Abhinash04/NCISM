@@ -17,7 +17,7 @@ Authoritative reference for the NCISM Assessment Platform foundation. Anything u
 > **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; cold-start handoff:
 > **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
 > reference superset. **Planned (not built):** non-Ayurveda ruleset **content**
-> (Unani/Siddha/Sowa-Rigpa/PG — infra ready, Phase 7).
+> Siddha-UG + PG content (UG Unani + UG Sowa-Rigpa authored/active in Phase 7a/7b).
 
 ## System overview
 
@@ -58,7 +58,7 @@ workflow-state guard, **structured board outcomes + official letter/order genera
 **reports/analytics + CSV export** (5b), a **multi-ruleset registry + activation + per-case
 resolution** (6a), an **async pg-boss processing worker** (6b), **RBAC-matrix + per-role E2E** (6c),
 and **TOTP MFA + code-splitting** (6d). Not built (Planned): non-Ayurveda ruleset **content**
-(Unani/Siddha/Sowa-Rigpa/PG — infra ready, Phase 7).
+Siddha-UG + PG content (UG Unani + UG Sowa-Rigpa authored/active in Phase 7a/7b).
 
 ### Authentication & session flow
 
@@ -182,8 +182,8 @@ src/
 ├── db/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
 │   ├── migrations/            001_auth_rbac … 009_penalties · 010_ruleset_versions · 011_user_mfa
-│   └── seeds/                 001_rbac … 014_application_delete_rbac · 015_rulesets (RBAC, 672 institutions,
-│                              org + lifecycle mock users, Ayurveda-UG ruleset active)
+│   └── seeds/                 001_rbac … 014_application_delete_rbac · 015_rulesets · 016_activate_ug_systems
+│                              (RBAC, 672 institutions, org + lifecycle mock users, UG Ayurveda/Unani/Sowa-Rigpa active)
 ├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs · /assessments
 │                              · /institutions · /admin · /applications · /meetings · /audit · /penalties · /reports · /rulesets
 ├── controllers/               auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
@@ -476,11 +476,13 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 | --- | --- |
 | DOCX/XLSX/image extraction | register a pipeline in `engines/extraction/index.js` |
 | Cloud/object storage | new implementation of the job repository contract |
-| New regulations (Unani, Siddha, PG…) | new ruleset directory + `ruleset_versions` row + activation (`resolveForCase` routes it automatically; only Ayurveda-UG is authored/active today, so non-Ayurveda cases fail loudly with `NO_ACTIVE_RULESET`) |
+| New regulations (Siddha, PG…) | new ruleset directory + `ruleset_versions` row + activation + a report template module in `reporter/templates/` (`resolveForCase` routes it automatically). UG Ayurveda/Unani/Sowa-Rigpa are authored/active; Siddha-UG + PG have no active ruleset yet (`NO_ACTIVE_RULESET`) |
 
-**Planned (NOT built):** non-Ayurveda ruleset **content** (Unani/Siddha/Sowa-Rigpa/PG) — the
-registry/activation/resolution infra is built (Phase 6a), so this is authoring work (**Phase 7**),
-followed by notifications (8), production readiness (9), reports depth (10). See
+**Partially built (Phase 7a/7b):** UG **Unani** + UG **Sowa-Rigpa** rulesets are authored, templated,
+golden-tested, and active (alongside UG Ayurveda). **Remaining:** UG Siddha + PG ruleset content and
+tuning the parameter extractors to real non-Ayurveda report layouts (today those params resolve
+`insufficient-data`; golden fixtures are synthetic). Then notifications (8), production readiness (9),
+reports depth (10). See
 [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
 
 ## Domain sources

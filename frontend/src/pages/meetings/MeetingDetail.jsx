@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/features/auth/AuthContext';
+import { DownloadMenu } from '@/components/common/DownloadMenu';
 import { useMeeting, useAddMeetingItem, useConfirmMeeting } from '@/features/meetings/hooks';
 import { useApplications } from '@/features/applications/hooks';
 import { STATUS_META } from '@/pages/applications/ApplicationsList';
@@ -33,7 +34,10 @@ export function MeetingDetail() {
   if (isError || !meeting) return <div className="p-8 text-destructive">Meeting not found.</div>;
 
   const onAgenda = new Set((meeting.items || []).map((i) => i.application_id));
-  const boardReady = cases.filter((c) => c.status === 'board_review' && !onAgenda.has(c.id));
+  // Cases at (or just past) the board — the secretariat records them in the meeting
+  // agenda, which may happen after the board has already decided.
+  const BOARD_READY = new Set(['board_review', 'hearing_requested', 'hearing_scheduled', 'approved']);
+  const boardReady = cases.filter((c) => BOARD_READY.has(c.status) && !onAgenda.has(c.id));
   const confirmed = meeting.status === 'confirmed';
 
   return (
@@ -58,7 +62,7 @@ export function MeetingDetail() {
           <CardHeader><CardTitle className="text-base">Add a board-ready case</CardTitle></CardHeader>
           <CardContent className="flex gap-2">
             <Select value={pick} onValueChange={setPick}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Pick a case in board review…" /></SelectTrigger>
+              <SelectTrigger className="flex-1"><SelectValue placeholder="Pick a board case…" /></SelectTrigger>
               <SelectContent>
                 {boardReady.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.institute_id} · {c.institution_name?.slice(0, 50)}</SelectItem>
@@ -102,7 +106,14 @@ export function MeetingDetail() {
         <CardHeader><CardTitle className="text-base">Minutes</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {confirmed ? (
-            <p className="text-sm whitespace-pre-wrap">{meeting.minutes_text || 'Confirmed (no minutes text).'}</p>
+            <>
+              {meeting.minutes_text && (
+                <div className="flex justify-end">
+                  <DownloadMenu filename={`${meeting.number}-minutes`.replace(/\//g, '-')} markdown={meeting.minutes_text} label="Download minutes" />
+                </div>
+              )}
+              <p className="text-sm whitespace-pre-wrap">{meeting.minutes_text || 'Confirmed (no minutes text).'}</p>
+            </>
           ) : canManage ? (
             <>
               <Textarea placeholder="Minutes of the meeting…" value={minutes} onChange={(e) => setMinutes(e.target.value)} />

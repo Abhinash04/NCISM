@@ -20,6 +20,12 @@ export async function getEvents(id) {
   return data.events || [];
 }
 
+/** The uploaded visitation report PDF as a Blob (viewer + Visitor Report download). */
+export async function getSourcePdf(id) {
+  const { data } = await apiClient.get(`/applications/${id}/source.pdf`, { responseType: 'blob' });
+  return data;
+}
+
 export async function uploadApplication({ institutionId, session, file, intake, permissionType, visitationFrom, visitationTo, visitationMode }) {
   const form = new FormData();
   form.append('institutionId', institutionId);

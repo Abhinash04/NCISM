@@ -13,6 +13,7 @@ router.get('/committee-members', requirePermission('hearing:appoint'), (req, res
 router.post('/', requirePermission('application:create'), uploadPdf.single('file'), (req, res, next) => controller.create(req, res, next));
 
 router.get('/:id', requirePermission('application:read'), (req, res, next) => controller.get(req, res, next));
+router.get('/:id/source.pdf', requirePermission('application:read'), (req, res, next) => controller.sourcePdf(req, res, next));
 router.get('/:id/allowed-actions', requirePermission('application:read'), (req, res, next) => controller.allowedActions(req, res, next));
 router.get('/:id/events', requirePermission('application:read'), (req, res, next) => controller.events(req, res, next));
 

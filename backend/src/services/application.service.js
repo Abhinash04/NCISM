@@ -78,6 +78,14 @@ function events(id) {
   return appRepo.listEvents(id);
 }
 
+/** Absolute path to a case's uploaded PDF, after an access check. Feeds the in-app viewer + download. */
+async function sourcePath(id, user) {
+  await getForUser(id, user); // 404 if the case isn't found / not visible to this user
+  const pdfPath = path.join(UPLOADS_DIR, `${id}.pdf`);
+  if (!fs.existsSync(pdfPath)) throw ApiError.notFound('SOURCE_NOT_FOUND', 'Uploaded report file is missing');
+  return pdfPath;
+}
+
 /** Visitor uploads a report for an institution → a new case in `uploaded`. */
 async function createUpload({ file, institutionId, session, user, intake, level, permissionType, visitationFrom, visitationTo, visitationMode }) {
   if (!file) throw ApiError.badRequest('NO_FILE', 'A report PDF is required');
@@ -359,7 +367,7 @@ async function revise(id, user) {
 }
 
 module.exports = {
-  list, getDetail, allowedActionsFor, events,
+  list, getDetail, allowedActionsFor, events, sourcePath,
   createUpload, process, runProcessing, submit, review, decide, revise, remove,
   requestClarification, respondClarification, clarifications,
   requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,

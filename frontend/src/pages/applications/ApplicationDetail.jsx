@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel, Trash2 } from 'lucide-react';
+import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel, Trash2, FileText, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,10 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
+import { DownloadMenu } from '@/components/common/DownloadMenu';
+import { CasePdfViewer } from '@/features/applications/CasePdfViewer';
+import { getSourcePdf } from '@/features/applications/application.api';
+import { downloadBlob } from '@/lib/download';
 import { DragDropZone } from '@/features/documents/components/DragDropZone';
 import { StructureViewer } from '@/features/workspace/components/StructureViewer';
 import { useJob } from '@/features/workspace/hooks/useJob';
@@ -263,6 +267,7 @@ export function ApplicationDetail() {
       <Tabs defaultValue="report">
         <TabsList>
           <TabsTrigger value="report">Assessment report</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           {app.job_id && <TabsTrigger value="structure">Extracted structure</TabsTrigger>}
           <TabsTrigger value="clarifications">Clarifications{rounds.length ? ` (${rounds.length})` : ''}</TabsTrigger>
           <TabsTrigger value="hearings">Hearings{hearings.length ? ` (${hearings.length})` : ''}</TabsTrigger>
@@ -273,10 +278,29 @@ export function ApplicationDetail() {
 
         <TabsContent value="report">
           <Card><CardContent className="pt-6">
-            {app.report_markdown
-              ? <div className="prose prose-sm dark:prose-invert max-w-none"><MarkdownRenderer markdown={app.report_markdown} /></div>
-              : <p className="text-sm text-muted-foreground">No report yet. Run <strong>Process</strong> to generate the assessment.</p>}
+            {app.report_markdown ? (
+              <>
+                <div className="flex justify-end mb-3">
+                  <DownloadMenu filename={`${app.institute_id || app.id}-assessment-report`} markdown={app.report_markdown} label="Download report" />
+                </div>
+                <div className="prose prose-sm dark:prose-invert max-w-none"><MarkdownRenderer markdown={app.report_markdown} /></div>
+              </>
+            ) : <p className="text-sm text-muted-foreground">No report yet. Run <strong>Process</strong> to generate the assessment.</p>}
           </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Uploaded visitation report</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => getSourcePdf(id)
+                .then((b) => downloadBlob(b, `${app.institute_id || app.id}-visitor-report.pdf`))
+                .catch(() => toast.error('No uploaded report to download'))}>
+                <Download className="h-4 w-4 mr-1" /> Download Visitor Report (PDF)
+              </Button>
+            </CardHeader>
+            <CardContent><CasePdfViewer id={id} /></CardContent>
+          </Card>
         </TabsContent>
 
         {app.job_id && (
@@ -327,8 +351,13 @@ export function ApplicationDetail() {
                   {l.ref_no ? ` · ${l.ref_no}` : ''}
                   <span className="text-muted-foreground font-normal">· {new Date(l.created_at).toLocaleDateString()}</span>
                 </summary>
-                <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border-t pt-4">
-                  <MarkdownRenderer markdown={l.content_markdown} />
+                <div className="mt-4 border-t pt-4">
+                  <div className="flex justify-end mb-3">
+                    <DownloadMenu filename={`${app.institute_id || app.id}-${l.kind}${l.ref_no ? `-${l.ref_no}` : ''}`} markdown={l.content_markdown} />
+                  </div>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <MarkdownRenderer markdown={l.content_markdown} />
+                  </div>
                 </div>
               </details>
             )) : <p className="text-sm text-muted-foreground">No letters issued yet.</p>}
@@ -367,7 +396,7 @@ export function ApplicationDetail() {
                     {penalties.map((p) => (
                       <tr key={p.id} className="border-b last:border-0">
                         <td className="py-2 font-medium">{PENALTY_LABELS[p.type] || p.type}</td>
-                        <td className="py-2 text-muted-foreground max-w-[280px] truncate" title={p.description}>{p.description || '—'}</td>
+                        <td className="py-2 text-muted-foreground whitespace-normal break-words min-w-[320px] max-w-[520px]" title={p.description}>{p.description || '—'}</td>
                         <td className="py-2">{p.type === 'monetary' ? `₹${Number(p.amount).toLocaleString('en-IN')}` : (p.seats != null ? `${p.seats} seats` : '—')}</td>
                         <td className="py-2 text-muted-foreground">{p.source}</td>
                         <td className="py-2">

@@ -37,6 +37,17 @@ class ApplicationController {
     }
   }
 
+  /** GET /applications/:id/source.pdf — stream the uploaded visitation report (viewer + download). */
+  async sourcePdf(req, res, next) {
+    try {
+      const pdfPath = await applicationService.sourcePath(req.params.id, req.user);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(pdfPath);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async allowedActions(req, res, next) {
     try {
       const actions = await applicationService.allowedActionsFor(req.params.id, req.user);

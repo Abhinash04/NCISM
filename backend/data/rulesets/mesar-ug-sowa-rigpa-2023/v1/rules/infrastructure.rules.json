@@ -1,0 +1,44 @@
+[
+  {
+    "id": "infra.land",
+    "category": "infrastructure",
+    "title": "Minimum requirement of land (plain region)",
+    "regulationRef": "Regulation 4(1), MESAR (UG) Sowa-Rigpa 2023",
+    "parameter": "landAcres",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "15": 2, "30": 3 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "land",
+      "order": 1,
+      "pass": "Land available is {actual} acres against the requirement of {expected} acres (plain region) - fulfilling.",
+      "fail": "Land available is {actual} acres against the requirement of {expected} acres (plain region) - not fulfilling.",
+      "missing": "Land area could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "infra.clinical-departments",
+    "category": "infrastructure",
+    "title": "Minimum number of clinical departments",
+    "regulationRef": "Regulation 4(4)(d), MESAR (UG) Sowa-Rigpa 2023",
+    "parameter": "clinicalDepartments",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 4 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "clinical-departments",
+      "order": 4,
+      "pass": "No. of clinical departments is {actual} against the minimum requirement of {expected} - fulfilling.",
+      "fail": "No. of clinical departments is {actual} against the minimum requirement of {expected} - not fulfilling.",
+      "missing": "Number of clinical departments could not be determined - manual verification required."
+    }
+  }
+]

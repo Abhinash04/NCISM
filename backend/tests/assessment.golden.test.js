@@ -33,6 +33,13 @@ const CASES = [
     rulesetVersion: 'v1',
     expect: { totalSeatReduction: 2, percentOfIntake: 2, outcome: 'seat-reduction' },
   },
+  {
+    id: 'SOW001',
+    // UG Sowa-Rigpa (synthetic): OPD daily average 10% short -> 1 seat of 30.
+    rulesetId: 'mesar-ug-sowa-rigpa-2023',
+    rulesetVersion: 'v1',
+    expect: { totalSeatReduction: 1, percentOfIntake: 3.33, outcome: 'seat-reduction' },
+  },
 ];
 
 for (const { id, expect, rulesetId, rulesetVersion } of CASES) {

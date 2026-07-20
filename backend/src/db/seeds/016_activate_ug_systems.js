@@ -16,9 +16,13 @@ const ACTIVATIONS = [
     level: 'UG',
     boardRef: 'MESAR (UG) Unani 2023 — Board-approved',
   },
-  // Sowa-Rigpa is added here once its ruleset directory is authored:
-  // { rulesetId: 'mesar-ug-sowa-rigpa-2023', version: 'v1', system: 'sowa_rigpa', level: 'UG',
-  //   boardRef: 'MESAR (UG) Sowa-Rigpa 2023 — Board-approved' },
+  {
+    rulesetId: 'mesar-ug-sowa-rigpa-2023',
+    version: 'v1',
+    system: 'sowa_rigpa',
+    level: 'UG',
+    boardRef: 'MESAR (UG) Sowa-Rigpa 2023 — Board-approved',
+  },
 ];
 
 exports.seed = async function seed(knex) {

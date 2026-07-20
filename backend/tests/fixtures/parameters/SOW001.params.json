@@ -1,0 +1,28 @@
+{
+  "description": "Synthetic golden ParameterSet for a UG Sowa-Rigpa college (SOW001, 30 intake). Land/herbal-garden/beds/equipment compliant; OPD daily average short (10% -> 1 seat) -> seat-reduction outcome. Staff params omitted -> insufficient-data (extraction not yet tuned for Sowa-Rigpa reports).",
+  "values": {
+    "institutionName": "Central Institute of Sowa-Rigpa",
+    "institutionId": "SOW001",
+    "location": "Leh, Ladakh",
+    "intake": 30,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-SR.(02)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-06-20",
+    "visitationEndDate": "2026-06-21",
+    "visitors": [
+      { "name": "Dr. Tsering Norbu", "id": "V05011" },
+      { "name": "Dr. Padma Dolkar", "id": "V05074" }
+    ],
+    "landAcres": 3,
+    "clinicalDepartments": 4,
+    "herbalGardenAreaSqm": 1500,
+    "herbalGardenSpecies": 30,
+    "ipdBeds": 20,
+    "ipdAverageDaily": 6,
+    "opdAverageDaily": 54,
+    "bedOccupancyPercent": 30,
+    "equipmentMeanPercent": 80,
+    "aebasImplemented": true
+  }
+}

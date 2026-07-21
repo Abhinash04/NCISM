@@ -2,6 +2,9 @@ const templates = {
   'mesar-ug-ayurveda-2024': require('./templates/marb-ug-ayurveda-2024'),
   'mesar-ug-unani-2023': require('./templates/mesar-ug-unani-2023'),
   'mesar-ug-sowa-rigpa-2023': require('./templates/mesar-ug-sowa-rigpa-2023'),
+  'mesar-pg-ayurveda-2024': require('./templates/mesar-pg-ayurveda-2024'),
+  'mesar-pg-unani-2024': require('./templates/mesar-pg-unani-2024'),
+  'mesar-pg-siddha-2024': require('./templates/mesar-pg-siddha-2024'),
 };
 
 /**

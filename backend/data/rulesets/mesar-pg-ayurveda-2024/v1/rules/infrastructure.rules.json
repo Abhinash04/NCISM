@@ -1,0 +1,106 @@
+[
+  {
+    "id": "infra.land",
+    "category": "infrastructure",
+    "title": "Minimum required land (stand-alone PG institution)",
+    "regulationRef": "Regulation 10, Table-3, MESAR (PG) Ayurveda 2024",
+    "parameter": "landAcres",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 5.0 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "land",
+      "order": 1,
+      "pass": "Land available is {actual} acres against the requirement of {expected} acres - fulfilling.",
+      "fail": "Land available is {actual} acres against the requirement of {expected} acres - not fulfilling.",
+      "missing": "Land area could not be determined - manual verification required. (Tier-II/NE/hilly areas require 3.5 acres.)"
+    }
+  },
+  {
+    "id": "infra.central-library-area",
+    "category": "infrastructure",
+    "title": "Central library area",
+    "regulationRef": "Regulation 11(5), MESAR (PG) Ayurveda 2024",
+    "parameter": "centralLibraryAreaSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 150 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Central library area is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Central library area is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Central library area could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.digital-library-area",
+    "category": "infrastructure",
+    "title": "Digital library area",
+    "regulationRef": "Regulation 11(6), MESAR (PG) Ayurveda 2024",
+    "parameter": "digitalLibraryAreaSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 40 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Digital library area is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Digital library area is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Digital library area could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.seminar-hall",
+    "category": "infrastructure",
+    "title": "Seminar hall / auditorium",
+    "regulationRef": "Regulation 9, MESAR (PG) Ayurveda 2024",
+    "parameter": "seminarHallAvailable",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "infrastructure",
+      "order": 4,
+      "pass": "A common seminar hall / auditorium is available.",
+      "fail": "A common seminar hall / auditorium is not available.",
+      "missing": "Seminar hall / auditorium availability could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.student-support-cell",
+    "category": "infrastructure",
+    "title": "Student Support and Guidance Cell room",
+    "regulationRef": "Regulation 11(20), MESAR (PG) Ayurveda 2024",
+    "parameter": "studentSupportCellAreaSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 20 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "infrastructure",
+      "order": 4,
+      "pass": "Student Support and Guidance Cell room is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Student Support and Guidance Cell room is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Student Support and Guidance Cell room area could not be determined - manual verification required."
+    }
+  }
+]

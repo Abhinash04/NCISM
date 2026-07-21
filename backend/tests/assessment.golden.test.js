@@ -40,6 +40,27 @@ const CASES = [
     rulesetVersion: 'v1',
     expect: { totalSeatReduction: 1, percentOfIntake: 3.33, outcome: 'seat-reduction' },
   },
+  {
+    id: 'PGAYU001',
+    // PG Ayurveda (synthetic, 6 seats): departmental bed occupancy short of 80%.
+    rulesetId: 'mesar-pg-ayurveda-2024',
+    rulesetVersion: 'v1',
+    expect: { totalSeatReduction: 2, percentOfIntake: 33.33, outcome: 'seat-reduction' },
+  },
+  {
+    id: 'PGUNA001',
+    // PG Unani (synthetic, 6 seats): departmental bed occupancy short of 60%.
+    rulesetId: 'mesar-pg-unani-2024',
+    rulesetVersion: 'v1',
+    expect: { totalSeatReduction: 1, percentOfIntake: 16.67, outcome: 'seat-reduction' },
+  },
+  {
+    id: 'PGSID001',
+    // PG Siddha (synthetic, 6 seats): departmental bed occupancy short of 60%.
+    rulesetId: 'mesar-pg-siddha-2024',
+    rulesetVersion: 'v1',
+    expect: { totalSeatReduction: 1, percentOfIntake: 16.67, outcome: 'seat-reduction' },
+  },
 ];
 
 for (const { id, expect, rulesetId, rulesetVersion } of CASES) {

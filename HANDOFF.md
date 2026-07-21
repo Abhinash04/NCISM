@@ -47,8 +47,8 @@ reference superset, not the build target.
 | Async processing worker (pg-boss) | ✅ Phase 6b |
 | RBAC-matrix test + per-role E2E | ✅ Phase 6c |
 | TOTP MFA (self-enroll + login step-up) + frontend code-splitting | ✅ Phase 6d |
-| UG Unani + UG Sowa-Rigpa rulesets (content + template + golden + active) | ✅ Phase 7a/7b |
-| Siddha + PG ruleset content · live non-Ayurveda extraction | 🔜 Phase 7 — remaining |
+| UG Unani + UG Sowa-Rigpa + PG Ayurveda/Unani/Siddha rulesets (content + template + golden + active) | ✅ Phase 7a–7c |
+| UG Siddha ruleset content · live non-Ayurveda extraction | 🔜 Phase 7 — remaining |
 
 ## 3. Completed phases
 
@@ -157,7 +157,7 @@ Files: `services/auth.service.js`, `controllers/auth.controller.js`, `middleware
 ```
 app.js / ../server.js   express assembly / bootstrap (asserts DB connection, starts retention)
 config/index.js         only place env is read (adds auth: jwtSecret, TTLs, bcryptRounds)
-db/index.js             singleton Knex; db/migrations (001–011); db/seeds (001–016)
+db/index.js             singleton Knex; db/migrations (001–011); db/seeds (001–017)
 routes/index.js         mounts /auth /(extract) /jobs /assessments /institutions /admin
                         /applications /meetings /audit /penalties /reports  (+ /health)
 controllers/            auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
@@ -250,7 +250,7 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 - Deterministic (no AI). Extractors read structured data, not regex over markdown.
 - Rulesets: `backend/data/rulesets/<id>/<version>/` (rules + punitive policy JSON).
 - Golden tests: `npm test` (fixtures AYU0659/AYU0265/AYU0038 → asserted punitive totals + report snapshots). Pipeline internals: `backend/src/engines/extraction/cdm/` (CDM builder sub-stages).
-- **Wired to the case flow (Phase 3 → 6a/6b):** `application.service.process` guards → marks the case `processing` → **enqueues** the run on the pg-boss worker (`ASYNC_PROCESSING=false` runs it inline); `runProcessing` resolves the case's **active ruleset** for its (system, level) via `ruleset.service.resolveForCase`, then extract → assess and persists `report_markdown`/`report_json`. The legacy `/documents` route still runs the same engine ad-hoc. **Three UG rulesets are authored + active** — Ayurveda (`mesar-ug-ayurveda-2024`), Unani (`mesar-ug-unani-2023`), Sowa-Rigpa (`mesar-ug-sowa-rigpa-2023`); Siddha-UG and all PG levels have no active ruleset yet, so those cases `process` fail loudly (`NO_ACTIVE_RULESET` → `status = failed`). The non-Ayurveda extractors are not yet tuned to those report layouts (Ayurveda-format regexes), so live non-Ayurveda params mostly resolve `insufficient-data` — the documented extraction gap.
+- **Wired to the case flow (Phase 3 → 6a/6b):** `application.service.process` guards → marks the case `processing` → **enqueues** the run on the pg-boss worker (`ASYNC_PROCESSING=false` runs it inline); `runProcessing` resolves the case's **active ruleset** for its (system, level) via `ruleset.service.resolveForCase`, then extract → assess and persists `report_markdown`/`report_json`. The legacy `/documents` route still runs the same engine ad-hoc. **Six rulesets are authored + active** — UG Ayurveda/Unani/Sowa-Rigpa + PG Ayurveda/Unani/Siddha; only **UG Siddha** has no active ruleset (no `MESAR_UG_Siddha` source in repo), so those cases `process` fail loudly (`NO_ACTIVE_RULESET` → `status = failed`). The non-Ayurveda extractors are not yet tuned to those report layouts (Ayurveda-format regexes), so live non-Ayurveda/PG params mostly resolve `insufficient-data` — the documented extraction gap.
 
 ## 13. API summary (`/api/v1`)
 
@@ -306,11 +306,11 @@ npm run db:setup                 # migrate + seed (idempotent) → 672 instituti
 npm start                        # API on :3000
 cd ../frontend && npm install && npm run dev   # SPA on :5173
 ```
-Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (70 pass). Per-role SoD E2E (server + DB up): `node scripts/e2e-rbac.mjs`.
+Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (73 pass). Per-role SoD E2E (server + DB up): `node scripts/e2e-rbac.mjs`.
 
 ## 15. Known limitations
 
-- **Three UG rulesets authored/active** (Ayurveda, Unani, Sowa-Rigpa — Phase 7a/7b). Siddha-UG and all PG levels have no active ruleset, so those cases `process` fail loudly (`NO_ACTIVE_RULESET`). Separately, the parameter **extractors are still Ayurveda-report-shaped**, so live Unani/Sowa-Rigpa uploads mostly resolve `insufficient-data`; the golden fixtures for those systems are synthetic (hand-authored ParameterSets) until the extractors are tuned to real reports.
+- **Six rulesets authored/active** — UG Ayurveda/Unani/Sowa-Rigpa + PG Ayurveda/Unani/Siddha (Phase 7a–7c). Only **UG Siddha** has no active ruleset (no `MESAR_UG_Siddha` source in repo), so those cases `process` fail loudly (`NO_ACTIVE_RULESET`). Separately, the parameter **extractors are still Ayurveda-UG-report-shaped**, so live non-Ayurveda/PG uploads mostly resolve `insufficient-data`; the golden fixtures for those rulesets are synthetic (hand-authored ParameterSets) until the extractors are tuned to real reports.
 - **Letters are fully data-driven only for Ayurveda-UG** (the only ruleset produces a report); uncaptured subject fields render as `[[editable]]` markers the board fills before signing.
 - **Audit is path-derived** (entity/action from the URL + status); precise before/after value diffs are a later refinement.
 - **Mock credentials:** org users use `MOCK_PASSWORD` (seed default `Password123`); bootstrap admin uses `ADMIN_PASSWORD` (code default `Admin123`). Note: pre-existing users keep their original hash (the seed doesn't clobber), so the actual value can drift from the default — the authoritative logins are in [AuthCred.md](AuthCred.md) (untracked). Placeholders — replace before any non-local use.
@@ -321,7 +321,7 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (70 
 
 ## 16. Pending work (next: Phase 7 remainder)
 
-- **Phase 7 — Non-Ayurveda rulesets** *(7a/7b done)*: UG **Unani** (`mesar-ug-unani-2023`) + UG **Sowa-Rigpa** (`mesar-ug-sowa-rigpa-2023`) are authored, templated, golden-tested, and active. Remaining: UG **Siddha** (no `MESAR_UG_Siddha` source in repo) + the **PG** rulesets (PG Ayurveda/Unani/Siddha sources exist), and **tuning the parameter extractors** to real non-Ayurveda report layouts so live uploads assess (today non-Ayurveda params resolve `insufficient-data`; the golden fixtures are synthetic).
+- **Phase 7 — Non-Ayurveda rulesets** *(7a–7c done)*: UG **Unani** + UG **Sowa-Rigpa** + PG **Ayurveda/Unani/Siddha** are authored, templated, golden-tested, and active (six rulesets total with UG Ayurveda). Remaining: UG **Siddha** (no `MESAR_UG_Siddha` source in repo) + **tuning the parameter extractors** to real non-Ayurveda/PG report layouts so live uploads assess (today those params resolve `insufficient-data`; the golden fixtures are synthetic). PG is modeled on **flat standards** (no engine changes) — guide:student + per-dept bed ratios stay report-driven.
 - **Phase 8 — Notifications / "next action" feed:** in-app + email when a case enters your queue.
 - **Phase 9 — Production readiness:** real secrets/creds, CORS/HTTPS, rate-limiting, DB backups, CI/CD, container deploy, observability; replace all mock credentials; rotate `JWT_SECRET`.
 - **Phase 10 — Reports depth & document polish:** date-range + per-institution drill-down, report snapshots, PDF export of assessments/letters, retire the legacy Dexie `/documents` workflow.
@@ -345,8 +345,8 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (70 
 - **Adding a case action/transition:** add it to `POLICY[status]` in `workflow.service.js` (with a capability), implement the op in `application.service.js` (guard via `assertCan`, write an `application_events` row), expose a route/controller method, and add the button to `ACTION_DEFS` / `SPECIAL` in `ApplicationDetail.jsx` — it renders automatically from `allowedActions`.
 - **Adding a role:** insert into `roles` + map `role_permissions` in a seed (see `010_hearing_meeting_rbac.js`); add a `hasCapability` case in `workflow.service` if it acts on cases; add to `ROLE_PRIORITY` + a `DashboardLayout` nav branch; seed mock users.
 - **Adding an endpoint:** route → controller → service → repository; guard with `authenticate` + `requirePermission`. Keep the `{ success, ... }` / `ApiError` envelope.
-- **Adding a migration/seed:** next numbers are migration `012_*`, seed `017_*`. Enum `ADD VALUE` needs `exports.config = { transaction: false }` (see `005`/`006`). Keep seeds idempotent.
+- **Adding a migration/seed:** next numbers are migration `012_*`, seed `018_*`. Enum `ADD VALUE` needs `exports.config = { transaction: false }` (see `005`/`006`). Keep seeds idempotent.
 - **Adding a generated letter kind:** add a renderer in `services/letter.service.js` (reuse `report_json.findings`/`punitiveSummary`) + wire `issue()` into the relevant case action; add a `LETTER_LABELS` entry + a `previewLetter` prefill in `ApplicationDetail.jsx`.
 - **Frontend server data:** TanStack Query hooks; build role-relative links from the current location (see `InstitutionsList`/`ApplicationsList`) so pages work under `/:role/*` and `/admin/*`.
 - **Adding a ruleset (new system/level):** drop `data/rulesets/<id>/<version>/` (rules + punitive policy JSON + report template), register a `ruleset_versions` row (seed like `015_rulesets.js`), then `POST /rulesets/:id/activate {boardRef}`. `resolveForCase` then routes that (system, level) to it — no engine code change.
-- **Run the DB before backend tests/seed** (`docker compose up -d db`). `npm test` covers the engines + the RBAC matrix + non-Ayurveda golden cases (70 tests) and does not need the portal DB; `scripts/e2e-rbac.mjs` does.
+- **Run the DB before backend tests/seed** (`docker compose up -d db`). `npm test` covers the engines + the RBAC matrix + non-Ayurveda + PG golden cases (73 tests) and does not need the portal DB; `scripts/e2e-rbac.mjs` does.

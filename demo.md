@@ -56,7 +56,7 @@ npm run dev                     # SPA on http://localhost:5173
 ```
 CORS already allows `http://localhost:5173` by default.
 
-> First `Process` run spawns the OpenDataLoader CLI (`OPENDATALOADER_CLI_PATH` in `backend/.env`); the golden-path fixture below is an Ayurveda report. UG **Ayurveda/Unani/Sowa-Rigpa** rulesets are active; Siddha-UG + PG cases `Process`-fail (`NO_ACTIVE_RULESET`), and live Unani/Sowa-Rigpa extraction still needs tuning (known limits).
+> First `Process` run spawns the OpenDataLoader CLI (`OPENDATALOADER_CLI_PATH` in `backend/.env`); the golden-path fixture below is an Ayurveda report. Six rulesets are active — UG **Ayurveda/Unani/Sowa-Rigpa** + PG **Ayurveda/Unani/Siddha**; only **UG Siddha** cases `Process`-fail (`NO_ACTIVE_RULESET`), and live non-Ayurveda/PG extraction still needs tuning (known limits).
 
 ---
 
@@ -195,4 +195,4 @@ approved ─(secretariat dispatch)→ closed        (closed = terminal, immutabl
 - **Roles/logins:** [AuthCred.md](AuthCred.md). 
 - **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) → *Case lifecycle*.
 - **Phase 6 (built):** ruleset registry + activation (SoD) + per-case resolution (admin **Rulesets** page); async processing worker (pg-boss; `ASYNC_PROCESSING`); RBAC-matrix test + per-role E2E (`backend/scripts/e2e-rbac.mjs`); TOTP **MFA** (Settings → Two-factor; login step-up); frontend code-splitting.
-- **Phase 7a/7b (built):** UG **Unani** + UG **Sowa-Rigpa** rulesets authored + active (registry resolves them per case). **Remaining:** UG Siddha + PG content + tuning extractors to non-Ayurveda report layouts; then notifications (8), production readiness (9), reports depth (10).
+- **Phase 7a–7c (built):** UG **Unani** + UG **Sowa-Rigpa** + PG **Ayurveda/Unani/Siddha** rulesets authored + active (six total; registry resolves them per case). **Remaining:** UG Siddha + tuning extractors to non-Ayurveda/PG report layouts; then notifications (8), production readiness (9), reports depth (10).

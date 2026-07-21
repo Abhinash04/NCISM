@@ -16,8 +16,8 @@ Authoritative reference for the NCISM Assessment Platform foundation. Anything u
 > (6d). Design blueprint + roadmap:
 > **[INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md)**; cold-start handoff:
 > **[../HANDOFF.md](../HANDOFF.md)**. `docs/srs/` + `PROJECT_HANDOFF_KT_GAP_ANALYSIS.md` are the
-> reference superset. **Planned (not built):** non-Ayurveda ruleset **content**
-> Siddha-UG + PG content (UG Unani + UG Sowa-Rigpa authored/active in Phase 7a/7b).
+> reference superset. **Phase 7a–7c:** UG Unani/Sowa-Rigpa + PG Ayurveda/Unani/Siddha rulesets
+> authored/active (six with UG Ayurveda). **Remaining:** UG Siddha content + non-Ayurveda/PG extractor tuning.
 
 ## System overview
 
@@ -57,8 +57,8 @@ workflow-state guard, **structured board outcomes + official letter/order genera
 **system-wide audit log** (4), a **compliance/penalty ledger + monitoring** (5a),
 **reports/analytics + CSV export** (5b), a **multi-ruleset registry + activation + per-case
 resolution** (6a), an **async pg-boss processing worker** (6b), **RBAC-matrix + per-role E2E** (6c),
-and **TOTP MFA + code-splitting** (6d). Not built (Planned): non-Ayurveda ruleset **content**
-Siddha-UG + PG content (UG Unani + UG Sowa-Rigpa authored/active in Phase 7a/7b).
+and **TOTP MFA + code-splitting** (6d). **Phase 7a–7c:** UG Unani/Sowa-Rigpa + PG Ayurveda/Unani/Siddha
+rulesets authored/active. Remaining (Planned): UG Siddha content + non-Ayurveda/PG extractor tuning.
 
 ### Authentication & session flow
 
@@ -182,8 +182,8 @@ src/
 ├── db/
 │   ├── index.js               singleton Knex instance (+ assertConnection on boot)
 │   ├── migrations/            001_auth_rbac … 009_penalties · 010_ruleset_versions · 011_user_mfa
-│   └── seeds/                 001_rbac … 014_application_delete_rbac · 015_rulesets · 016_activate_ug_systems
-│                              (RBAC, 672 institutions, org + lifecycle mock users, UG Ayurveda/Unani/Sowa-Rigpa active)
+│   └── seeds/                 001_rbac … 015_rulesets · 016_activate_ug_systems · 017_activate_pg_systems
+│                              (RBAC, 672 institutions, org + lifecycle mock users, 6 rulesets active: UG Ay/Un/SR + PG Ay/Un/Si)
 ├── routes/                    thin HTTP layer — index mounts: /auth · /(extract) · /jobs · /assessments
 │                              · /institutions · /admin · /applications · /meetings · /audit · /penalties · /reports · /rulesets
 ├── controllers/               auth · institution · org · application · meeting · audit · penalty · report · assessments · extract · jobs · health
@@ -476,13 +476,14 @@ legacy document workflow keeps its Dexie/IndexedDB local store.
 | --- | --- |
 | DOCX/XLSX/image extraction | register a pipeline in `engines/extraction/index.js` |
 | Cloud/object storage | new implementation of the job repository contract |
-| New regulations (Siddha, PG…) | new ruleset directory + `ruleset_versions` row + activation + a report template module in `reporter/templates/` (`resolveForCase` routes it automatically). UG Ayurveda/Unani/Sowa-Rigpa are authored/active; Siddha-UG + PG have no active ruleset yet (`NO_ACTIVE_RULESET`) |
+| New regulations (UG Siddha…) | new ruleset directory + `ruleset_versions` row + activation + a report template module in `reporter/templates/` (`resolveForCase` routes it automatically). Six rulesets active (UG Ay/Un/SR + PG Ay/Un/Si); only UG Siddha has no active ruleset (`NO_ACTIVE_RULESET`) |
 
-**Partially built (Phase 7a/7b):** UG **Unani** + UG **Sowa-Rigpa** rulesets are authored, templated,
-golden-tested, and active (alongside UG Ayurveda). **Remaining:** UG Siddha + PG ruleset content and
-tuning the parameter extractors to real non-Ayurveda report layouts (today those params resolve
-`insufficient-data`; golden fixtures are synthetic). Then notifications (8), production readiness (9),
-reports depth (10). See
+**Partially built (Phase 7a–7c):** UG **Unani** + UG **Sowa-Rigpa** + PG **Ayurveda/Unani/Siddha**
+rulesets are authored, templated, golden-tested, and active (six with UG Ayurveda). PG uses a
+flat-standards model (no engine changes); guide:student + per-dept bed ratios stay report-driven.
+**Remaining:** UG Siddha ruleset content and tuning the parameter extractors to real non-Ayurveda/PG
+report layouts (today those params resolve `insufficient-data`; golden fixtures are synthetic). Then
+notifications (8), production readiness (9), reports depth (10). See
 [INTERNAL-PORTAL-BLUEPRINT.md](INTERNAL-PORTAL-BLUEPRINT.md) and [../HANDOFF.md](../HANDOFF.md).
 
 ## Domain sources

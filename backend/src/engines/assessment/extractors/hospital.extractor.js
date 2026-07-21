@@ -132,6 +132,20 @@ function extract(markdown, lines, elements) {
     ? found(/available|yes|functional/i.test((crRow.cells || []).map(textOf).join(' ')), 'hospital-json', 'central registration row')
     : missing();
 
+  // Bed figures the non-Ayurveda / PG rulesets check. From the proforma "beds"
+  // table / lines; `findNumber` reads the HTML table row then a strict line.
+  // Missing when absent (precision-first) — populates on any same-proforma report.
+  const bedFields = [
+    ['ipdBeds', /Total number of Beds.{0,30}(UG intake|intake capacity)/i],
+    ['medicalSectionBeds', /Medical (In-?Patient )?Section.{0,12}beds?/i],
+    ['surgicalSectionBeds', /Surgical (In-?Patient )?Section.{0,12}beds?/i],
+    ['ipdAverageDaily', /average.{0,25}patients?.{0,25}(IPD|In-?Patient Department)|per day.{0,25}In-?Patient/i],
+  ];
+  for (const [param, label] of bedFields) {
+    const hit = findNumber(markdown, lines, label);
+    params[param] = hit && hit.value !== null ? found(hit.value, 'hospital', hit.evidence) : missing();
+  }
+
   params.hospitalStaff = missing();
 
   if (elements) {

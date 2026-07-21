@@ -78,6 +78,19 @@ test('hand-verified document values for AYU0659 (guards the fixture itself)', ()
   assert.strictEqual(v('aebasNonTeaching'), false);
   assert.strictEqual(v('aebasHospital'), false);
   assert.strictEqual(v('aebasImplemented'), false);
+
+  // Non-Ayurveda / PG parameters extracted from the shared Part-I proforma
+  // (added so live Unani/Siddha/Sowa-Rigpa/PG uploads assess). Validated here
+  // against the Ayurveda proforma — the format is shared across systems.
+  assert.strictEqual(v('landAcres'), 5.285);              // "Total Land Area(in acres) 5 5.285"
+  assert.strictEqual(v('seminarHallAvailable'), true);    // auditorium/seminar hall row present
+  assert.strictEqual(v('ipdBeds'), 100);                  // "Total number of Beds … UG intake"
+  assert.strictEqual(v('constructedAreaTotalSqm'), 8337.59); // college 4585.59 + hospital 3752
+  // Naming-reconciled aliases (same datum under the non-Ayurveda rule's name)
+  assert.strictEqual(v('herbalGardenAreaSqm'), 4110);     // ← constructedAreaHerbalSqm
+  assert.strictEqual(v('herbalGardenSpecies'), 251);      // ← herbalSpecies
+  assert.strictEqual(v('bedOccupancy'), v('bedOccupancyPercent')); // ← bedOccupancyPercent
+  assert.strictEqual(v('digitalLibraryComputers'), 12);   // ← libraryComputers
 });
 
 test('AYU0265 OR-form requirements and authoritative totals', () => {

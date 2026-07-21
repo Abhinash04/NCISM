@@ -1,0 +1,25 @@
+{
+  "description": "Synthetic golden ParameterSet for a PG Unani department (PGUNA001, 6 seats). PG department area / seminar / beds compliant; departmental bed occupancy short of 60% -> seat-reduction. Staff omitted -> insufficient-data.",
+  "values": {
+    "institutionName": "National PG Institute of Unani Medicine",
+    "institutionId": "PGUNA001",
+    "location": "Hyderabad, Telangana",
+    "intake": 6,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-Un-PG.(04)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-06-14",
+    "visitationEndDate": "2026-06-15",
+    "visitors": [
+      { "name": "Dr. Mohd Farhan", "id": "V06210" },
+      { "name": "Dr. Ayesha Khan", "id": "V06255" }
+    ],
+    "pgDepartmentAreaSqm": 25,
+    "seminarHallAvailable": true,
+    "ipdBeds": 24,
+    "bedOccupancyPercent": 59,
+    "digitalLibraryComputers": 2,
+    "aebasImplemented": true,
+    "websiteFunctional": true
+  }
+}

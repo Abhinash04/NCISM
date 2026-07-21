@@ -1,0 +1,63 @@
+[
+  {
+    "id": "compliance.digital-computers",
+    "category": "compliance",
+    "title": "Digital library computer systems for PG (1:5)",
+    "regulationRef": "MESAR (PG) Unani 2024",
+    "parameter": "digitalLibraryComputers",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "2": 1, "3": 1, "4": 1, "5": 1, "6": 2, "8": 2, "12": 3 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Digital library has {actual} PG computer systems against the requirement of {expected} (1 per 5 PG students).",
+      "fail": "Digital library has {actual} PG computer systems against the requirement of {expected} (1 per 5 PG students) - not fulfilling.",
+      "missing": "Number of PG digital-library computer systems could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "compliance.aebas",
+    "category": "compliance",
+    "title": "Aadhaar Enabled Biometric Attendance System (AEBAS)",
+    "regulationRef": "MESAR (PG) Unani 2024 - biometric attendance",
+    "parameter": "aebasImplemented",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "critical",
+    "punitive": { "policyKey": "aebas" },
+    "report": {
+      "section": "biometric-attendance",
+      "order": 9,
+      "pass": "Aadhaar Enabled Biometric Attendance System is implemented and functional.",
+      "fail": "Aadhaar Enabled Biometric Attendance System is not implemented or not functional.",
+      "missing": "AEBAS implementation status could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "compliance.website",
+    "category": "compliance",
+    "title": "College website",
+    "regulationRef": "MESAR (PG) Unani 2024 - college website",
+    "parameter": "websiteFunctional",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "website",
+      "order": 10,
+      "pass": "Functional",
+      "fail": "Not functional",
+      "missing": "College website status could not be determined - manual verification required."
+    }
+  }
+]

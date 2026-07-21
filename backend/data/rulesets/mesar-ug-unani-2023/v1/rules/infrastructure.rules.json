@@ -1,0 +1,110 @@
+[
+  {
+    "id": "infra.land",
+    "category": "infrastructure",
+    "title": "Minimum requirement of land",
+    "regulationRef": "Regulation 5, Table-1, MESAR (UG) Unani 2023",
+    "parameter": "landAcres",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 3.0, "100": 5.0, "150": 7.0, "200": 9.0 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "land",
+      "order": 1,
+      "pass": "Land available is {actual} acres against the requirement of {expected} acres - fulfilling.",
+      "fail": "Land available is {actual} acres against the requirement of {expected} acres - not fulfilling.",
+      "missing": "Land area could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "infra.college-constructed-area",
+    "category": "infrastructure",
+    "title": "Constructed area of the college",
+    "regulationRef": "Regulation 6, Table-2, MESAR (UG) Unani 2023",
+    "parameter": "constructedAreaCollegeSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 3165, "100": 5080, "150": 7045, "200": 9035 } },
+      "tolerance": { "type": "percentOfExpected", "value": 20 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "constructed-area",
+      "order": 2,
+      "pass": "Constructed area of the college is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Constructed area of the college is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Constructed area of the college could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.hospital-constructed-area",
+    "category": "infrastructure",
+    "title": "Constructed area of the hospital",
+    "regulationRef": "Regulation 6, Table-2, MESAR (UG) Unani 2023",
+    "parameter": "constructedAreaHospitalSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 3140, "100": 4475, "150": 5885, "200": 7245 } },
+      "tolerance": { "type": "percentOfExpected", "value": 20 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-constructed-area",
+      "order": 14,
+      "pass": "**Constructed area of the hospital is fulfilling the requirement as per Table-2 of MESAR (UG) Unani 2023**",
+      "fail": "**Constructed area of the hospital is not fulfilling the requirement as per Table-2 of MESAR (UG) Unani 2023**",
+      "missing": "Constructed area of the hospital could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.total-constructed-area",
+    "category": "infrastructure",
+    "title": "Total constructed area of college and attached teaching hospital",
+    "regulationRef": "Regulation 6, Table-2, MESAR (UG) Unani 2023",
+    "parameter": "constructedAreaTotalSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 6305, "100": 9555, "150": 12930, "200": 16280 } },
+      "tolerance": { "type": "percentOfExpected", "value": 20 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "constructed-area",
+      "order": 2,
+      "pass": "Total constructed area is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Total constructed area is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Total constructed area could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.clinical-skill-rooms",
+    "category": "infrastructure",
+    "title": "Clinical Skill or Simulation Laboratory - demonstration cum practice rooms",
+    "regulationRef": "Table-5, MESAR (UG) Unani 2023",
+    "parameter": "clinicalSkillRooms",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 1, "100": 2, "150": 3, "200": 4 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "clinical-skill-lab",
+      "order": 5,
+      "pass": "No. of demonstration cum practice rooms is {actual} against the requirement of {expected} - fulfilling.",
+      "fail": "No. of demonstration cum practice rooms is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Number of clinical skill / simulation rooms could not be determined - manual verification required."
+    }
+  }
+]

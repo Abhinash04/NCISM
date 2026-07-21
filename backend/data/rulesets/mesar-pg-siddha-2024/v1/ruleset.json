@@ -1,0 +1,16 @@
+{
+  "id": "mesar-pg-siddha-2024",
+  "version": "v1",
+  "title": "Minimum Essential Standards, Assessment and Rating for Postgraduate Institutions and Minimum Standards of Postgraduate Siddha Education Regulations, 2024",
+  "system": "Siddha",
+  "course": "PG (Siddha)",
+  "supportedIntakes": [2, 3, 4, 5, 6, 8, 12],
+  "ruleFiles": [
+    "rules/infrastructure.rules.json",
+    "rules/hospital.rules.json",
+    "rules/staffing.rules.json",
+    "rules/compliance.rules.json"
+  ],
+  "punitivePolicy": "punitive-policy-2026.json",
+  "notes": "PG Siddha 2024. Per-programme, ratio-driven model — only the flat/threshold-shaped standards confirmed in the source are encoded: PG teaching-department area (>=25 sqm), seminar hall, additional IPD beds at 1:4 per PG seat (byIntake), departmental average bed occupancy (>=60%), digital library computers 1:5 (byIntake), AEBAS, website. Guide:student ratios + per-department cadres are report-driven (staff-table/roster). supportedIntakes are representative per-programme PG seat counts. Punitive policy is the ASU-wide board policy (2026-27)."
+}

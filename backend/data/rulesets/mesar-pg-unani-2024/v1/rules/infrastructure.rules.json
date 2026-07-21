@@ -1,0 +1,43 @@
+[
+  {
+    "id": "infra.pg-department-area",
+    "category": "infrastructure",
+    "title": "Postgraduate teaching department area",
+    "regulationRef": "Regulation 5, MESAR (PG) Unani 2024",
+    "parameter": "pgDepartmentAreaSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 25 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "infrastructure",
+      "order": 4,
+      "pass": "Postgraduate teaching department area is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Postgraduate teaching department area is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Postgraduate teaching department area could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "infra.seminar-hall",
+    "category": "infrastructure",
+    "title": "Postgraduate seminar hall",
+    "regulationRef": "Regulation 5(2), MESAR (PG) Unani 2024",
+    "parameter": "seminarHallAvailable",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "infrastructure",
+      "order": 4,
+      "pass": "A Postgraduate seminar hall (ICT-enabled) is available.",
+      "fail": "A Postgraduate seminar hall is not available.",
+      "missing": "Postgraduate seminar hall availability could not be determined - manual verification required."
+    }
+  }
+]

@@ -1,0 +1,6 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+# Per-run job artifacts + extracted page images (regeneratable)
+temp/

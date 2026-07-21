@@ -1,16 +1,16 @@
-**![C:\Users\hp\Downloads\Letter Head1 - Copy_page-0001.jpg](data:image/jpeg;base64...) Hearing Notice**
+![](images/letter-head.jpg)
 
-**Øekad/ Ref. No. 4-70/MARB/2025-AY. fnukad/Dated: 23.07.2025**
+# Hearing Notice
+
+**Ref. No.:** 4-70/MARB/2025-AY. (PB)
+**Dated:** 23.07.2025
 
 To,
-
-**The Principal,**
-
+The Principal
 Smt. Urmila Devi Ayurvedic College of Medical Sciences & Hospital,
-
 UNA Road (10 Km), V & P.O Kharkan,
-
-Distt. Hoshiarpur-146001, Punjab **(Inst. ID-AYU0221)**
+Distt. Hoshiarpur-146001, Punjab
+**(Inst. ID-AYU0221)**
 
 **E-mail:-** **2002ayu0221@gmail.com**
 
@@ -26,15 +26,15 @@ Further, in view of above, the college has been assessed on the basis of concern
 2. **Availability of total teaching staff for UG ( BAMS) Course as per the part 1 submitted by the college is** $\frac{Available}{Required}x100\%=\frac{25}{30}x100\%= 83.33$**% (Excluding Excess)**
 3. **Shortcoming is as under-**
 
-|  |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **S.**  **No.** | **Department** | **Minimum Requirement as per Regulations**  **(for UG upto 60 seats)** | **No. Of Existing Teachers** | | | | | **Shortcomings of HF and LF** |
-| **Professor** | **Asso. Prof. / Reader** | **Asst. Prof. / Lecturer** | **Total** | **Excess** |
-|  | Rachana Sharir | 1P or 1R  +1L | 0 | 0 | 2 | 2 |  | **1HF** |
-|  | Rog Nidan avum Vikriti Vigyan | 1P or 1R  +1L | 0 | 0 | 1 | 1 |  | **1HF** |
-|  | Agad Tantra avum Vidhi Vaidyaka | 1P or 1R  +1L | 0 | 1 | 0 | 1 |  | **1LF** |
-|  | Kaumar bhritya-Bala Roga | 1P or 1R  +1L | 0 | 0 | 1 | 1 |  | **1HF** |
-|  | Kayachikitsa | 1P and 1R  +1L | 0 | 2 | 1 | 3 |  | **1P** |
+|                |                                 |                                                                       |                              |            |     |     |     |                               |
+| -------------- | ------------------------------- | --------------------------------------------------------------------- | ---------------------------- | ---------- | --- | --- | --- | ----------------------------- |
+| **S.** **No.** | **Department**                  | **Minimum Requirement as per Regulations** **(for UG upto 60 seats)** | **No. Of Existing Teachers** |            |     |     |     | **Shortcomings of HF and LF** |
+| **Professor**  | **Asso. Prof. / Reader**        | **Asst. Prof. / Lecturer**                                            | **Total**                    | **Excess** |
+|                | Rachana Sharir                  | 1P or 1R +1L                                                          | 0                            | 0          | 2   | 2   |     | **1HF**                       |
+|                | Rog Nidan avum Vikriti Vigyan   | 1P or 1R +1L                                                          | 0                            | 0          | 1   | 1   |     | **1HF**                       |
+|                | Agad Tantra avum Vidhi Vaidyaka | 1P or 1R +1L                                                          | 0                            | 1          | 0   | 1   |     | **1LF**                       |
+|                | Kaumar bhritya-Bala Roga        | 1P or 1R +1L                                                          | 0                            | 0          | 1   | 1   |     | **1HF**                       |
+|                | Kayachikitsa                    | 1P and 1R +1L                                                         | 0                            | 2          | 1   | 3   |     | **1P**                        |
 
 Accordingly, the aforementioned shortcomings/defects found in the assessment report was informed to you vide letter of even no. dated **19.06.2025. In response of the same you have submitted the clarification vide letter ref. No. SUDACMS/2025-26/177 dated 20-06-2025.**
 

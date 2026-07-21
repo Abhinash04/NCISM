@@ -1,0 +1,25 @@
+{
+  "description": "Synthetic golden ParameterSet for a PG Siddha department (PGSID001, 6 seats). PG department area / seminar / beds compliant; departmental bed occupancy short of 60% -> seat-reduction. Staff omitted -> insufficient-data.",
+  "values": {
+    "institutionName": "National PG Institute of Siddha Medicine",
+    "institutionId": "PGSID001",
+    "location": "Chennai, Tamil Nadu",
+    "intake": 6,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-Si-PG.(03)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-06-14",
+    "visitationEndDate": "2026-06-15",
+    "visitors": [
+      { "name": "Dr. Tamil Selvan", "id": "V06301" },
+      { "name": "Dr. Meena Kumari", "id": "V06344" }
+    ],
+    "pgDepartmentAreaSqm": 25,
+    "seminarHallAvailable": true,
+    "ipdBeds": 24,
+    "bedOccupancyPercent": 59,
+    "digitalLibraryComputers": 2,
+    "aebasImplemented": true,
+    "websiteFunctional": true
+  }
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "hospital.ipd-beds",
+    "category": "hospital",
+    "title": "Additional IPD beds for the PG department (4:1 per PG seat)",
+    "regulationRef": "Regulation 5, MESAR (PG) Ayurveda 2024",
+    "parameter": "ipdBeds",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "8": 32, "12": 48 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Additional PG-department IPD beds are {actual} against the requirement of {expected} (4 per PG seat).",
+      "fail": "Additional PG-department IPD beds are {actual} against the requirement of {expected} (4 per PG seat) - not fulfilling.",
+      "missing": "Additional PG-department IPD bed count could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "hospital.bed-occupancy",
+    "category": "hospital",
+    "title": "Departmental average bed occupancy",
+    "regulationRef": "Regulation 5, MESAR (PG) Ayurveda 2024",
+    "parameter": "bedOccupancyPercent",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 80 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "bed-occupancy" },
+    "report": {
+      "section": "hospital-functionality",
+      "order": 14,
+      "pass": "Average bed occupancy is {actual}% against the minimum requirement of {expected}%.",
+      "fail": "Average bed occupancy is {actual}% against the minimum requirement of {expected}% - not fulfilling.",
+      "missing": "Average bed occupancy could not be determined - manual verification required."
+    }
+  }
+]

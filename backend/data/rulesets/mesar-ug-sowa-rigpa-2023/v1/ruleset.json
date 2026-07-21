@@ -1,0 +1,17 @@
+{
+  "id": "mesar-ug-sowa-rigpa-2023",
+  "version": "v1",
+  "title": "Minimum Essential Standards, Assessment and Rating for Undergraduate Sowa-Rigpa Colleges and Attached Teaching Hospitals Regulations, 2023",
+  "system": "Sowa-Rigpa",
+  "course": "UG (BSRMS)",
+  "supportedIntakes": [15, 30],
+  "ruleFiles": [
+    "rules/infrastructure.rules.json",
+    "rules/herbal.rules.json",
+    "rules/hospital.rules.json",
+    "rules/staffing.rules.json",
+    "rules/compliance.rules.json"
+  ],
+  "punitivePolicy": "punitive-policy-2026.json",
+  "notes": "Thresholds transcribed from MESAR (UG) Sowa-Rigpa 2023 (markdown/MESAR_UG_Sowa-Rigpa.md). Sowa-Rigpa is a small system with two intake slabs (up to 15, and 16-30) — keyed here as 15 and 30. Standards: land (Reg 4), beds + IPD/OPD averages + 30% bed occupancy (Table-1/Table-3), herbal garden area + species (Schedule-III), minimum four clinical departments (Reg 4(4)(d)), 75% equipment availability (Schedule VII-XIII). Faculty/hospital/non-teaching cadre schedules (Schedules IV-VI) are referenced but not tabulated in the source markdown, so those staff rules reuse the staff-table/roster mechanism and depend on parameters the Ayurveda-tuned extractors do not yet emit (documented gap). Punitive mechanics are the board-wide policy (2026-27)."
+}

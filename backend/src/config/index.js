@@ -34,12 +34,24 @@ const config = Object.freeze({
   openDataLoaderCliPath:
     process.env.OPENDATALOADER_CLI_PATH ||
     'D:\\opendataloader-pdf\\.venv\\Scripts\\opendataloader-pdf.exe',
+  // Run the ~3–35s engine on a pg-boss background queue (default). Set
+  // ASYNC_PROCESSING=false to run inline in-request (used by tests/simple dev).
+  asyncProcessing: process.env.ASYNC_PROCESSING !== 'false',
   jobRetentionHours: intFromEnv('JOB_RETENTION_HOURS', 24),
   keepJobs: process.env.KEEP_JOBS === 'true',
   maxUploadMb: intFromEnv('MAX_UPLOAD_MB', 100),
   tempDir: path.join(backendRoot, 'temp'),
   uploadsDir: path.join(backendRoot, 'temp', 'uploads'),
   dataDir: path.join(backendRoot, 'data'),
+
+  // --- Portal foundation (Phase 0/1) ---
+  databaseUrl: process.env.DATABASE_URL || '',
+  auth: {
+    jwtSecret: process.env.JWT_SECRET || 'dev-only-change-me',
+    accessTtl: process.env.JWT_ACCESS_TTL || '15m',
+    refreshTtl: process.env.JWT_REFRESH_TTL || '7d',
+    bcryptRounds: intFromEnv('BCRYPT_ROUNDS', 12),
+  },
 });
 
 module.exports = config;

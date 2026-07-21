@@ -1,0 +1,28 @@
+{
+  "description": "Synthetic golden ParameterSet for a PG Ayurveda department (PGAYU001, 6 seats). Infrastructure/library/beds compliant; departmental bed occupancy short of 80% -> seat-reduction. Staff omitted -> insufficient-data (extraction not tuned for PG reports).",
+  "values": {
+    "institutionName": "National PG Institute of Ayurveda",
+    "institutionId": "PGAYU001",
+    "location": "Jaipur, Rajasthan",
+    "intake": 6,
+    "academicYear": "2026-27",
+    "fileNo": "3-4/MARB/2025-Ay-PG.(11)",
+    "purposeOfVisitation": "Annual visitation for issuance of Annual permission",
+    "visitationStartDate": "2026-06-10",
+    "visitationEndDate": "2026-06-11",
+    "visitors": [
+      { "name": "Dr. Anjali Sharma", "id": "V06001" },
+      { "name": "Dr. Ramesh Gupta", "id": "V06044" }
+    ],
+    "landAcres": 5.0,
+    "centralLibraryAreaSqm": 160,
+    "digitalLibraryAreaSqm": 45,
+    "seminarHallAvailable": true,
+    "studentSupportCellAreaSqm": 22,
+    "ipdBeds": 24,
+    "bedOccupancyPercent": 78,
+    "digitalLibraryComputers": 2,
+    "aebasImplemented": true,
+    "websiteFunctional": true
+  }
+}

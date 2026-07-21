@@ -4,7 +4,7 @@
  * reporting chain (supervisor_id), assigns org roles, and seeds staff_allotments
  * for the junior consultants by parsing markdown/Work Allotment in Staff.md.
  *
- * Mock password: MOCK_PASSWORD env (default 'Password123!'). Idempotent by email.
+ * Mock password: MOCK_PASSWORD env (default 'Password123'). Idempotent by email.
  * These are placeholders — replace with real credentials before production.
  */
 
@@ -87,7 +87,7 @@ function parseAllotments(text) {
 }
 
 exports.seed = async function seed(knex) {
-  const password = process.env.MOCK_PASSWORD || 'Password123!';
+  const password = process.env.MOCK_PASSWORD || 'Password123';
   const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
   const passwordHash = await bcrypt.hash(password, rounds);
 

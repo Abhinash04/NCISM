@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 
 exports.seed = async function seed(knex) {
   const email = (process.env.ADMIN_EMAIL || 'admin@ncism.local').toLowerCase();
-  const password = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
+  const password = process.env.ADMIN_PASSWORD || 'Admin123';
   const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
 
   const existing = await knex('users').where({ email }).first();

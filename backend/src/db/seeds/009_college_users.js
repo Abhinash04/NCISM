@@ -9,6 +9,9 @@ const bcrypt = require('bcryptjs');
 const COLLEGES = [
   { email: 'college.ayu0140@ncism.local', name: 'Principal, AYU0140', instituteId: 'AYU0140' },
   { email: 'college.ayu0001@ncism.local', name: 'Principal, AYU0001', instituteId: 'AYU0001' },
+  { email: 'college.ayu0038@ncism.local', name: 'Principal, AYU0038', instituteId: 'AYU0038' },
+  { email: 'college.ayu0265@ncism.local', name: 'Principal, AYU0265', instituteId: 'AYU0265' },
+  { email: 'college.ayu0659@ncism.local', name: 'Principal, AYU0659', instituteId: 'AYU0659' },
 ];
 
 exports.seed = async function seed(knex) {

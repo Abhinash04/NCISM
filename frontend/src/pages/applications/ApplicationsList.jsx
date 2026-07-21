@@ -31,6 +31,7 @@ export const STATUS_META = {
 
 // Per-role page title for the shared queue.
 const TITLE_BY_ROLE = {
+  admin: 'All cases',
   visitor: 'My uploads',
   junior_consultant: 'My case queue',
   senior_consultant: 'Review queue',

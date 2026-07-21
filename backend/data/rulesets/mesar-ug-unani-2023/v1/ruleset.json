@@ -8,6 +8,7 @@
   "ruleFiles": [
     "rules/infrastructure.rules.json",
     "rules/library.rules.json",
+    "rules/herbal.rules.json",
     "rules/hospital.rules.json",
     "rules/staffing.rules.json",
     "rules/compliance.rules.json"

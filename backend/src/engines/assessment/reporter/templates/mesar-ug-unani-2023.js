@@ -33,6 +33,7 @@ const SECTION_ORDER = [
   ['constructed-area', 'Constructed Area'],
   ['clinical-skill-lab', 'Clinical Skill / Simulation Laboratory'],
   ['library', 'Central Library'],
+  ['herbal-garden', 'Herbal Garden'],
   ['biometric-attendance', 'Biometric Attendance (AEBAS)'],
   ['website', 'College Website'],
   ['hospital-constructed-area', 'Hospital Constructed Area'],

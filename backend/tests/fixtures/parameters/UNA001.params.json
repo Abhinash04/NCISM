@@ -24,6 +24,8 @@
     "librarySittingCapacity": 120,
     "libraryDigitalStations": 25,
     "librarySeatingAdequate": true,
+    "herbalGardenAreaSqm": 4000,
+    "herbalGardenSpecies": 200,
     "opdAverageDaily": 180,
     "ipdBeds": 100,
     "medicalSectionBeds": 55,

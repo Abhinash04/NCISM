@@ -3,12 +3,12 @@
     "id": "herbal.garden-area",
     "category": "herbal-garden",
     "title": "Herbal garden - minimum area",
-    "regulationRef": "Schedule-III, MESAR (UG) Sowa-Rigpa 2023",
+    "regulationRef": "Schedule-III, MESAR (UG) Unani 2023",
     "parameter": "herbalGardenAreaSqm",
     "check": {
       "type": "threshold",
       "operator": ">=",
-      "expected": { "byIntake": { "15": 1000, "30": 1500 } }
+      "expected": { "byIntake": { "60": 2500, "100": 4000, "150": 4000, "200": 4000 } }
     },
     "severity": "deficiency",
     "punitive": { "policyKey": null },
@@ -24,12 +24,12 @@
     "id": "herbal.species",
     "category": "herbal-garden",
     "title": "Herbal garden - minimum medicinal plant species",
-    "regulationRef": "Schedule-III, MESAR (UG) Sowa-Rigpa 2023",
+    "regulationRef": "Schedule-III, MESAR (UG) Unani 2023",
     "parameter": "herbalGardenSpecies",
     "check": {
       "type": "threshold",
       "operator": ">=",
-      "expected": { "value": 70 }
+      "expected": { "value": 200 }
     },
     "severity": "deficiency",
     "punitive": { "policyKey": null },

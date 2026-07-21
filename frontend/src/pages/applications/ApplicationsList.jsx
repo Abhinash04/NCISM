@@ -12,6 +12,7 @@ import { useApplications, useDeleteApplication } from '@/features/applications/h
 
 const SYSTEM_LABELS = { ayurveda: 'Ayurveda', unani: 'Unani', siddha: 'Siddha', sowa_rigpa: 'Sowa-Rigpa' };
 
+// eslint-disable-next-line react-refresh/only-export-components -- shared status map co-located with the list page
 export const STATUS_META = {
   uploaded: { label: 'Uploaded', variant: 'secondary' },
   processing: { label: 'Processing', variant: 'secondary' },

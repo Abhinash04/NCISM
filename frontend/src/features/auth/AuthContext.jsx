@@ -11,6 +11,7 @@ const ROLE_PRIORITY = [
   'reviewer', 'analyst', 'viewer',
 ];
 
+// eslint-disable-next-line react-refresh/only-export-components -- helper co-located with the provider
 export function primaryRoleOf(roles = []) {
   return ROLE_PRIORITY.find((r) => roles.includes(r)) || roles[0] || 'viewer';
 }
@@ -81,6 +82,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with the provider
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');

@@ -123,16 +123,19 @@ export function RegisterPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 w-full">
         {/* Full Name */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-foreground">
+          <label htmlFor="reg-name" className="font-sans text-[13px] font-medium text-foreground">
             Full Name
           </label>
           <div className="relative w-full">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="text"
+              autoComplete="name"
+              name="fullName"
+              id="reg-name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Dr. Full Name"
@@ -152,13 +155,17 @@ export function RegisterPage() {
 
         {/* Email */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-foreground">
+          <label htmlFor="reg-email" className="font-sans text-[13px] font-medium text-foreground">
             Email
           </label>
           <div className="relative w-full">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
-              type="text"
+              type="email"
+              autoComplete="email"
+              name="email"
+              spellCheck={false}
+              id="reg-email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -178,13 +185,17 @@ export function RegisterPage() {
 
         {/* Phone */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-foreground">
+          <label htmlFor="reg-phone" className="font-sans text-[13px] font-medium text-foreground">
             Phone
           </label>
           <div className="relative w-full">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="tel"
+              autoComplete="tel"
+              name="tel"
+              inputMode="tel"
+              id="reg-phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
@@ -204,12 +215,13 @@ export function RegisterPage() {
 
         {/* Role Select Dropdown */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-foreground">
+          <label htmlFor="reg-role" className="font-sans text-[13px] font-medium text-foreground">
             Role
           </label>
           <div className="relative w-full">
             <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 pointer-events-none" />
             <select
+              id="reg-role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground focus:outline-none focus:ring-2 transition-all duration-150 appearance-none ${
@@ -242,13 +254,16 @@ export function RegisterPage() {
 
         {/* Password */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-foreground">
+          <label htmlFor="reg-password" className="font-sans text-[13px] font-medium text-foreground">
             Password
           </label>
           <div className="relative w-full">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type={showPassword ? 'text' : 'password'}
+              id="reg-password"
+              autoComplete="new-password"
+              name="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min 8 characters"
@@ -261,7 +276,9 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors duration-150 focus:outline-none"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -275,13 +292,15 @@ export function RegisterPage() {
 
         {/* Confirm Password */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-foreground">
+          <label htmlFor="reg-confirm" className="font-sans text-[13px] font-medium text-foreground">
             Confirm Password
           </label>
           <div className="relative w-full">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type={showConfirmPassword ? 'text' : 'password'}
+              id="reg-confirm"
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter password"
@@ -294,7 +313,9 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors duration-150 focus:outline-none"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showConfirmPassword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -339,7 +360,7 @@ export function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 rounded-[8px] font-sans text-sm font-medium transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full h-10 bg-primary text-primary-foreground rounded-[8px] font-sans text-sm font-medium flex items-center justify-center gap-2 transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />}
             {isLoading ? 'Creating Account...' : 'Create Account'}

@@ -16,6 +16,7 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LandingPage } from '@/features/landing/LandingPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
+import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
 import { Forbidden } from '@/pages/Forbidden';
 import { RoleDashboard } from '@/pages/dashboard/RoleDashboard';
 import { Profile } from '@/pages/Profile';
@@ -99,6 +100,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/403" element={<Forbidden />} />
 
             {/* Role-scoped portal: /:role/dashboard etc. RoleLayout validates the segment. */}

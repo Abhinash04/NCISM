@@ -45,13 +45,13 @@ export function LandingNav() {
             <ThemeToggle />
             <button
               onClick={() => navigate('/login')}
-              className="font-sans text-sm font-medium text-foreground hover:text-muted-foreground bg-transparent border-0 focus:outline-none cursor-pointer"
+              className="font-sans text-sm font-medium text-foreground hover:text-muted-foreground bg-transparent border-0 cursor-pointer rounded px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Sign In
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="h-9 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-[8px] font-sans text-xs font-semibold tracking-wide transition-colors duration-150 flex items-center justify-center"
+              className="h-9 px-4 bg-primary text-primary-foreground rounded-[8px] font-sans text-xs font-semibold tracking-wide flex transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background items-center justify-center"
             >
               Get Started
             </button>
@@ -66,7 +66,7 @@ export function LandingNav() {
 
       {/* Mobile Full Screen Menu Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 top-16 bg-background z-40 animate-in fade-in slide-in-from-top-4 duration-200 p-6 flex flex-col md:hidden">
+        <div className="fixed inset-0 top-16 bg-background z-40 animate-in fade-in slide-in-from-top-4 duration-200 motion-reduce:animate-none p-6 flex flex-col md:hidden">
           <div className="flex flex-col gap-6 pt-4 flex-1">
             {links.map((link) => (
               <a
@@ -89,7 +89,7 @@ export function LandingNav() {
                 setIsOpen(false);
                 navigate('/login');
               }}
-              className="w-full h-11 bg-transparent border border-border text-foreground hover:bg-accent rounded-[8px] font-sans text-sm font-medium transition-colors flex items-center justify-center"
+              className="w-full h-11 bg-transparent border border-border text-foreground rounded-[8px] font-sans text-sm font-medium flex transition-[transform,background-color] duration-150 ease-out hover:bg-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring items-center justify-center"
             >
               Sign In
             </button>
@@ -98,7 +98,7 @@ export function LandingNav() {
                 setIsOpen(false);
                 navigate('/register');
               }}
-              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-[8px] font-sans text-sm font-semibold transition-colors flex items-center justify-center"
+              className="w-full h-11 bg-primary text-primary-foreground rounded-[8px] font-sans text-sm font-semibold flex transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring items-center justify-center"
             >
               Get Started
             </button>

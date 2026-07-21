@@ -14,7 +14,7 @@ export function CTASection() {
         </p>
         <button
           onClick={() => navigate('/register')}
-          className="h-11 px-6 bg-background hover:bg-accent text-foreground rounded-[8px] font-sans text-sm font-medium tracking-wide transition-colors duration-150 flex items-center justify-center shadow-sm mt-4"
+          className="h-11 px-6 bg-background text-foreground rounded-[8px] font-sans text-sm font-medium tracking-wide shadow-sm mt-4 flex items-center justify-center transition-[transform,background-color] duration-150 ease-out hover:bg-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
         >
           Get Started
         </button>

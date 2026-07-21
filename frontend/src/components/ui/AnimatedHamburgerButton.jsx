@@ -13,7 +13,9 @@ export const AnimatedHamburgerButton = ({ active, setActive, size = "sm", classN
         initial={false}
         animate={active ? "open" : "closed"}
         onClick={() => setActive((pv) => !pv)}
-        className={`relative rounded-full bg-transparent transition-colors hover:bg-cream-card dark:hover:bg-surface-dark-elevated flex items-center justify-center ${
+        aria-label={active ? "Close menu" : "Open menu"}
+        aria-expanded={active}
+        className={`relative rounded-full bg-transparent transition-colors hover:bg-cream-card dark:hover:bg-surface-dark-elevated flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           isLg ? "h-20 w-20" : "h-10 w-10"
         } ${className}`}
       >

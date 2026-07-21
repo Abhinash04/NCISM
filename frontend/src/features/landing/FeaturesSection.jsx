@@ -38,7 +38,7 @@ export function FeaturesSection() {
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className="bg-secondary border border-border rounded-[12px] p-8 flex flex-col space-y-5 text-left"
+              className="bg-secondary border border-border rounded-[12px] p-8 flex flex-col space-y-5 text-left transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               <div className="w-12 h-12 rounded-[8px] bg-background border border-border flex items-center justify-center shrink-0">
                 {card.icon}

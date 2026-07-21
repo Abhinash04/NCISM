@@ -48,6 +48,8 @@ reference superset, not the build target.
 | RBAC-matrix test + per-role E2E | ✅ Phase 6c |
 | TOTP MFA (self-enroll + login step-up) + frontend code-splitting | ✅ Phase 6d |
 | UG Unani + UG Sowa-Rigpa + PG Ayurveda/Unani/Siddha rulesets (content + template + golden + active) | ✅ Phase 7a–7c |
+| Document downloads (MD/PDF/DOCX) + in-app PDF viewer (uploaded report) | ✅ |
+| Themed landing + auth redesign (theme-aware, forgot-password, MFA, a11y) | ✅ |
 | UG Siddha ruleset content · live non-Ayurveda extraction | 🔜 Phase 7 — remaining |
 
 ## 3. Completed phases
@@ -177,8 +179,9 @@ utils/                  jwt · api-error (ApiError) · master-data.parser · mes
 ```
 app/App.jsx             router + providers (QueryClient, ThemeProvider, AuthProvider)
 app/layouts/            DashboardLayout (role-branched nav) · RoleLayout (/:role guard)
-features/landing/       LandingPage (+ Hero/Features/Stats/CTA sections) — public marketing landing at /
-features/auth/          LoginPage (real login + MFA) · RegisterPage (design; accounts are admin-provisioned) · AuthLayout
+features/landing/       LandingPage (+ Hero/Features/Stats/CTA sections) — public, theme-aware marketing landing at /
+features/auth/          LoginPage (real login + MFA) · RegisterPage + ForgotPasswordPage (design; accounts admin-provisioned) · AuthLayout (back-to-home + theme toggle) · CasePdfViewer
+components/common/       DownloadMenu (Markdown/PDF/DOCX, client-side) · ThemeToggle
 components/layout/      LandingNav (themed, AnimatedHamburgerButton mobile) · Footer
 pages/                  Forbidden · Dashboard · Profile · Settings · About · NotFound
 pages/institutions/     InstitutionsList (filters+pagination) · InstitutionDetail · InstitutionImport
@@ -263,7 +266,7 @@ Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
 | Auth | ✅ | `POST /auth/login` (→ tokens **or** `{mfaRequired, challenge}`) · `POST /auth/mfa/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` · authed `POST /auth/mfa/{enroll,verify,disable}` |
 | Institutions | ✅ | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` · `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` |
 | Admin | ✅ | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` |
-| Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
+| Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `GET /applications/:id/source.pdf` (uploaded report — viewer + download) · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
 | Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `DELETE /applications/:id` (`application:delete` — uploader pre-processing or admin override) · `POST /:id/clarification` · `POST /:id/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) |
 | Letters | ✅ | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` |
 | Compliance | ✅ | `GET/POST /applications/:id/penalties` (`compliance:read`/`:manage`) · `GET /penalties` (cross-case queue) · `PATCH /penalties/:id` `{status}` |

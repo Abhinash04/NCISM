@@ -340,7 +340,7 @@ workflow errors — **401** (`NO_TOKEN`/`INVALID_TOKEN`), **403** (missing role/
 | Institutions | `GET /institutions` · `GET /institutions/meta` · `GET /institutions/:id` | `institution:read` |
 | Institutions (write) | `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` | `institution:create`/`:update` |
 | Admin | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` | `admin` + `user:manage`/`role:read` |
-| Cases | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `/:id/allowed-actions` · `/:id/events` · `/:id/hearings` · `/:id/clarifications` | `application:create`/`:read` |
+| Cases | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `GET /applications/:id/source.pdf` (uploaded report → in-app PDF viewer + download) · `/:id/allowed-actions` · `/:id/events` · `/:id/hearings` · `/:id/clarifications` | `application:create`/`:read` |
 | Case transitions | `POST /applications/:id/{process,submit,review,decide,revise}` · `/request-hearing` · `/appoint-committee` · `/hearing/minutes` · `/dispatch` · `/clarification` · `/clarification/respond` · `DELETE /applications/:id` (uploader pre-processing or admin override) (`decide` carries `outcome`+`approvedSeats`) | per-action perm (workflow guard re-checks state×role×ownership) |
 | Letters | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` | `application:read` |
 | Compliance | `GET/POST /applications/:id/penalties` · `GET /penalties` · `PATCH /penalties/:id` | `compliance:read`/`:manage` |

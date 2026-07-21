@@ -1,7 +1,7 @@
-# NCISM Assessment Portal — Demo & Verification Guide (through Phase 5b)
+# NCISM Assessment Portal — Demo & Verification Guide (through Phase 7)
 
-A follow-along tutorial to run the platform locally and walk the **entire post-visitation case lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review → clarification cycle → hearing → board meeting → **structured decision + auto-generated official letters** → final-order dispatch → **Closed**, plus the **audit log**. 
-Companion docs: [HANDOFF.md](HANDOFF.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [AuthCred.md](AuthCred.md).
+A follow-along tutorial to run the platform locally and walk the **entire post-visitation case lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review → clarification cycle → hearing → board meeting → **structured decision + auto-generated official letters** → final-order dispatch → **Closed**, plus the **audit log**, **document downloads/viewer**, and the **multi-ruleset registry**.
+Companion docs: [HANDOFF.md](HANDOFF.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [NCISM_Assessment_Portal_System_Architecture_Corrected.md](NCISM_Assessment_Portal_System_Architecture_Corrected.md) (AYU0038 case walk-through), [AuthCred.md](AuthCred.md).
 
 ---
 
@@ -89,7 +89,9 @@ Everyone below is wired for institution **AYU0140 — Maharashtra (Ayurveda)** s
 Each step lists **who logs in · what to click · the expected case status after**.
 
 ### 3.1 Landing → Login
-Open `http://localhost:5173` → the public **landing page** (hero, features, stats, CTA, footer; theme-aware — use the toggle in the nav). Click **Sign In** (or **Get Started**) → `/login` (a redesigned, theme-aware auth page; **Get Started** goes to `/register`, which is a design page since accounts are admin-provisioned). Real login + MFA step-up are unchanged.
+Open `http://localhost:5173` → the public **landing page** (hero, features, stats, CTA, footer; theme-aware — use the toggle in the nav; the hero illustration shows only ≥769px). Click **Sign In** (or **Get Started**) → `/login` (a redesigned, theme-aware auth page). Every auth screen has a **← Home** link back to the landing and a theme toggle. **Get Started** → `/register` (a design page — accounts are admin-provisioned); **Forgot password?** → `/forgot-password` (honestly directs you to the administrator; no reset email is sent). Real login is unchanged: an **MFA-enabled** user (Settings → Two-factor) gets a 6-digit code step-up after the password.
+
+> **College logins:** besides `college.ayu0140`, the golden colleges **`college.ayu0038`**, **`college.ayu0265`**, **`college.ayu0659`** (`@ncism.local`, `Password123`) are seeded so their clarification/hearing cycles can be driven too.
 
 ### 3.2 Visitor uploads the report → `uploaded`
 Log in as **`visitor@ncism.local`**. In the sidebar open **My Uploads → New upload**:
@@ -102,8 +104,11 @@ Log in as **`visitor@ncism.local`**. In the sidebar open **My Uploads → New up
 
 ### 3.3 Junior processes + submits → `processed` → `senior_review`
 Log in as **`smarnika@ncism.local`** (the dealing staff allotted Maharashtra). Open **Applications** in the sidebar (the page is titled *My case queue*) → click the case:
-- Click **Process (run engine)**. After a few seconds the status becomes **Processed** and the **Assessment report** tab is populated (the deterministic MARB report).
+- Click **Process (run engine)**. After a few seconds the status becomes **Processed** and the **Assessment report** tab is populated (the deterministic MARB report). Use **Download report** (Markdown / PDF / Word) at the top of the tab.
+- Open the **Documents** tab: the uploaded visitation report renders in an in-app **PDF viewer** (page nav for 20–50-page reports) + a **Download Visitor Report (PDF)** button.
 - Click **Submit for review** → status **senior_review**. Log out.
+
+> **Ruleset resolution:** processing resolves the **active ruleset** for the case's (system, level) via the registry (Admin → **Rulesets**), not a hardcoded one. Six are active — UG Ayurveda/Unani/Sowa-Rigpa + PG Ayurveda/Unani/Siddha; a non-Ayurveda/PG upload assesses against its own ruleset (extraction fidelity still tuned for the Ayurveda proforma — see the limits note in §1d).
 
 ### 3.4 Senior reviews → `board_review`
 Log in as **`gaurav.bhandari@ncism.local`** (smarnika's supervisor). Open **Applications** (titled *Review queue*) → the case → click **Forward to board** → status **board_review**. *(Return to junior loops it back to the junior instead.)* Log out.
@@ -150,7 +155,8 @@ Log in as **`admin@ncism.local`** (`ChangeMe123!`) → sidebar **Users / Roles /
 
 - **Timeline tab** on the case shows the full chain, e.g. `uploaded → processing → processed → senior_review → board_review → clarification_open → clarification_responded → … → hearing_requested → hearing_scheduled → board_review → approved → closed`.
 - **Clarifications** and **Hearings** tabs list each round (letter/response; panel/minutes/verdict).
-- **Letters** tab lists every issued document (Clarification Letter, Hearing Notice, Final Order), rendered in the official format with the case's institution + shortcoming tables + signatory.
+- **Letters** tab lists every issued document (Clarification Letter, Hearing Notice, Final Order), rendered in the official format with the case's institution + shortcoming tables + signatory; each has a **Download** menu (Markdown / PDF / Word).
+- **Documents** tab renders the uploaded visitation report in the in-app PDF viewer and downloads the original **Visitor Report** PDF; the **Assessment report** tab and confirmed **meeting minutes** are downloadable (MD/PDF/DOCX). Downloads are generated client-side.
 - **Penalties** tab: seat-reduction/denial auto-derived on approve; the junior adds monetary/revocation and drives status to `paid` → case `compliance: complied`. **Compliance** queue lists penalties across cases. RBAC: senior/board/observer read; only junior/admin manage.
 - **Audit** (admin/board/president/observer) records every write; GET browsing adds no rows.
 - **Reports** (`report:read` roles) show non-zero KPIs + grouped bar lists/tables after you drive a case to approval; the Cases/Penalties CSV buttons download live data. A visitor/college hitting `/reports/overview` gets **403**.

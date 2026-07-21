@@ -42,8 +42,11 @@ $RECYCLE.BIN/
 .env.local
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
 *.local
+# ...but keep the committed templates
+!.env.production.example
 
 # Node
 node_modules/

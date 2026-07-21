@@ -85,27 +85,23 @@ export function RegisterPage() {
 
     if (Object.keys(newErrors).length > 0) return;
 
+    // NCISM accounts are provisioned by the administrator — there is no public
+    // self-registration endpoint. Surface that honestly rather than faking an
+    // account (no backend call, no navigation).
     setIsLoading(true);
-    try {
-      // Simulate API registration call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Account created successfully!');
-      navigate('/login');
-    } catch {
-      toast.error('Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    toast.info('Registration is managed by your administrator. Please contact them for access.');
+    setIsLoading(false);
   };
 
   const footerSlot = (
     <div className="text-center w-full">
-      <p className="font-sans text-xs text-[#6c6a64]">
+      <p className="font-sans text-xs text-muted-foreground">
         Already have an account?{' '}
         <button
           type="button"
           onClick={() => navigate('/login')}
-          className="text-[#cc785c] font-medium hover:underline focus:outline-none"
+          className="text-primary font-medium hover:underline focus:outline-none"
         >
           Sign in
         </button>
@@ -116,13 +112,13 @@ export function RegisterPage() {
   return (
     <AuthLayout footer={footerSlot}>
       <div className="flex flex-col items-center justify-center text-center mb-8">
-        <span className="font-serif text-[24px] font-normal text-[#141413] tracking-wide select-none">
+        <span className="font-serif text-[24px] font-normal text-foreground tracking-wide select-none">
           NCISM
         </span>
-        <h2 className="font-serif text-[28px] font-normal text-[#141413] tracking-tight leading-tight mt-3">
+        <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight mt-3">
           Create your account
         </h2>
-        <p className="font-sans text-sm text-[#6c6a64] mt-1">
+        <p className="font-sans text-sm text-muted-foreground mt-1">
           Join the NCISM assessment platform
         </p>
       </div>
@@ -130,25 +126,25 @@ export function RegisterPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
         {/* Full Name */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-[#141413]">
+          <label className="font-sans text-[13px] font-medium text-foreground">
             Full Name
           </label>
           <div className="relative w-full">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c6a64] w-4.5 h-4.5" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Dr. Full Name"
-              className={`w-full h-10 pl-10 pr-4 bg-[#faf9f5] border rounded-[8px] font-sans text-sm text-[#3d3d3a] placeholder-[#8e8b82] focus:outline-none focus:ring-2 transition-all duration-150 ${
+              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
                 errors.fullName
-                  ? 'border-[#c64545] focus:ring-[rgba(198,69,69,0.15)] focus:border-[#c64545]'
-                  : 'border-[#e6dfd8] focus:border-[#cc785c] focus:ring-[rgba(204,120,92,0.15)]'
+                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+                  : 'border-border focus:border-primary focus:ring-ring/40'
               }`}
             />
           </div>
           {errors.fullName && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.fullName}
             </span>
           )}
@@ -156,25 +152,25 @@ export function RegisterPage() {
 
         {/* Email */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-[#141413]">
+          <label className="font-sans text-[13px] font-medium text-foreground">
             Email
           </label>
           <div className="relative w-full">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c6a64] w-4.5 h-4.5" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className={`w-full h-10 pl-10 pr-4 bg-[#faf9f5] border rounded-[8px] font-sans text-sm text-[#3d3d3a] placeholder-[#8e8b82] focus:outline-none focus:ring-2 transition-all duration-150 ${
+              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
                 errors.email
-                  ? 'border-[#c64545] focus:ring-[rgba(198,69,69,0.15)] focus:border-[#c64545]'
-                  : 'border-[#e6dfd8] focus:border-[#cc785c] focus:ring-[rgba(204,120,92,0.15)]'
+                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+                  : 'border-border focus:border-primary focus:ring-ring/40'
               }`}
             />
           </div>
           {errors.email && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.email}
             </span>
           )}
@@ -182,25 +178,25 @@ export function RegisterPage() {
 
         {/* Phone */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-[#141413]">
+          <label className="font-sans text-[13px] font-medium text-foreground">
             Phone
           </label>
           <div className="relative w-full">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c6a64] w-4.5 h-4.5" />
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
-              className={`w-full h-10 pl-10 pr-4 bg-[#faf9f5] border rounded-[8px] font-sans text-sm text-[#3d3d3a] placeholder-[#8e8b82] focus:outline-none focus:ring-2 transition-all duration-150 ${
+              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
                 errors.phone
-                  ? 'border-[#c64545] focus:ring-[rgba(198,69,69,0.15)] focus:border-[#c64545]'
-                  : 'border-[#e6dfd8] focus:border-[#cc785c] focus:ring-[rgba(204,120,92,0.15)]'
+                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+                  : 'border-border focus:border-primary focus:ring-ring/40'
               }`}
             />
           </div>
           {errors.phone && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.phone}
             </span>
           )}
@@ -208,18 +204,18 @@ export function RegisterPage() {
 
         {/* Role Select Dropdown */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-[#141413]">
+          <label className="font-sans text-[13px] font-medium text-foreground">
             Role
           </label>
           <div className="relative w-full">
-            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c6a64] w-4.5 h-4.5 pointer-events-none" />
+            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 pointer-events-none" />
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className={`w-full h-10 pl-10 pr-10 bg-[#faf9f5] border rounded-[8px] font-sans text-sm text-[#3d3d3a] focus:outline-none focus:ring-2 transition-all duration-150 appearance-none ${
+              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground focus:outline-none focus:ring-2 transition-all duration-150 appearance-none ${
                 errors.role
-                  ? 'border-[#c64545] focus:ring-[rgba(198,69,69,0.15)] focus:border-[#c64545]'
-                  : 'border-[#e6dfd8] focus:border-[#cc785c] focus:ring-[rgba(204,120,92,0.15)]'
+                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+                  : 'border-border focus:border-primary focus:ring-ring/40'
               }`}
             >
               <option value="" disabled hidden>
@@ -231,14 +227,14 @@ export function RegisterPage() {
               <option value="SECRETARIAT">Secretariat</option>
               <option value="VISITOR">Visitor</option>
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center text-[#6c6a64]">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center text-muted-foreground">
               <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
           {errors.role && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.role}
             </span>
           )}
@@ -246,32 +242,32 @@ export function RegisterPage() {
 
         {/* Password */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-[#141413]">
+          <label className="font-sans text-[13px] font-medium text-foreground">
             Password
           </label>
           <div className="relative w-full">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c6a64] w-4.5 h-4.5" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min 8 characters"
-              className={`w-full h-10 pl-10 pr-10 bg-[#faf9f5] border rounded-[8px] font-sans text-sm text-[#3d3d3a] placeholder-[#8e8b82] focus:outline-none focus:ring-2 transition-all duration-150 ${
+              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
                 errors.password
-                  ? 'border-[#c64545] focus:ring-[rgba(198,69,69,0.15)] focus:border-[#c64545]'
-                  : 'border-[#e6dfd8] focus:border-[#cc785c] focus:ring-[rgba(204,120,92,0.15)]'
+                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+                  : 'border-border focus:border-primary focus:ring-ring/40'
               }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6c6a64] hover:text-[#141413] p-0.5 rounded transition-colors duration-150 focus:outline-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors duration-150 focus:outline-none"
             >
-              {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {errors.password && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.password}
             </span>
           )}
@@ -279,32 +275,32 @@ export function RegisterPage() {
 
         {/* Confirm Password */}
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="font-sans text-[13px] font-medium text-[#141413]">
+          <label className="font-sans text-[13px] font-medium text-foreground">
             Confirm Password
           </label>
           <div className="relative w-full">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c6a64] w-4.5 h-4.5" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter password"
-              className={`w-full h-10 pl-10 pr-10 bg-[#faf9f5] border rounded-[8px] font-sans text-sm text-[#3d3d3a] placeholder-[#8e8b82] focus:outline-none focus:ring-2 transition-all duration-150 ${
+              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
                 errors.confirmPassword
-                  ? 'border-[#c64545] focus:ring-[rgba(198,69,69,0.15)] focus:border-[#c64545]'
-                  : 'border-[#e6dfd8] focus:border-[#cc785c] focus:ring-[rgba(204,120,92,0.15)]'
+                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+                  : 'border-border focus:border-primary focus:ring-ring/40'
               }`}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6c6a64] hover:text-[#141413] p-0.5 rounded transition-colors duration-150 focus:outline-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors duration-150 focus:outline-none"
             >
-              {showConfirmPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {errors.confirmPassword && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.confirmPassword}
             </span>
           )}
@@ -318,21 +314,21 @@ export function RegisterPage() {
               id="agreeTerms"
               checked={agreeTerms}
               onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="w-4 h-4 rounded text-[#cc785c] border-[#e6dfd8] focus:ring-[#cc785c] bg-[#faf9f5] focus:ring-opacity-25 mt-0.5 accent-[#cc785c]"
+              className="w-4 h-4 rounded text-primary border-border focus:ring-ring bg-background focus:ring-opacity-25 mt-0.5 accent-primary"
             />
-            <label htmlFor="agreeTerms" className="font-sans text-xs text-[#6c6a64] select-none leading-normal">
+            <label htmlFor="agreeTerms" className="font-sans text-xs text-muted-foreground select-none leading-normal">
               I agree to the{' '}
-              <a href="/terms" className="text-[#cc785c] font-medium hover:underline">
+              <a href="/terms" className="text-primary font-medium hover:underline">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="/privacy" className="text-[#cc785c] font-medium hover:underline">
+              <a href="/privacy" className="text-primary font-medium hover:underline">
                 Privacy Policy
               </a>
             </label>
           </div>
           {errors.agreeTerms && (
-            <span className="font-sans text-[13px] text-[#c64545] mt-0.5 leading-tight">
+            <span className="font-sans text-[13px] text-destructive mt-0.5 leading-tight">
               {errors.agreeTerms}
             </span>
           )}
@@ -343,9 +339,9 @@ export function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-10 bg-[#cc785c] text-white hover:bg-[#a9583e] rounded-[8px] font-sans text-sm font-medium transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 rounded-[8px] font-sans text-sm font-medium transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isLoading && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+            {isLoading && <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />}
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </div>

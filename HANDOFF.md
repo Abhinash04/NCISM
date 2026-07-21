@@ -176,8 +176,11 @@ utils/                  jwt · api-error (ApiError) · master-data.parser · mes
 
 ```
 app/App.jsx             router + providers (QueryClient, ThemeProvider, AuthProvider)
-app/layouts/            DashboardLayout (role-branched nav) · RoleLayout (/:role guard) · LandingLayout
-pages/                  Landing · Login · Forbidden · Dashboard · Profile · Settings · About · NotFound
+app/layouts/            DashboardLayout (role-branched nav) · RoleLayout (/:role guard)
+features/landing/       LandingPage (+ Hero/Features/Stats/CTA sections) — public marketing landing at /
+features/auth/          LoginPage (real login + MFA) · RegisterPage (design; accounts are admin-provisioned) · AuthLayout
+components/layout/      LandingNav (themed, AnimatedHamburgerButton mobile) · Footer
+pages/                  Forbidden · Dashboard · Profile · Settings · About · NotFound
 pages/institutions/     InstitutionsList (filters+pagination) · InstitutionDetail · InstitutionImport
 pages/applications/     ApplicationsList (role queue) · ApplicationUpload (visitor) · ApplicationDetail
                         (report + clarifications + hearings + timeline tabs; allowedActions bar)

@@ -7,12 +7,12 @@ import { Footer } from '@/components/layout/Footer';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9f5]">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Page Header Menu */}
       <LandingNav />
 
       {/* Main Sections Wrapper */}
-      <main className="flex-1 flex flex-col mt-16 divide-y divide-[#e6dfd8]">
+      <main className="flex-1 flex flex-col mt-16 divide-y divide-border">
         
         {/* Hero Banner Section */}
         <HeroSection />

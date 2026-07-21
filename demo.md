@@ -89,7 +89,7 @@ Everyone below is wired for institution **AYU0140 — Maharashtra (Ayurveda)** s
 Each step lists **who logs in · what to click · the expected case status after**.
 
 ### 3.1 Landing → Login
-Open `http://localhost:5173` → click **Open Dashboard** → you're redirected to `/login` (you're not authenticated yet).
+Open `http://localhost:5173` → the public **landing page** (hero, features, stats, CTA, footer; theme-aware — use the toggle in the nav). Click **Sign In** (or **Get Started**) → `/login` (a redesigned, theme-aware auth page; **Get Started** goes to `/register`, which is a design page since accounts are admin-provisioned). Real login + MFA step-up are unchanged.
 
 ### 3.2 Visitor uploads the report → `uploaded`
 Log in as **`visitor@ncism.local`**. In the sidebar open **My Uploads → New upload**:

@@ -6,7 +6,6 @@ import { Loader2 } from 'lucide-react';
 import { Toaster } from '@/components/ui/sonner';
 import { importLegacyLocalStorage } from '@/lib/db/documents.repository';
 
-import { LandingLayout } from '@/app/layouts/LandingLayout';
 import { DashboardLayout } from '@/app/layouts/DashboardLayout';
 import { RoleLayout } from '@/app/layouts/RoleLayout';
 
@@ -14,8 +13,9 @@ import { AuthProvider, useAuth } from '@/features/auth/AuthContext';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 
 // Light shell/entry pages stay in the main bundle (no spinner on core nav).
-import { Landing } from '@/pages/Landing';
-import { Login } from '@/pages/Login';
+import { LandingPage } from '@/features/landing/LandingPage';
+import { LoginPage } from '@/features/auth/LoginPage';
+import { RegisterPage } from '@/features/auth/RegisterPage';
 import { Forbidden } from '@/pages/Forbidden';
 import { RoleDashboard } from '@/pages/dashboard/RoleDashboard';
 import { Profile } from '@/pages/Profile';
@@ -96,10 +96,9 @@ function App() {
           )}>
           <Routes>
             {/* Public */}
-            <Route element={<LandingLayout />}>
-              <Route path="/" element={<Landing />} />
-            </Route>
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/403" element={<Forbidden />} />
 
             {/* Role-scoped portal: /:role/dashboard etc. RoleLayout validates the segment. */}

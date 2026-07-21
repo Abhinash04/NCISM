@@ -1,0 +1,69 @@
+[
+  {
+    "id": "staff.teaching",
+    "category": "teaching-staff",
+    "title": "Teaching staff - departmental minimum",
+    "regulationRef": "Schedule (faculty cadre), MESAR (UG) Unani 2023",
+    "parameter": "teachingStaff",
+    "check": {
+      "type": "staff-table",
+      "gradeGroups": { "HF": ["professor", "reader", "associate professor"], "LF": ["lecturer", "assistant professor"] }
+    },
+    "severity": "deficiency",
+    "punitive": {
+      "policyKey": "teaching-faculty",
+      "special": [
+        {
+          "when": "departmentHasZeroFaculty",
+          "policyKey": "teaching-department-empty",
+          "reportText": "Seat reduction not applicable"
+        }
+      ]
+    },
+    "report": {
+      "section": "teaching-staff",
+      "order": 11,
+      "pass": "Fulfilling the criteria as per the faculty cadre schedule of MESAR (UG) Unani 2023",
+      "fail": "Not fulfilling the criteria as per the faculty cadre schedule of MESAR (UG) Unani 2023",
+      "missing": "Teaching staff details could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "staff.non-teaching",
+    "category": "non-teaching-staff",
+    "title": "Non-teaching staff",
+    "regulationRef": "Schedule (non-teaching cadre), MESAR (UG) Unani 2023",
+    "parameter": "nonTeachingStaff",
+    "check": {
+      "type": "staff-roster"
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "non-teaching" },
+    "report": {
+      "section": "non-teaching-staff",
+      "order": 12,
+      "pass": "Fulfilling the criteria as per the non-teaching cadre schedule of MESAR (UG) Unani 2023",
+      "fail": "Not fulfilling the criteria as per the non-teaching cadre schedule of MESAR (UG) Unani 2023",
+      "missing": "Non-teaching staff details could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "staff.hospital",
+    "category": "hospital-staff",
+    "title": "Hospital staff",
+    "regulationRef": "Schedule (hospital cadre), MESAR (UG) Unani 2023",
+    "parameter": "hospitalStaff",
+    "check": {
+      "type": "staff-roster"
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "hospital-staff" },
+    "report": {
+      "section": "hospital-staff",
+      "order": 13,
+      "pass": "Fulfilling the criteria as per the hospital cadre schedule of MESAR (UG) Unani 2023",
+      "fail": "Not fulfilling the criteria as per the hospital cadre schedule of MESAR (UG) Unani 2023",
+      "missing": "Hospital staff details could not be determined from the visitation report - manual verification required."
+    }
+  }
+]

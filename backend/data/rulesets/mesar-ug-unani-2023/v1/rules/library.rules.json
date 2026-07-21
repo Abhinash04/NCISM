@@ -1,0 +1,106 @@
+[
+  {
+    "id": "library.books",
+    "category": "library",
+    "title": "Central Library - total number of books",
+    "regulationRef": "Table-3, MESAR (UG) Unani 2023",
+    "parameter": "libraryBooks",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 8000, "100": 10000, "150": 12000, "200": 14000 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Total number of books is {actual} against the requirement of {expected}.",
+      "fail": "Total number of books is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Total number of library books could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.journals",
+    "category": "library",
+    "title": "Central Library - indexed scientific journals",
+    "regulationRef": "Table-3, MESAR (UG) Unani 2023",
+    "parameter": "libraryJournals",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 10, "100": 10, "150": 10, "200": 10 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "No. of indexed scientific journals is {actual} against the requirement of {expected}.",
+      "fail": "No. of indexed scientific journals is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Number of indexed scientific journals could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.sitting-capacity",
+    "category": "library",
+    "title": "Central Library - seating capacity",
+    "regulationRef": "Table-3, MESAR (UG) Unani 2023",
+    "parameter": "librarySittingCapacity",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 75, "100": 120, "150": 180, "200": 240 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Sitting capacity is {actual} against the requirement of {expected}.",
+      "fail": "Sitting capacity is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Library sitting capacity could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.digital-stations",
+    "category": "library",
+    "title": "Digital Library - stations with computer systems",
+    "regulationRef": "Table-4, MESAR (UG) Unani 2023",
+    "parameter": "libraryDigitalStations",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 15, "100": 25, "150": 35, "200": 45 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "No. of digital library stations is {actual} against the requirement of {expected}.",
+      "fail": "No. of digital library stations is {actual} against the requirement of {expected} - not fulfilling.",
+      "missing": "Number of digital library stations could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "library.seating-arrangement",
+    "category": "library",
+    "title": "Central Library - seating arrangement adequacy",
+    "regulationRef": "Table-3, MESAR (UG) Unani 2023",
+    "parameter": "librarySeatingAdequate",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "library",
+      "order": 6,
+      "pass": "Sitting arrangement - adequate.",
+      "fail": "Sitting arrangement - Non-adequate.",
+      "missing": "Library seating arrangement adequacy could not be determined - manual verification required."
+    }
+  }
+]

@@ -49,6 +49,7 @@ $RECYCLE.BIN/
 node_modules/
 backend/temp/
 backend/uploads/
+backend/data/applications/
 frontend/dist/
 frontend/build/
 frontend/.next/
@@ -103,3 +104,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+
+# The generic Python `lib/` rule above must NOT ignore the frontend app source
+# that lives under frontend/src/lib (api client, utils, download, etc.).
+!frontend/src/lib/
+!frontend/src/lib/**

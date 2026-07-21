@@ -1,0 +1,44 @@
+[
+  {
+    "id": "herbal.garden-area",
+    "category": "herbal-garden",
+    "title": "Herbal garden - minimum area",
+    "regulationRef": "Schedule-III, MESAR (UG) Unani 2023",
+    "parameter": "herbalGardenAreaSqm",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "byIntake": { "60": 2500, "100": 4000, "150": 4000, "200": 4000 } }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "herbal-garden",
+      "order": 7,
+      "pass": "Herbal garden area is {actual} sq.mt. against the requirement of {expected} sq.mt. - fulfilling.",
+      "fail": "Herbal garden area is {actual} sq.mt. against the requirement of {expected} sq.mt. - not fulfilling.",
+      "missing": "Herbal garden area could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "herbal.species",
+    "category": "herbal-garden",
+    "title": "Herbal garden - minimum medicinal plant species",
+    "regulationRef": "Schedule-III, MESAR (UG) Unani 2023",
+    "parameter": "herbalGardenSpecies",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 200 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "herbal-garden",
+      "order": 7,
+      "pass": "No. of medicinal plant species is {actual} against the minimum requirement of {expected} - fulfilling.",
+      "fail": "No. of medicinal plant species is {actual} against the minimum requirement of {expected} - not fulfilling.",
+      "missing": "Number of medicinal plant species could not be determined - manual verification required."
+    }
+  }
+]

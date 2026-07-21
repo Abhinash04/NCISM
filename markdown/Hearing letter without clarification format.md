@@ -1,22 +1,19 @@
-**![C:\Users\hp\Downloads\New Letter.jpg](data:image/jpeg;base64...) Hearing Notice**
+![](images/letter-head.jpg)
 
-**Øekad/Ref. No. 3-4/MARB/2025-Ay.(53) fnukad/Dated:- 17.06.2025**
+# Hearing Notice
+
+**Ref. No.:** 3-4/MARB/2025-Ay.(53)
+**Dated:** 17.06.2025
 
 To,
-
-**The Principal,**
-
+The Principal
 Sardar Patel Ayurvedic Medical College,
-
 & Hospital, Sardar Patel Knowledge City,
-
 Waraseoni Road, Dongariya, Post Chillod,
+Tehsil Lalbaurra, Distt. Balaghat, Madhya Pradesh
+**(Inst. ID-AYU0659)**
 
-Tehsil Lalbaurra, Distt. Balaghat,
-
-**Madhya Pradesh (Inst. ID-AYU0659)**
-
-**E-mail ID:-** **2021ayu0659@spubgt.ac.in**
+**Email:-** **2021ayu0659@spubgt.ac.in**
 
 **Subject:- Matter related to grant of hearing in respect of issuance of yearly permission to Sardar Patel Ayurvedic Medical College & Hospital, Sardar Patel Knowledge City Waraseoni Road, Dongariya, Post Chillod, Tehsil Lalbaurra, Distt. Balaghat, Madhya Pradesh (Inst. ID-AYU0659) with intake capacity of 100 seats in UG (BAMS) course for the academic session 2026-27 under section 28/29 of NCISM Act, 2020–reg.**
 
@@ -30,26 +27,26 @@ Further, in view of above, the college has been assessed on the basis of concern
 2. **Availability of total teaching staff for UG( BAMS) Course as per the part 1 submitted by the college and visitor observation is** $\frac{Available}{Required}x100\%=\frac{34}{45}x100\%= $**75.55% (Excluding Excess)**
 3. **Shortcoming is as under-**
 
-|  |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **S.**  **No.** | **Department** | **Minimum Requirement as per Regulations**  **(for UG upto 100 seats)** | **No. Of Existing Teachers** | | | | | **Shortcomings of HF and LF** |
-| **Professor** | **Asso. Prof. / Reader** | **Asst. Prof. / Lecturer** | **Total** | **Excess** |
-| 1. | Ayurved samhita and Siddhant | 1P And 1R +2L | 1 | 2 | 1 | 4 |  | **1LF Sanskrit** |
-| 2. | Agad Tantra avum Vidhi Vaidyaka | 1P And 1R +1L | 0 | 1 | 1 | 2 |  | **1 HF** |
-| 3. | Prasuti & Stri Roga | 1P And 1R +2L | 0 | 0 | 2 | 2 |  | **2 HF** |
-| 4. | Kaumarbhritya-Bala Roga | 1P And 1R +1L | 0 | 0 | 1 | 1 |  | **2 HF** |
-| 5. | Kayachikitsa | 1P And 1R +2L | 0+1vo | 0 | 2 | 2 |  | **1 HF** |
-| 6. | Shalyatantra | 1P And 1R +1L | 1 | 0 | 3 | 4 | **2 LF** | **1 HF** |
-| 7. | Shalakya Tantra | 1P And 1R +1L | 0 | 0 | 0 | 0 |  | **2 HF+1LF** |
+|                |                                 |                                                                        |                              |            |     |     |          |                               |
+| -------------- | ------------------------------- | ---------------------------------------------------------------------- | ---------------------------- | ---------- | --- | --- | -------- | ----------------------------- |
+| **S.** **No.** | **Department**                  | **Minimum Requirement as per Regulations** **(for UG upto 100 seats)** | **No. Of Existing Teachers** |            |     |     |          | **Shortcomings of HF and LF** |
+| **Professor**  | **Asso. Prof. / Reader**        | **Asst. Prof. / Lecturer**                                             | **Total**                    | **Excess** |
+| 1.             | Ayurved samhita and Siddhant    | 1P And 1R +2L                                                          | 1                            | 2          | 1   | 4   |          | **1LF Sanskrit**              |
+| 2.             | Agad Tantra avum Vidhi Vaidyaka | 1P And 1R +1L                                                          | 0                            | 1          | 1   | 2   |          | **1 HF**                      |
+| 3.             | Prasuti & Stri Roga             | 1P And 1R +2L                                                          | 0                            | 0          | 2   | 2   |          | **2 HF**                      |
+| 4.             | Kaumarbhritya-Bala Roga         | 1P And 1R +1L                                                          | 0                            | 0          | 1   | 1   |          | **2 HF**                      |
+| 5.             | Kayachikitsa                    | 1P And 1R +2L                                                          | 0+1vo                        | 0          | 2   | 2   |          | **1 HF**                      |
+| 6.             | Shalyatantra                    | 1P And 1R +1L                                                          | 1                            | 0          | 3   | 4   | **2 LF** | **1 HF**                      |
+| 7.             | Shalakya Tantra                 | 1P And 1R +1L                                                          | 0                            | 0          | 0   | 0   |          | **2 HF+1LF**                  |
 
 1. **Hospital staffs :-**
 2. Availability of hospital staff is$ \frac{Available}{Required}x100\%=\frac{68}{70}x100\%= 97.14$%.
 3. **Shortcoming is as under:-**
 
-|  |  |  |  |
-| --- | --- | --- | --- |
+|                                 |                         |                                        |                  |
+| ------------------------------- | ----------------------- | -------------------------------------- | ---------------- |
 | **Hospital Staff/Name of Post** | **Required as per MSR** | **Available Hospital Staff (Part II)** | **Shortcomings** |
-| RMO or RSO or MO or CR | 9 | 7 | 2 |
+| RMO or RSO or MO or CR          | 9                       | 7                                      | 2                |
 
 1. **Observation by the visitors:-**
 2. No ICU is available in the hospital.
@@ -67,11 +64,8 @@ It is further directed that you may make oral as well as written submissions bef
 It may also be noted that no further hearing opportunity will be given in case you do not attend the hearing at the stipulated time and date. Further, it will be presumed that you have nothing to say and required necessary action in terms of the NCISM Act and the relevant regulations thereunder will be taken based on available records.
 
 **This is issued with the approval of the competent authority.**
-
 **(Dr. Sushrut Kanaujia)**
-
 **Member, Medical Assessment and Rating Board for Indian System of Medicine**
-
 **(NCISM)**
 
 **Copy to:-**
@@ -81,7 +75,5 @@ It may also be noted that no further hearing opportunity will be given in case y
 3. Guard file.
 
 **(Dr. Sushrut Kanaujia)**
-
 **Member, Medical Assessment and Rating Board for Indian System of Medicine**
-
 **(NCISM)**

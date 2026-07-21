@@ -1,0 +1,43 @@
+[
+  {
+    "id": "compliance.equipment",
+    "category": "compliance",
+    "title": "Availability of required equipment and instruments",
+    "regulationRef": "Regulation 3, Schedule VII-XIII, MESAR (UG) Sowa-Rigpa 2023",
+    "parameter": "equipmentMeanPercent",
+    "check": {
+      "type": "threshold",
+      "operator": ">=",
+      "expected": { "value": 75 }
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": null },
+    "report": {
+      "section": "equipment",
+      "order": 8,
+      "pass": "Mean availability of required equipment is {actual}% against the minimum requirement of {expected}% - fulfilling.",
+      "fail": "Mean availability of required equipment is {actual}% against the minimum requirement of {expected}% - not fulfilling.",
+      "missing": "Equipment availability could not be determined - manual verification required."
+    }
+  },
+  {
+    "id": "compliance.aebas",
+    "category": "compliance",
+    "title": "Aadhaar Enabled Biometric Attendance System (AEBAS)",
+    "regulationRef": "NCISM biometric attendance requirement, MESAR (UG) Sowa-Rigpa 2023",
+    "parameter": "aebasImplemented",
+    "check": {
+      "type": "boolean",
+      "expected": true
+    },
+    "severity": "critical",
+    "punitive": { "policyKey": "aebas" },
+    "report": {
+      "section": "biometric-attendance",
+      "order": 9,
+      "pass": "Aadhaar Enabled Biometric Attendance System is implemented and functional.",
+      "fail": "Aadhaar Enabled Biometric Attendance System is not implemented or not functional.",
+      "missing": "AEBAS implementation status could not be determined - manual verification required."
+    }
+  }
+]

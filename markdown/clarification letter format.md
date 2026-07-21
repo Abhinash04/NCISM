@@ -1,18 +1,19 @@
-**![C:\Users\hp\Downloads\Letter Head1 - Copy_page-0001.jpg](data:image/jpeg;base64...)CLARIFICATION LETTER**
+![](images/letter-head.jpg)
 
-**Øekad/ Ref. No. –4-74/MARB/2025-Ay. (PB) fnukad/Dated: 06.08.2025**
+# CLARIFICATION LETTER
+
+**Ref. No.:** 4-74/MARB/2025-Ay. (PB)  
+**Dated:** 06.08.2025
 
 To,
+The Principal
+Punjab Institute of Ayurved  
+Hanumangarh Road  
+Near Bye-pass Opposite BSF Campus  
+Abohar – 152116, Punjab  
+**(Inst. ID-AYU0840)**
 
-**The Principal**
-
-Punjab Institute of Ayurved, Hanumangarh Road,
-
-Near Bye-pass Opposite BSF Campus,
-
-Abohar- 152116, Punjab (**Inst. ID- AYU0840**)
-
-**Email: - 2024ayu0840@piaabohar.com**
+**Email:** 2024ayu0840@piaabohar.com
 
 **Subject:- Clarification in respect of shortcoming/defects observed in the assessment of Punjab Institute of Ayurved, Hanumangarh Road, Near Bye-pass Opposite BSF Campus, Abohar- 152116, Punjab (Inst. ID- AYU0840) for issuance of 2nd renewal of permission with intake capacity of 60 seats in UG (BAMS) course under section 29 of NCISM Act, 2020 and relevant regulations thereunder for the academic session 2026-27 -reg.**
 

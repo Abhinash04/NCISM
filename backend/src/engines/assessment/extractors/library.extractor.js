@@ -35,6 +35,7 @@ function extract(markdown, lines, elements) {
     libraryBooks: missing(),
     librarySittingCapacity: missing(),
     libraryComputers: missing(),
+    libraryJournals: missing(),
   };
 
   if (elements) {
@@ -42,6 +43,9 @@ function extract(markdown, lines, elements) {
     params.libraryBooks = secondNumberAfter(els, /Total no\.? of books available\s+([\d,]+)\s+([\d,]+)/i, 'library-json');
     params.librarySittingCapacity = secondNumberAfter(els, /^Sitting Capacity\s+(\d+)\s+(\d+)/i, 'library-json');
     params.libraryComputers = computers(els);
+    // Indexed scientific journals (non-Ayurveda rulesets). Missing when the
+    // proforma does not list a journals row.
+    params.libraryJournals = secondNumberAfter(els, /Total no\.? of (?:indexed )?(?:scientific )?journals? available\s+([\d,]+)\s+([\d,]+)/i, 'library-json');
   }
 
   // Seating adequacy stays on the markdown path (narrative field).

@@ -1,0 +1,69 @@
+[
+  {
+    "id": "staff.teaching",
+    "category": "teaching-staff",
+    "title": "Postgraduate guides / teaching staff",
+    "regulationRef": "MESAR (PG) Siddha 2024 (guide:student 1:3 Prof, 1:2 Assoc, 1:1 Asst)",
+    "parameter": "teachingStaff",
+    "check": {
+      "type": "staff-table",
+      "gradeGroups": { "HF": ["professor", "associate professor", "reader"], "LF": ["assistant professor", "lecturer"] }
+    },
+    "severity": "deficiency",
+    "punitive": {
+      "policyKey": "teaching-faculty",
+      "special": [
+        {
+          "when": "departmentHasZeroFaculty",
+          "policyKey": "teaching-department-empty",
+          "reportText": "Seat reduction not applicable"
+        }
+      ]
+    },
+    "report": {
+      "section": "teaching-staff",
+      "order": 11,
+      "pass": "Fulfilling the Postgraduate guide requirement as per Regulation 6 of MESAR (PG) Siddha 2024",
+      "fail": "Not fulfilling the Postgraduate guide requirement as per Regulation 6 of MESAR (PG) Siddha 2024",
+      "missing": "Postgraduate guide / teaching staff details could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "staff.non-teaching",
+    "category": "non-teaching-staff",
+    "title": "Non-teaching staff",
+    "regulationRef": "MESAR (PG) Siddha 2024 - non-teaching cadre",
+    "parameter": "nonTeachingStaff",
+    "check": {
+      "type": "staff-roster"
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "non-teaching" },
+    "report": {
+      "section": "non-teaching-staff",
+      "order": 12,
+      "pass": "Fulfilling the non-teaching cadre requirement as per MESAR (PG) Siddha 2024",
+      "fail": "Not fulfilling the non-teaching cadre requirement as per MESAR (PG) Siddha 2024",
+      "missing": "Non-teaching staff details could not be determined from the visitation report - manual verification required."
+    }
+  },
+  {
+    "id": "staff.hospital",
+    "category": "hospital-staff",
+    "title": "Hospital staff",
+    "regulationRef": "MESAR (PG) Siddha 2024 - hospital cadre",
+    "parameter": "hospitalStaff",
+    "check": {
+      "type": "staff-roster"
+    },
+    "severity": "deficiency",
+    "punitive": { "policyKey": "hospital-staff" },
+    "report": {
+      "section": "hospital-staff",
+      "order": 13,
+      "pass": "Fulfilling the hospital cadre requirement as per MESAR (PG) Siddha 2024",
+      "fail": "Not fulfilling the hospital cadre requirement as per MESAR (PG) Siddha 2024",
+      "missing": "Hospital staff details could not be determined from the visitation report - manual verification required."
+    }
+  }
+]

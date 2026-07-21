@@ -1,0 +1,52 @@
+# Production stack — single Docker host.
+#   frontend (nginx, public :80) ─proxy /api/v1─▶ backend (Node + bundled CLI) ─▶ db (postgres)
+#
+# Prereqs: copy backend/.env.production.example → backend/.env.production and fill it in.
+# Bring up:  docker compose -f docker-compose.prod.yml up -d --build
+# Migrate:   docker compose -f docker-compose.prod.yml run --rm backend npm run db:migrate
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ncism-db
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production
+    volumes:
+      - ncism_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ncism} -d ${POSTGRES_DB:-ncism}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: ncism-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ncism_jobs:/app/temp   # uploaded reports + job artifacts persist across restarts
+    # No published ports — only the frontend proxy reaches it on the compose network.
+    expose:
+      - "3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api/v1
+    container_name: ncism-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  ncism_pgdata:
+  ncism_jobs:

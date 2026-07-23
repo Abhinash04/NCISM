@@ -9,7 +9,7 @@ const ORG_ROLES = [
   { key: 'president', name: 'President (MARB-ISM)', description: 'Apex competent authority: appointments, final approvals, oversight.' },
   { key: 'board_member', name: 'Board Member (MARB-ISM)', description: 'Reviews/finalizes assessments; signs outbound letters; decides in Board.' },
   { key: 'senior_consultant', name: 'Senior Consultant', description: 'Supervises dealing staff; verifies assessment computations; quality control.' },
-  { key: 'junior_consultant', name: 'Junior Consultant (Dealing Staff)', description: 'Processes allotted colleges: scrutiny, drafting, rules run.' },
+  { key: 'junior_consultant', name: 'Consultant (Dealing Staff)', description: 'Processes allotted colleges: scrutiny, drafting, rules run.' },
 ];
 
 // Reuse existing permission keys (defined in 001_rbac.js).

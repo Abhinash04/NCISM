@@ -18,7 +18,8 @@ const POLICY = {
   senior_review: { forward: ['senior_supervisor'], return: ['senior_supervisor'] },
   board_review: { approve: ['board'], reject: ['board'], request_clarification: ['board'], request_hearing: ['board'] },
   clarification_open: { respond: ['college_owner'] },
-  clarification_responded: { process: ['junior_owner'], submit: ['junior_owner'] },
+  clarification_responded: { review_clarification: ['junior_owner_allotted', 'junior_owner'] },
+  clarification_reviewed: { process: ['junior_owner'], submit: ['junior_owner'], request_revision: ['junior_owner'] },
   hearing_requested: { appoint_committee: ['president'] },
   hearing_scheduled: { record_minutes: ['committee_member'] },
   approved: { dispatch_order: ['secretariat'] },
@@ -47,9 +48,15 @@ function hasCapability(cap, user, ctx) {
 /** Actions the user may take on this case right now. */
 function allowedActions(app, user, ctx) {
   const forState = POLICY[app.status] || {};
-  const actions = Object.entries(forState)
+  let actions = Object.entries(forState)
     .filter(([, caps]) => caps.some((c) => hasCapability(c, user, ctx)))
     .map(([action]) => action);
+
+  // Bug 5: Final order dispatch remains disabled unless compliance status is 'complied'
+  if (app.status === 'approved' && app.compliance_status && app.compliance_status !== 'complied') {
+    actions = actions.filter((a) => a !== 'dispatch_order');
+  }
+
   // Admin override: may delete any case that is not finalized (approved/closed stay immutable).
   if ((user.roles || []).includes('admin') && app.status !== 'approved' && app.status !== 'closed'
     && !actions.includes('delete')) {

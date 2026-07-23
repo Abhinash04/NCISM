@@ -28,6 +28,8 @@ router.delete('/:id', requirePermission('application:delete'), (req, res, next) 
 router.get('/:id/clarifications', requirePermission('application:read'), (req, res, next) => controller.clarifications(req, res, next));
 router.post('/:id/clarification', requirePermission('clarification:issue'), (req, res, next) => controller.requestClarification(req, res, next));
 router.post('/:id/clarification/respond', requirePermission('clarification:respond'), uploadPdf.single('file'), (req, res, next) => controller.respondClarification(req, res, next));
+router.post('/:id/clarification/review', requirePermission('application:process'), (req, res, next) => controller.reviewClarification(req, res, next));
+router.post('/:id/clarification/revise', requirePermission('application:process'), (req, res, next) => controller.requestRevision(req, res, next));
 
 // Hearings + final-order dispatch (Phase 3c)
 router.get('/:id/hearings', requirePermission('application:read'), (req, res, next) => controller.hearings(req, res, next));
@@ -43,5 +45,9 @@ router.post('/:id/letters/preview', requirePermission('application:read'), (req,
 // Compliance / penalties (Phase 5a)
 router.get('/:id/penalties', requirePermission('compliance:read'), (req, res, next) => controller.penalties(req, res, next));
 router.post('/:id/penalties', requirePermission('compliance:manage'), (req, res, next) => controller.addPenalty(req, res, next));
+router.get('/:id/penalty-policy', requirePermission('application:read'), (req, res, next) => controller.penaltyPolicy(req, res, next));
+
+// AI-generated draft audit (Bug 2 traceability)
+router.post('/:id/ai-log', requirePermission('application:read'), (req, res, next) => controller.aiLog(req, res, next));
 
 module.exports = router;

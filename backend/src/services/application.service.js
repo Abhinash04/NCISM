@@ -258,6 +258,61 @@ async function respondClarification(id, user, { file, responseText }) {
   return updated;
 }
 
+/** Consultant reviews clarification submitted by college */
+async function reviewClarification(id, user, { remarks, verdict }) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'review_clarification');
+
+  const latestResponded = await clarificationRepo.latestResponded(id);
+  if (latestResponded) {
+    await clarificationRepo.update(latestResponded.id, {
+      review_remarks: remarks || null,
+      review_verdict: verdict || 'accepted',
+      reviewed_by: user.id,
+      reviewed_at: db.fn.now(),
+    });
+  }
+
+  const updated = await appRepo.update(id, { status: 'clarification_reviewed' });
+  await appRepo.addEvent({
+    applicationId: id,
+    fromState: app.status,
+    toState: 'clarification_reviewed',
+    actorId: user.id,
+    note: remarks ? `Clarification reviewed (${verdict || 'accepted'}): ${remarks}` : `Clarification reviewed (${verdict || 'accepted'})`,
+  });
+  return updated;
+}
+
+/** Consultant requests revision on incomplete clarification response */
+async function requestRevision(id, user, { remarks }) {
+  const { app, ctx } = await getForUser(id, user);
+  workflow.assertCan(app, user, ctx, 'request_revision');
+  if (!remarks || !remarks.trim()) throw ApiError.badRequest('VALIDATION_ERROR', 'Revision remarks are required');
+
+  const count = await clarificationRepo.countFor(id);
+  const nextRound = count + 1;
+
+  const letterText = `[Revision R${count}] Further clarification required:\n\n${remarks}`;
+  await clarificationRepo.create({
+    application_id: id,
+    round: nextRound,
+    letter_text: letterText,
+    issued_by: user.id,
+    status: 'open',
+  });
+
+  const updated = await appRepo.update(id, { status: 'clarification_open' });
+  await appRepo.addEvent({
+    applicationId: id,
+    fromState: app.status,
+    toState: 'clarification_open',
+    actorId: user.id,
+    note: `Clarification revision requested (Round ${nextRound}): ${remarks}`,
+  });
+  return updated;
+}
+
 function clarifications(id) {
   return clarificationRepo.list(id);
 }
@@ -308,7 +363,16 @@ async function recordMinutes(id, user, { minutes, verdict }) {
 /** Secretariat dispatches the final order → the case closes. */
 async function dispatchOrder(id, user, { orderText } = {}) {
   const { app, ctx } = await getForUser(id, user);
+
+  // Compliance must be 'complied' before dispatch. Checked BEFORE the workflow
+  // guard so a forced API call gets this clear message (allowedActions already
+  // hides the button by filtering dispatch_order while compliance is monitoring).
+  if (app.compliance_status && app.compliance_status !== 'complied') {
+    throw ApiError.badRequest('COMPLIANCE_INCOMPLETE', 'Dispatch Final Order is blocked until application compliance status becomes complied.');
+  }
+
   workflow.assertCan(app, user, ctx, 'dispatch_order');
+
   // Issue the Final Order (edited text if provided, else generated from the outcome + punitive data).
   await letterService.issue(app, { kind: 'final_order', content: orderText || null, actor: user });
   const updated = await appRepo.update(id, { status: 'closed', decision_note: orderText || app.decision_note });
@@ -327,6 +391,30 @@ function committeeMembers() {
 /** Issued letters for a case (Letters tab). */
 function letters(id) {
   return letterService.list(id);
+}
+
+/**
+ * Monetary penalty rates for a case, derived from its active ruleset's punitive
+ * policy JSON (not hardcoded). Currently exposes the ghost-faculty per-instance
+ * amount (PUNITIVE POLICY §§ 4–5). Falls back to the standard ₹25 lakh if the
+ * policy has no monetary entry.
+ */
+async function penaltyPolicy(id, user) {
+  const { app } = await getForUser(id, user);
+  const FALLBACK_GHOST = 2500000;
+  try {
+    const { rulesetId, version } = await rulesetService.resolveForCase(app.system, app.level);
+    const dir = path.join(config.dataDir, 'rulesets', rulesetId, version);
+    const file = fs.readdirSync(dir).find((f) => /^punitive-policy.*\.json$/i.test(f));
+    if (file) {
+      const policy = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+      const ghost = policy?.entries?.['ghost-faculty']?.amountPerInstance;
+      return { ghostFacultyPenalty: Number.isFinite(ghost) ? ghost : FALLBACK_GHOST };
+    }
+  } catch {
+    // No active ruleset / unreadable policy → fall back to the standard rate.
+  }
+  return { ghostFacultyPenalty: FALLBACK_GHOST };
 }
 
 /** A drafted (unstored) letter of the given kind, for the board to review/edit before issuing. */
@@ -369,7 +457,7 @@ async function revise(id, user) {
 module.exports = {
   list, getDetail, allowedActionsFor, events, sourcePath,
   createUpload, process, runProcessing, submit, review, decide, revise, remove,
-  requestClarification, respondClarification, clarifications,
+  requestClarification, respondClarification, reviewClarification, requestRevision, clarifications,
   requestHearing, appointCommittee, recordMinutes, dispatchOrder, hearings, committeeMembers,
-  letters, previewLetter, penalties, addPenalty,
+  letters, previewLetter, penalties, addPenalty, penaltyPolicy,
 };

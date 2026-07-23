@@ -23,14 +23,23 @@ async function countFor(applicationId) {
   return Number(count);
 }
 
+/** The most recent responded round for a case. */
+function latestResponded(applicationId) {
+  return db('clarifications')
+    .where({ application_id: applicationId, status: 'responded' })
+    .orderBy('round', 'desc')
+    .first();
+}
+
 /** All rounds with issuer/responder names, for the case detail tab. */
 function list(applicationId) {
   return db('clarifications')
     .leftJoin('users as iss', 'clarifications.issued_by', 'iss.id')
     .leftJoin('users as res', 'clarifications.responded_by', 'res.id')
+    .leftJoin('users as rev', 'clarifications.reviewed_by', 'rev.id')
     .where('application_id', applicationId)
     .orderBy('round', 'asc')
-    .select('clarifications.*', 'iss.name as issued_by_name', 'res.name as responded_by_name');
+    .select('clarifications.*', 'iss.name as issued_by_name', 'res.name as responded_by_name', 'rev.name as reviewed_by_name');
 }
 
 async function update(id, patch) {
@@ -38,4 +47,4 @@ async function update(id, patch) {
   return getById(id);
 }
 
-module.exports = { create, getById, latestOpen, countFor, list, update };
+module.exports = { create, getById, latestOpen, latestResponded, countFor, list, update };

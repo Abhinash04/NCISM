@@ -37,13 +37,25 @@ function signatory(actor) {
 **(NCISM)**`;
 }
 
+/**
+ * Official addressee block. Each line is separated by a blank line so it renders
+ * as stacked paragraphs everywhere (react-markdown preview + client PDF + DOCX) —
+ * single newlines collapse in markdown, which compressed the address onto one line.
+ * The institution `name` field carries the full postal address inline, so it is
+ * split on commas into its own stacked lines for a standard government-letter look.
+ */
 function toBlock(inst) {
-  return `To,
-The Principal
-${inst.name}
-**(Inst. ID-${inst.institute_id})**
-
-**Email:** ${inst.email || PLACE('email')}`;
+  const addressLines = String(inst.name || PLACE('institute name'))
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return [
+    'To,',
+    'The Principal,',
+    ...addressLines,
+    `**(Inst. ID-${inst.institute_id})**`,
+    `**Email:** ${inst.email || PLACE('email')}`,
+  ].join('\n\n');
 }
 
 /** Loads everything the letters need for a case. */

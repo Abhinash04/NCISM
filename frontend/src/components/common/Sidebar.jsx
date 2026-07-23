@@ -28,7 +28,7 @@ export function Sidebar({ navItems, user, roleLabel, onLogout }) {
   return (
     <motion.nav
       layout
-      className="relative hidden shrink-0 flex-col border-r bg-muted/20 md:flex"
+      className="relative hidden shrink-0 flex-col border-r-2 border-foreground bg-card md:flex"
       style={{ width: open ? 256 : 72 }}
     >
       <TitleSection open={open} roleLabel={roleLabel} />
@@ -57,7 +57,9 @@ function Option({ item, isActive, open }) {
       title={item.name}
       className={cn(
         'relative flex h-10 items-center rounded-md text-sm font-medium transition-colors',
-        isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        isActive
+          ? 'bg-primary text-primary-foreground border-2 border-foreground neo-shadow-sm'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
       )}
     >
       <span className="grid h-full w-[46px] shrink-0 place-content-center">
@@ -80,7 +82,7 @@ function Option({ item, isActive, open }) {
 
 function TitleSection({ open, roleLabel }) {
   return (
-    <div className="flex h-16 items-center border-b px-4 shrink-0">
+    <div className="flex h-16 items-center border-b-2 border-foreground px-4 shrink-0">
       <span className="grid h-9 w-[38px] shrink-0 place-content-center">
         <FileText className="h-5 w-5 text-primary" />
       </span>
@@ -103,31 +105,49 @@ function TitleSection({ open, roleLabel }) {
   );
 }
 
+function initials(name) {
+  return String(name || '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase() || '?';
+}
+
 function UserFooter({ open, user, roleLabel, onLogout }) {
   return (
-    <div className="border-t bg-muted/10 p-2">
-      <div className="flex items-center">
+    <div className="border-t-2 border-foreground bg-card p-2">
+      <div className="flex items-center gap-2">
+        <span
+          title={user.name}
+          className="grid h-9 w-9 shrink-0 place-content-center rounded-full border-2 border-foreground bg-primary text-primary-foreground text-xs font-semibold select-none"
+        >
+          {initials(user.name)}
+        </span>
         {open && (
           <motion.div
             layout
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="min-w-0 flex-1 px-2 leading-tight"
+            className="min-w-0 flex-1 leading-tight"
           >
             <div className="truncate text-sm font-medium">{user.name}</div>
+            {user.email && <div className="truncate text-xs text-muted-foreground">{user.email}</div>}
             <div className="truncate text-xs capitalize text-muted-foreground">{roleLabel}</div>
           </motion.div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onLogout}
-          title="Sign out"
-          className={cn(!open && 'mx-auto')}
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
+        {open && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onLogout}
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -139,7 +159,7 @@ function ToggleClose({ open, onToggle }) {
       type="button"
       onClick={onToggle}
       title={open ? 'Collapse' : 'Expand'}
-      className="flex h-11 items-center border-t text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="flex h-11 items-center border-t-2 border-foreground text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       <span className="grid h-full w-[46px] shrink-0 place-content-center">
         <ChevronsRight className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} />

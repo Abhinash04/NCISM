@@ -7,8 +7,10 @@ phases (see [§ Rollout](#rollout)).
 
 ## The workflow (single source of truth)
 
+> **⚠️ Scope (TCS boundary):** the Regulatory Report is **TCS-generated**; the platform starts at its receipt. The `Visitor ─upload→` step below is the **interim workaround** for the eventual **TCS API** intake.
+
 ```
-Visitor ─upload→ Junior (process → submit) ─→ Senior (forward/return) ─→ Board
+Visitor ─upload (interim; TCS API in production)→ Junior (process → submit) ─→ Senior (forward/return) ─→ Board
           Board ─decide→ approve(outcome) | reject(→revise)
           Board ─→ Clarification → College responds → Junior re-submits → Senior → Board
           Board ─→ Hearing requested → President appoints committee → Committee minutes → Board
@@ -23,7 +25,7 @@ actions **only** from the backend `allowedActions` — never from role literals.
 ## IA principles
 
 1. **Queue-first.** Each portal lands on the work waiting for that role, not an upload box.
-2. **Only the Visitor uploads.** No upload affordance anywhere else.
+2. **Only the Visitor uploads.** No upload affordance anywhere else. *(Interim: the report is TCS-generated; in production the TCS API replaces this manual upload — GAP-011/Q-021.)*
 3. **Nav = responsibility.** A role sees a nav item only if its duty needs it (and it holds the perm).
 4. **One case, many lenses.** Shared case detail; tabs/actions a role can't use are hidden.
 5. **Least surface.** Legacy/unused pages and roles are retired from the portal.

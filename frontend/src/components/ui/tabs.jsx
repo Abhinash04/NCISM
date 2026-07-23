@@ -34,7 +34,7 @@ function TabsTrigger({ className, ...props }) {
         'inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-3 py-1 text-sm font-medium text-muted-foreground transition-all',
         'hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
         'disabled:pointer-events-none disabled:opacity-50',
-        'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm',
+        'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:border-2 data-[state=active]:border-foreground data-[state=active]:neo-shadow-sm',
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}

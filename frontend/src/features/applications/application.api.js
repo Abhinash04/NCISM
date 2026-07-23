@@ -101,6 +101,11 @@ export async function updatePenaltyStatus(penaltyId, status) {
   return data.penalty;
 }
 
+export async function deletePenalty(penaltyId) {
+  const { data } = await apiClient.delete(`/penalties/${penaltyId}`);
+  return data;
+}
+
 /** Board issues a clarification letter. */
 export async function issueClarification(id, letterText) {
   const { data } = await apiClient.post(`/applications/${id}/clarification`, { letterText });

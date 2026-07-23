@@ -11,7 +11,7 @@ function Breadcrumb({
     <nav
       aria-label="breadcrumb"
       data-slot="breadcrumb"
-      className={cn(className)}
+      className={cn("inline-flex items-center border-2 border-foreground bg-card rounded-md px-3 py-1.5 neo-shadow-sm", className)}
       {...props} />
   );
 }

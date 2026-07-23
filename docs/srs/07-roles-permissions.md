@@ -28,11 +28,12 @@ Two-member committees conduct VC hearings and record per-shortcoming observation
 **Modules:** Hearings (own assigned cases: read bundle, write minutes); no other module access `[INFERRED — least privilege]`.
 **Workflow ownership:** hearing minutes.
 
-### R5 — Visitor (Visitation Team Member)
-Empanelled assessors with Visitor IDs, typically 3 per UG visit, who verify facilities/staff and certify findings individually (source: AYU0659 § Visitor Details & Certification Details).
-**Responsibilities:** capture the visitation proforma on site; attach evidence; record observations and reasons for disagreement; certify and sign off.
-**Modules:** Visitation (assigned visitations only: write proforma, upload evidence, certify); read-only view of the college's Part-I/II for verification.
-**Workflow ownership:** visitation report completion.
+### R5 — Visitor (Report intake — interim) / Visitation Team (upstream, TCS)
+> **⚠️ Scope revision:** the empanelled visitation team that verifies facilities/staff and authors the Regulatory Report operates **upstream under TCS** — outside this platform. Within this platform, the **Visitor account is the interim report uploader** (manual workaround until the TCS API — I-11/FR-038 — is available); it performs **no field capture**.
+Empanelled assessors with Visitor IDs, typically 3 per UG visit, who verify facilities/staff and certify findings individually (source: AYU0659 § Visitor Details & Certification Details) — **this activity is now TCS-side**.
+**Responsibilities (in-platform, interim):** upload the received TCS Regulatory Report against the correct institute/session; nothing else. *(Upstream/TCS: capture proforma, attach evidence, certify — retained as context.)*
+**Modules:** M3 Report Ingestion (interim upload).
+**Workflow ownership:** interim report intake (WF-2b).
 
 ### R6 — Board Secretariat / Meeting Administrator `[INFERRED role]`
 Someone assembles numbered agendas, records minutes and manages confirmation cycles (source: Board meeting Agenda (0) § structure); the sources don't name the function, so it is modelled as a distinct role.
@@ -96,7 +97,8 @@ Legend: **C**reate / **R**ead / **U**pdate / **A**pprove-Finalize / **X**ecute-s
 | Workflow (file 08) | Primary owner | Approver/decider |
 |---|---|---|
 | Application & scrutiny | R1 | R2/Board via meeting |
-| Visitation | R5 (capture), R1 (scheduling) | R5 collective certification |
+| Visitation *(upstream — TCS)* | TCS visitation team | TCS certification (external) |
+| Report receipt (WF-2b) | R5 (interim upload) / TCS API | system (validation + routing) |
 | Assessment & punitive computation | R1 | R2/R3 (Q-003) |
 | Clarification cycle | R1 | R2 (letter sign-off) |
 | Board meeting | R6 | R2/R3 collectively |

@@ -58,6 +58,7 @@ flowchart LR
     end
 
     subgraph External[External Systems - see file 11]
+        TCS[TCS Report Service<br/>generates the 20-50pp Regulatory Report<br/>I-11, contract pending Q-021]
         PORTAL[NCISM Portal<br/>self-disclosure, college logins]
         AEBAS[AEBAS Portal / central server]
         MAIL[Official E-mail NIC/SMTP]
@@ -66,8 +67,9 @@ flowchart LR
     end
 
     STAFF --> GW
-    VIS --> GW
+    VIS -. interim manual report upload .-> GW
     COLL --> GW
+    TCS -. inbound Regulatory Report API FR-038 .-> GW
     GW --> WF
     WF --> RULES
     WF --> LETT
@@ -84,19 +86,18 @@ flowchart LR
     WF -.links & schedules.-> VC
 ```
 
-All external links are drawn dashed because their interface contracts are unconfirmed (GAP-006, Q-010–Q-013); each must have a manual-entry fallback (NFR-080).
+All external links are drawn dashed because their interface contracts are unconfirmed (GAP-006, Q-010–Q-013; **TCS report API — GAP-011/Q-021**); each must have a manual-entry fallback (NFR-080). **The system boundary begins at receipt of the TCS-generated Regulatory Report** — the Visitor client's upload path is the interim workaround until the TCS API exists.
 
 ## 4. Data flow (annual assessment happy path)
 
 ```mermaid
 flowchart TD
-    A[College submits Part-I/II + fees<br/>via NCISM portal / upload] --> B[Case auto-routed to dealing staff<br/>by state x system allotment]
-    B --> C[Visitation scheduled, team assigned]
-    C --> D[Visitors capture proforma + evidence on site<br/>offline PWA, sync on connectivity]
-    D --> E[All visitors certify -> visitation locks]
-    E --> F[Rules engine computes compliance %<br/>+ punitive ledger vs active policy version]
-    F --> G[Assessment report generated,<br/>reviewed & finalized]
+    T[TCS conducts visitation +<br/>generates 20-50pp Regulatory Report - external]:::ext --> A
+    A[Report received: TCS API FR-038 - production<br/>or Visitor-portal upload - interim workaround] --> B[Case auto-routed to dealing staff<br/>by state x system allotment]
+    B --> F[Rules engine computes compliance %<br/>+ punitive ledger vs active policy version]
+    F --> G[MARB assessment report generated,<br/>reviewed & finalized]
     G --> H{Shortcomings?}
+    classDef ext fill:#eee,stroke:#999,stroke-dasharray:4 3;
     H -- no --> M[Board meeting: grant permission]
     H -- yes --> I[Clarification letter -> college response]
     I --> J{Resolved?}
@@ -108,11 +109,11 @@ flowchart TD
     N --> O[(Audit trail links letter -> minute -> hearing -> clarification -> assessment -> evidence -> rule version)]
 ```
 
-(Sequence grounded in: Board meeting Agenda (0)/(1); Assessment of Sardar PAtel...; clarification & hearing letters; PUNITIVE POLICY.)
+(Sequence grounded in: Board meeting Agenda (0)/(1); Assessment of Sardar PAtel...; clarification & hearing letters; PUNITIVE POLICY. The **upstream TCS report generation** and the **receipt boundary** are the client scope revision — no corpus document describes them; GAP-011/Q-021.)
 
 ## 5. API surface (internal)
 
-REST/JSON, versioned (`/api/v1`), resource-oriented around the entities in [10-data-model.md](10-data-model.md): `/institutes`, `/applications`, `/visitations`, `/assessments`, `/clarifications`, `/board-meetings`, `/hearings`, `/decisions`, `/letters`, `/documents`, `/rules/policies`, `/rules/standards`, `/reports`. Workflow transitions are explicit sub-resources (e.g., `POST /assessments/{id}/finalize`) so RBAC and audit apply per transition. Detailed per-module API sketches are in [09-modules.md](09-modules.md); external integrations in [11-apis-integrations.md](11-apis-integrations.md).
+REST/JSON, versioned (`/api/v1`), resource-oriented around the entities in [10-data-model.md](10-data-model.md): `/reports/ingest` (**inbound Regulatory-Report receipt — FR-038; the TCS-API landing endpoint, contract pending Q-021**), `/institutes`, `/applications`, `/assessments`, `/clarifications`, `/board-meetings`, `/hearings`, `/decisions`, `/letters`, `/documents`, `/rules/policies`, `/rules/standards`, `/reports`. `/visitations` is retained only as read context for the externally-sourced report payload. Workflow transitions are explicit sub-resources (e.g., `POST /assessments/{id}/finalize`) so RBAC and audit apply per transition. Detailed per-module API sketches are in [09-modules.md](09-modules.md); external integrations in [11-apis-integrations.md](11-apis-integrations.md).
 
 ## 6. Authentication & authorization mechanism
 

@@ -66,6 +66,18 @@ async function updateStatus(penaltyId, status, actor) {
   return updated;
 }
 
+async function remove(penaltyId) {
+  const penalty = await penaltyRepo.getById(penaltyId);
+  if (!penalty) throw ApiError.notFound('PENALTY_NOT_FOUND', `Penalty ${penaltyId} not found`);
+  await penaltyRepo.remove(penaltyId);
+
+  // Roll the case status back up once the deleted penalty no longer counts.
+  const remaining = await penaltyRepo.unresolvedCount(penalty.application_id);
+  await db('applications').where({ id: penalty.application_id })
+    .update({ compliance_status: remaining === 0 ? 'complied' : 'monitoring' });
+  return { id: penaltyId };
+}
+
 function list(applicationId) {
   return penaltyRepo.listForCase(applicationId);
 }
@@ -74,4 +86,4 @@ function queue(filters) {
   return penaltyRepo.queue(filters);
 }
 
-module.exports = { deriveForCase, addManual, updateStatus, list, queue };
+module.exports = { deriveForCase, addManual, updateStatus, remove, list, queue };

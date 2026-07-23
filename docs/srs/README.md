@@ -2,6 +2,8 @@
 
 Software Requirements Specification suite for digitizing the **college assessment, permission, and rating workflow** of the **Medical Assessment and Rating Board for Indian System of Medicine (MARB-ISM)** under the **National Commission for Indian System of Medicine (NCISM)**, covering Ayurveda, Unani, Siddha and Sowa-Rigpa (ASU&SR) medical colleges under the NCISM Act, 2020 (sections 28/29).
 
+> **⚠️ Scope revision — TCS report boundary (client-directed).** The **20–50-page Regulatory/Assessment Report is generated externally by TCS** (TCS conducts the visitation and authors the report). This platform's scope **begins at the point the Regulatory Report is received**: production intake is a **TCS-exposed API** (contract pending — GAP-011/Q-021 in [file 12](12-gaps-and-questions.md)); until that API is available, the **Visitor-portal manual upload is a temporary workaround**, not the production architecture. The platform then runs the **remaining assessment workflow** — its own extraction, MESAR rule evaluation, punitive/deficiency computation, clarification, hearings, Board meetings, decisions/letters, penalties and closure. Visitation execution and report authoring (WF-2, FR-030 series, module M3's field-capture) are therefore documented as **upstream/External (TCS)** domain context, not build scope.
+
 > Sources: 18 client documents in [`markdown/`](../../markdown/) — six gazette regulations (UG/PG MESAR), institute master data, sample assessment reports, board meeting agenda/minutes, hearing/clarification letter formats, punitive policy, and staff work-allotment sheet. Every requirement in this suite carries a `(source: <filename> § <heading>)` citation; anything not explicit in a source is tagged `[INFERRED]` and registered in [12-gaps-and-questions.md](12-gaps-and-questions.md).
 
 ## Index
@@ -37,7 +39,7 @@ Software Requirements Specification suite for digitizing the **college assessmen
 | **Academic session** | Indian academic year, e.g. 2026-27, for which permission is granted |
 | **AEBAS** | Aadhaar Enabled Biometric Attendance System — mandatory staff attendance capture wired to the Commission's central server |
 | **Annual/Yearly permission** | Permission to admit students for one academic session, granted after annual visitation (Section 28) |
-| **Assessment report** | MARB's internal report comparing visitation findings against MESAR standards, producing shortcomings and punitive computations |
+| **Assessment report (MARB computation)** | MARB's internal output comparing the received Regulatory Report's findings against MESAR standards, producing shortcomings and punitive computations — computed by this platform from the received report |
 | **ASU&SR** | Ayurveda, Siddha, Unani & Sowa-Rigpa systems of medicine |
 | **BAMS / BUMS / BSMS** | Bachelor degrees in Ayurveda / Unani / Siddha medicine & surgery (UG courses) |
 | **Bed occupancy** | Average % of hospital beds occupied over the assessment period; a compliance metric with seat-reduction consequences |
@@ -61,6 +63,8 @@ Software Requirements Specification suite for digitizing the **college assessmen
 | **Part-I / Part-II** | College- and hospital-side self-declared visitation proformas submitted before/at visitation |
 | **Punitive policy** | Session-specific Board-approved matrix converting deficiencies into seat reductions, denials and penalties |
 | **Rating** | Annual A/B/C/D grading (Sowa-Rigpa A/B/C) of fully established Extended-Permission institutions; 70% online data + 30% physical verification |
+| **Regulatory Report (TCS)** | The complete 20–50-page visitation/assessment report **generated externally by TCS** and delivered to this platform (production: TCS API — GAP-011; interim: Visitor-portal manual upload). The platform's system boundary begins at its receipt |
+| **TCS** | External agency that conducts the visitation and generates the Regulatory/Assessment Report upstream of this platform; will expose the report-delivery API (contract pending — Q-021) |
 | **ROP / Renewal** | Renewal of Permission (29.2/29.3/29.4) for 2nd/3rd/4th batches |
 | **Scrutinization report** | Document-checklist review of a new proposal (forms, certificates, fees) before/alongside visitation |
 | **Section 28 / 29** | NCISM Act 2020 sections: 28 = existing colleges (annual permission), 29 = new establishment / new courses / intake increase |

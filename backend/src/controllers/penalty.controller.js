@@ -20,6 +20,16 @@ class PenaltyController {
       next(error);
     }
   }
+
+  /** DELETE /penalties/:id — remove a penalty. */
+  async remove(req, res, next) {
+    try {
+      await penaltyService.remove(req.params.id, req.user);
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new PenaltyController();

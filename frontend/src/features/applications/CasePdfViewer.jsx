@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Maximize, Minimize, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { getSourcePdf } from '@/features/applications/application.api';
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -18,6 +19,7 @@ export function CasePdfViewer({ id }) {
   const [numPages, setNumPages] = useState(0);
   const [page, setPage] = useState(1);
   const [error, setError] = useState(false);
+  const [isFs, setIsFs] = useState(false);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(760);
 
@@ -29,10 +31,23 @@ export function CasePdfViewer({ id }) {
 
   useEffect(() => {
     if (!wrapRef.current) return undefined;
-    const ro = new ResizeObserver(([e]) => setWidth(Math.min(e.contentRect.width - 24, 1000)));
+    const ro = new ResizeObserver(([e]) => setWidth(Math.min(e.contentRect.width - 24, 1400)));
     ro.observe(wrapRef.current);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    const onFs = () => setIsFs(document.fullscreenElement === wrapRef.current);
+    document.addEventListener('fullscreenchange', onFs);
+    return () => document.removeEventListener('fullscreenchange', onFs);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else wrapRef.current?.requestFullscreen?.();
+  };
+
+  const go = (n) => setPage(() => Math.min(Math.max(1, n), numPages || 1));
 
   if (error) return <p className="text-sm text-muted-foreground">No uploaded report available to preview.</p>;
   if (!blob) {
@@ -44,24 +59,56 @@ export function CasePdfViewer({ id }) {
   }
 
   return (
-    <div ref={wrapRef} className="space-y-3">
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="text-sm text-muted-foreground">Page {page} / {numPages || '…'}</span>
-        <Button variant="outline" size="sm" disabled={page >= numPages} onClick={() => setPage((p) => p + 1)}>
-          <ChevronRight className="h-4 w-4" />
+    <div ref={wrapRef} className={cn('bg-background', isFs ? 'flex h-screen flex-col p-4' : 'space-y-3')}>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1 rounded-md border-2 border-foreground bg-card p-1 neo-shadow-sm">
+          <Button variant="ghost" size="icon-sm" disabled={page <= 1} onClick={() => go(1)} title="First page">
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon-sm" disabled={page <= 1} onClick={() => go(page - 1)} title="Previous page">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1 px-1 text-sm">
+            <input
+              type="number"
+              min={1}
+              max={numPages || 1}
+              value={page}
+              onChange={(e) => go(Number(e.target.value))}
+              aria-label="Go to page"
+              className="w-12 h-7 rounded-md border-2 border-foreground bg-background text-center text-sm font-medium outline-none focus:ring-2 focus:ring-ring [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-muted-foreground">/ {numPages || '…'}</span>
+          </div>
+          <Button variant="ghost" size="icon-sm" disabled={page >= numPages} onClick={() => go(page + 1)} title="Next page">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon-sm" disabled={page >= numPages} onClick={() => go(numPages)} title="Last page">
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Button variant="outline" size="sm" onClick={toggleFullscreen} title={isFs ? 'Exit full screen' : 'Full screen'}>
+          {isFs ? <Minimize className="h-4 w-4 mr-1.5" /> : <Maximize className="h-4 w-4 mr-1.5" />}
+          {isFs ? 'Exit' : 'Full screen'}
         </Button>
       </div>
-      <div className="flex justify-center overflow-auto rounded-lg border bg-muted/20 max-h-[75vh]">
+
+      {/* Page area */}
+      <div className={cn(
+        'flex justify-center overflow-auto rounded-lg border-2 border-foreground bg-muted/20 p-4',
+        isFs ? 'flex-1' : 'max-h-[75vh]',
+      )}>
         <Document
           file={blob}
           onLoadSuccess={({ numPages: n }) => setNumPages(n)}
           loading={<div className="p-8 text-sm text-muted-foreground">Rendering…</div>}
           error={<div className="p-8 text-sm text-destructive">Failed to render PDF.</div>}
         >
-          <Page pageNumber={page} width={width} renderAnnotationLayer={false} renderTextLayer={false} />
+          <div className="shadow-lg h-fit">
+            <Page pageNumber={page} width={width} renderAnnotationLayer={false} renderTextLayer={false} />
+          </div>
         </Document>
       </div>
     </div>

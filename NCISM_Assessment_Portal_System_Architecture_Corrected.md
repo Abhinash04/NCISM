@@ -2,6 +2,8 @@
 
 This document provides a high-level summary of how the NCISM Assessment Portal works. It maps the user hierarchy, reporting chain, and regulatory case flow specifically for **Gaur Brahmin Ayurvedic College & Hospital (AYU0038)** in Rohtak, Haryana.
 
+> **⚠️ Scope (TCS boundary).** Under the revised project scope, the **20–50-page Regulatory/Assessment Report is generated externally by TCS** (TCS conducts the visitation and authors the report). This platform's boundary **begins when the report is received** — production intake is the **TCS API**; until it exists, the **Visitor-portal manual upload shown below is a temporary workaround, not the production architecture**. Everything downstream of receipt (extraction, rule/punitive computation, review, clarification, hearing, board, letters, closure) is unchanged and remains this platform's work.
+
 ---
 
 ## 1. User Hierarchy & Allotment Scoping
@@ -61,9 +63,9 @@ flowchart TD
     classDef terminal fill:#181715,stroke:#cc785c,stroke-width:2px,color:#faf9f5;
 
     %% Nodes
-    Start([1. Start: PDF Report Ready])
+    Start([1. Start: TCS generates the 20-50pp Regulatory Report - external])
 
-    VisitorUploader["<b>Visitor</b> (visitor@ncism.local)<br/>Uploads AYU0038 PDF Report"]:::visitor
+    VisitorUploader["<b>Visitor</b> (visitor@ncism.local)<br/>Interim workaround: uploads the TCS report PDF<br/><i>production: TCS API</i>"]:::visitor
     UploadedState{"State: <b>uploaded</b>"}
 
     JuniorProcess["<b>Junior Consultant</b> (Dr. Dheeraj)<br/>Allotted Haryana/Ayurveda<br/>Clicks 'Process'"]:::junior
@@ -159,11 +161,12 @@ flowchart TD
 
 ## 3. Detailed Walkthrough of the Case Lifecycle
 
-### 3.1 Report Submission (`uploaded` State)
+### 3.1 Regulatory-Report Receipt (`uploaded` State)
 
-* **Actor:** Visitor (`visitor@ncism.local`).
-* **Action:** Selects `AYU0038` (Gaur Brahmin Ayurvedic College & Hospital), enters basic parameters (visitation dates, intake = `60`), and uploads the raw PDF report.
-* **Output:** Case is created in the database under `applications` with `status = 'uploaded'`.
+* **Source of the report:** the 20–50-page Regulatory Report is **generated externally by TCS** (TCS conducts the visitation). This platform does not author it.
+* **Production intake (intended):** TCS delivers the report to the platform via its API; the case is created on receipt.
+* **Interim intake (current workaround):** Actor = Visitor (`visitor@ncism.local`) — selects `AYU0038`, enters basic parameters (visitation dates, intake = `60`), and **manually uploads the TCS-generated PDF report** because the TCS API is not yet available. This manual upload is temporary, not the production design.
+* **Output:** Case is created in the database under `applications` with `status = 'uploaded'`. Downstream processing (§3.2) is unchanged.
 
 ### 3.2 Automated Document Parsing & Rule Processing (`processed` State)
 

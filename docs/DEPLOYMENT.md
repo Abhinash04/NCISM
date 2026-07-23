@@ -1,5 +1,7 @@
 # Deployment Guide — NCISM Assessment Portal
 
+> **⚠️ Scope (TCS boundary):** the 20–50pp Regulatory Report is **TCS-generated**; the platform starts at report receipt (production: TCS API; interim: Visitor manual upload). The **bundled OpenDataLoader CLI stays** — it processes the *received* report PDF. When the TCS API delivers pre-structured data instead of a PDF, revisit whether the CLI is still needed.
+
 Single Docker host. Three services via `docker-compose.prod.yml`:
 
 ```

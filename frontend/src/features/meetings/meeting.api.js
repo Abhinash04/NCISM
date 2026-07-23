@@ -20,6 +20,16 @@ export async function addMeetingItem(id, applicationId) {
   return data.meeting;
 }
 
+export async function updateMeeting(id, payload) {
+  const { data } = await apiClient.patch(`/meetings/${id}`, payload);
+  return data.meeting;
+}
+
+export async function updateMeetingItem(meetingId, itemId, payload) {
+  const { data } = await apiClient.patch(`/meetings/${meetingId}/items/${itemId}`, payload);
+  return data.meeting;
+}
+
 export async function confirmMeeting(id, minutesText) {
   const { data } = await apiClient.post(`/meetings/${id}/confirm`, { minutesText });
   return data.meeting;

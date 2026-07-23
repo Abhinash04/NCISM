@@ -12,7 +12,7 @@ export function FAQSection() {
     },
     {
       q: "Who reviews an institution's assessment?",
-      a: "Every assessment moves through a transparent multi-tier chain — Junior Consultant, then Senior Consultant, then Board Member — with each step recorded in the audit trail.",
+      a: "Every assessment moves through a transparent multi-tier chain — Consultant, then Senior Consultant, then Board Member — with each step recorded in the audit trail.",
     },
     {
       q: "Is the compliance evaluation deterministic?",

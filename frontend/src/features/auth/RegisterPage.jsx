@@ -215,7 +215,7 @@ export function RegisterPage() {
               <option value="" disabled hidden>
                 Select your role
               </option>
-              <option value="JUNIOR_CONSULTANT">Junior Consultant</option>
+              <option value="JUNIOR_CONSULTANT">Consultant</option>
               <option value="SENIOR_CONSULTANT">Senior Consultant</option>
               <option value="BOARD_MEMBER">Board Member</option>
               <option value="SECRETARIAT">Secretariat</option>

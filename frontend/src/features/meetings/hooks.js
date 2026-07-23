@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  listMeetings, getMeeting, createMeeting, addMeetingItem, confirmMeeting,
+  listMeetings, getMeeting, createMeeting, addMeetingItem, updateMeeting, updateMeetingItem, confirmMeeting,
 } from './meeting.api';
 
 export function useMeetings() {
@@ -19,6 +19,22 @@ export function useCreateMeeting() {
 export function useAddMeetingItem(id) {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (applicationId) => addMeetingItem(id, applicationId), onSuccess: () => qc.invalidateQueries({ queryKey: ['meeting', id] }) });
+}
+
+export function useUpdateMeeting(id) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload) => updateMeeting(id, payload),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meeting', id] }); qc.invalidateQueries({ queryKey: ['meetings'] }); },
+  });
+}
+
+export function useUpdateMeetingItem(meetingId) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, payload }) => updateMeetingItem(meetingId, itemId, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['meeting', meetingId] }),
+  });
 }
 
 export function useConfirmMeeting(id) {

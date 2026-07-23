@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { Footer } from '@/components/layout/Footer';
 
 const SYSTEMS = ['Ayurveda', 'Unani', 'Siddha', 'Sowa-Rigpa'];
 
@@ -80,8 +79,6 @@ export function AuthLayout({ children, footer }) {
         </div>
       </main>
 
-      {/* Site footer */}
-      <Footer />
     </div>
   );
 }

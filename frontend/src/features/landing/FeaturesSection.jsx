@@ -16,7 +16,7 @@ export function FeaturesSection() {
     {
       icon: <Gavel className="w-8 h-8 text-primary" strokeWidth={1.5} />,
       title: "Board Review",
-      desc: "Multi-tier review chain: Junior Consultant → Senior Consultant → Board Member."
+      desc: "Multi-tier review chain: Consultant → Senior Consultant → Board Member."
     }
   ];
   return (

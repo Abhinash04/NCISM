@@ -4,6 +4,10 @@
 **Prepared:** 2026-07-04 · **Audience:** developers, team leads, manager
 **Project stage (verified):** **Documentation / specification stage.** The repository contains the 18 client source documents (`markdown/`) and a complete 15-file SRS suite (`docs/srs/`). **No application code exists yet** — no backend, frontend, database, or tests. Throughout this handoff, "implemented" means *specified in the SRS*; every code-level artifact is honestly marked **❌ Not Started**. Nothing is assumed beyond the documents.
 
+> **⚠️ Scope amendment (TCS boundary).** Post-dating this analysis, the client set the system boundary at **receipt of the TCS-generated Regulatory Report**: TCS conducts the visitation and authors the 20–50pp report; the platform receives it (production: **TCS API**; interim: **Visitor manual upload**, a temporary workaround) and runs the remaining assessment workflow. Requirement rows below that place report generation / visitation capture in *our* scope (FR-030 series, M3 field capture, WF-2/WF-3 origin) are superseded — see `docs/srs/` FR-038, I-11, GAP-011, ASM-012, Q-021, WF-2b.
+>
+> **⚠️ Dated statement.** The "No application code exists yet" claim reflects this file's 2026-07-04 snapshot; a working portal has since been built (see `HANDOFF.md`, `docs/ARCHITECTURE.md`). Read this document as a spec-stage KT artifact, not a current build status.
+
 **Status legend used everywhere:**
 ✅ Fully specified in SRS · 🟡 Partially specified (open client question) · ❌ Not started (code/build) · ❓ Unclear (needs client input)
 

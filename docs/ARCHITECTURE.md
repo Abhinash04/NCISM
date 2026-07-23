@@ -3,6 +3,11 @@
 Authoritative reference for the NCISM Assessment Platform foundation. Anything under
 `docs/archive/` is historical and describes systems that no longer exist (or never did).
 
+> **⚠️ Scope note (TCS boundary):** the **20–50pp Regulatory Report is generated externally by TCS**
+> (TCS runs the visitation). This platform **begins at report receipt** — production intake is the
+> **TCS API**; the **visitor upload described below is a temporary workaround** until that API exists.
+> The extraction + assessment pipeline is unchanged and acts on the *received* report.
+>
 > **Scope note (2026-07):** the project is an **internal** review/validation portal wrapped around
 > the completed extraction + assessment pipeline — NOT the public 9-role regulatory SaaS. Built
 > **through Phase 6**: Postgres + JWT auth + RBAC (13 roles), the NCISM org hierarchy, the

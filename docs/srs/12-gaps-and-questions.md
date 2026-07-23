@@ -19,6 +19,7 @@
 | GAP-008 | Letter numbering scheme | File/reference numbers appear in several formats — `4-74/MARB/2025-Ay. (PB)`, `3-4/MARB/2025-Ay.(53)`, `26-1/MARB/2026/College`, `11-58/2025-26/MARB/Unani` (source: clarification letter format; Master data of institute § All File Number) — with no documented generation rule. |
 | GAP-009 | Visitor empanelment process | Visitors have IDs (`V01408`) and home colleges (source: AYU0659 § Visitor Details) but there is no document describing how visitors are empanelled, trained, assigned, paid, or rotated / checked for conflicts (e.g., same-state exclusion). |
 | GAP-010 | Fee reconciliation | Fees are paid via NEFT/RTGS with cheque/UTR references (source: Board meeting Agenda (0) § Agenda Item No. 2 — "NEFT vide file no. 20250711125341 Rs. 14,16,000"), but there is no described process for verifying/reconciling payments against bank statements. |
+| GAP-011 | TCS Regulatory-Report API specification unavailable | Per the revised project scope, the 20–50-page Regulatory/Assessment Report is generated externally by **TCS** and will be delivered to this platform through a TCS-exposed API. No API contract (endpoint, payload schema, auth, delivery semantics) exists yet. Until it is available, the **Visitor-portal manual upload is the interim intake mechanism** — a temporary workaround, not the production architecture. See ASM-012, Q-021, I-11 in [file 11](11-apis-integrations.md). |
 
 ## 2. Contradictions & inconsistencies in sources
 
@@ -53,7 +54,7 @@ Each assumption is tagged where used in files 01–11 as `[INFERRED]` and regist
 | ID | Assumption | Reasoning |
 |----|-----------|-----------|
 | ASM-001 | The client (system owner) is **NCISM / MARB-ISM** and primary users are MARB dealing staff, Board members, visitors, hearing committees, and colleges as external submitters. | All 18 documents are MARB-side artefacts (agendas, report templates, allotment sheets, letters). |
-| ASM-002 | The system to be built is an internal **assessment & permission management workflow system** that complements (not replaces) the existing public NCISM portal and AEBAS. | Sources describe existing portal/AEBAS as operational systems the workflow consumes data from (GAP-006). |
+| ASM-002 | The system to be built is an internal **assessment & permission management workflow system** that complements (not replaces) the existing public NCISM portal and AEBAS. **Scope revision (client-directed):** the system boundary now begins at **receipt of the TCS-generated Regulatory Report** — visitation execution and report authoring are upstream (TCS-side), outside this platform (GAP-011, ASM-012). | Sources describe existing portal/AEBAS as operational systems the workflow consumes data from (GAP-006); the TCS boundary is a client scope instruction, not derived from the corpus. |
 | ASM-003 | One unified data model parameterised by *system of medicine* (Ayurveda/Unani/Siddha/Sowa-Rigpa) and *level* (UG/PG) serves all regulations. | The six regulations share one process skeleton with differing parameters (slabs, fees, grade bands, forms). |
 | ASM-004 | HF = Professor/Reader-cadre shortfall; LF = Lecturer-cadre shortfall (AMB-001). | Consistent with staffing-requirement notation "1P And 1R +2L". |
 | ASM-005 | All monetary values are INR; academic sessions run per Indian academic year (e.g., 2026-27); dates in sources are DD.MM.YYYY. | Uniform in all documents. |
@@ -63,6 +64,7 @@ Each assumption is tagged where used in files 01–11 as `[INFERRED]` and regist
 | ASM-009 | The technology stack proposed in file 06 is entirely `[INFERRED]` (user-approved approach); no source names any implementation technology. | Client instruction during planning. |
 | ASM-010 | Board meetings occur roughly fortnightly-to-monthly (124th → 134th between 29.05.2025 and 16.07.2025; 160th in 2026). | Dates in hearing letters and agendas. |
 | ASM-011 | Visitation team size is typically 3 visitors for UG annual visits, 2-member committees for hearings. | AYU0659/AYU0038/AYU0265 visitor tables; Agenda (1) minutes. |
+| ASM-012 | The TCS Regulatory-Report API delivers the raw 20–50-page report as a PDF plus a metadata envelope (institute ID, session, visitation dates, report reference); this platform then runs its own extraction, rule evaluation and punitive computation on the received report. | ⚠️ Assumption — revised scope statement only names TCS as the generator and an API as the channel; no contract exists (GAP-011). The payload shape mirrors what the interim Visitor upload provides today, keeping the downstream pipeline unchanged. |
 
 ## 5. Questions for the client
 
@@ -83,6 +85,7 @@ Each assumption is tagged where used in files 01–11 as `[INFERRED]` and regist
 - **Q-012**: How are NEFT/RTGS payments to the National Commission Fund confirmed today (bank statement, PFMS, Bharatkosh)? Should the system integrate with that channel? (GAP-010)
 - **Q-013**: Which video-conferencing platform is used for virtual hearings, and must the system schedule/record VC sessions or only store links and minutes?
 - **Q-014**: Are teacher codes and visitor IDs mastered in an existing NCISM registry the system must sync with, or will this system become the master?
+- **Q-021**: **TCS Regulatory-Report API contract** (GAP-011): endpoint(s), payload format (PDF + metadata envelope? structured JSON?), authentication (server-to-server credentials/mTLS?), delivery semantics (push vs pull, retries, acknowledgement), report versioning/corrections, and the expected availability date. Until answered, the Visitor-portal manual upload remains the documented interim intake.
 
 ### Data & compliance
 - **Q-015**: Should the 672-row institute master be migrated as-is with cleansing (split name/address, fix nulls), and who owns master-data corrections thereafter? (CON-007)
@@ -94,4 +97,4 @@ Each assumption is tagged where used in files 01–11 as `[INFERRED]` and regist
 
 ---
 
-*Finalized. Cross-references: assumptions surface as `[INFERRED]` tags in files [01](01-project-overview.md)–[11](11-apis-integrations.md); risks derived from these gaps are in [13-risks.md](13-risks.md); question resolutions gate the roadmap phases in [14-roadmap.md](14-roadmap.md) (Q-004/005/006 block the assessment engine; Q-009 gates rating; Q-018 blocks Siddha UG / Sowa-Rigpa PG segments).*
+*Finalized (revised for the TCS scope change). Cross-references: assumptions surface as `[INFERRED]` tags in files [01](01-project-overview.md)–[11](11-apis-integrations.md); risks derived from these gaps are in [13-risks.md](13-risks.md); question resolutions gate the roadmap phases in [14-roadmap.md](14-roadmap.md) (Q-004/005/006 block the assessment engine; Q-009 gates rating; Q-018 blocks Siddha UG / Sowa-Rigpa PG segments; **Q-021 gates the TCS-API integration phase — the interim Visitor upload stands until it is resolved**).*

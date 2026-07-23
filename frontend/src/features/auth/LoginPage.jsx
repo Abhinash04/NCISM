@@ -3,9 +3,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { AuthLayout } from './AuthLayout';
 import { useAuth } from './AuthContext';
-
-const PRIMARY_BTN =
-  'w-full h-10 bg-primary text-primary-foreground rounded-[8px] font-sans text-sm font-medium flex items-center justify-center gap-2 transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100';
+import { neoField, NEO_PRIMARY_BTN, NEO_SECONDARY_BTN } from './authStyles';
 
 export function LoginPage() {
   const auth = useAuth();
@@ -93,7 +91,7 @@ export function LoginPage() {
       <button
         type="button"
         onClick={() => navigate('/register')}
-        className="w-full h-10 bg-background border border-border text-foreground rounded-[8px] font-sans text-sm font-medium flex items-center justify-center transition-[transform,background-color] duration-150 ease-out hover:bg-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
+        className={NEO_SECONDARY_BTN}
       >
         Create an account
       </button>
@@ -104,11 +102,8 @@ export function LoginPage() {
   if (challenge) {
     return (
       <AuthLayout>
-        <div className="flex flex-col items-center justify-center text-center mb-8">
-          <span className="font-serif text-[24px] font-normal text-foreground tracking-wide select-none">
-            NCISM
-          </span>
-          <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight mt-3">
+        <div className="flex flex-col items-start text-left mb-8">
+          <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight">
             Two-factor authentication
           </h2>
           <p className="font-sans text-sm text-muted-foreground mt-1">
@@ -132,13 +127,13 @@ export function LoginPage() {
               autoFocus
               aria-invalid={!!formError}
               aria-describedby={formError ? 'mfa-error' : undefined}
-              className="w-full h-10 px-4 bg-background border border-border rounded-[8px] font-sans text-sm text-foreground text-center tracking-[0.4em] placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:border-primary focus:ring-ring/40 transition-all duration-150"
+              className={neoField(!!formError, 'px-4 text-center tracking-[0.4em]')}
             />
           </div>
           {formError && (
             <span id="mfa-error" role="alert" className="font-sans text-[13px] text-destructive leading-tight">{formError}</span>
           )}
-          <button type="submit" disabled={isLoading} className={PRIMARY_BTN}>
+          <button type="submit" disabled={isLoading} className={NEO_PRIMARY_BTN}>
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isLoading ? 'Verifying…' : 'Verify'}
           </button>
@@ -149,11 +144,8 @@ export function LoginPage() {
 
   return (
     <AuthLayout footer={footerSlot}>
-      <div className="flex flex-col items-center justify-center text-center mb-8">
-        <span className="font-serif text-[24px] font-normal text-foreground tracking-wide select-none">
-          NCISM
-        </span>
-        <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight mt-3">
+      <div className="flex flex-col items-start text-left mb-8">
+        <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight">
           Welcome back
         </h2>
         <p className="font-sans text-sm text-muted-foreground mt-1">
@@ -179,11 +171,7 @@ export function LoginPage() {
               placeholder="you@example.com"
               aria-invalid={!!emailError}
               aria-describedby={emailError ? 'login-email-error' : undefined}
-              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                emailError
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!emailError, 'pl-10 pr-4')}
             />
           </div>
           {emailError && (
@@ -209,11 +197,7 @@ export function LoginPage() {
               placeholder="••••••••"
               aria-invalid={!!passwordError}
               aria-describedby={passwordError ? 'login-password-error' : undefined}
-              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                passwordError
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!passwordError, 'pl-10 pr-10')}
             />
             <button
               type="button"
@@ -238,7 +222,7 @@ export function LoginPage() {
 
         {/* Submit Actions */}
         <div className="flex flex-col gap-3 w-full mt-2">
-          <button type="submit" disabled={isLoading} className={PRIMARY_BTN}>
+          <button type="submit" disabled={isLoading} className={NEO_PRIMARY_BTN}>
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isLoading ? 'Signing in…' : 'Sign In'}
           </button>

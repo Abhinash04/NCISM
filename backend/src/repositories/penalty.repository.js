@@ -47,6 +47,10 @@ async function update(id, patch) {
   return getById(id);
 }
 
+function remove(id) {
+  return db('penalties').where({ id }).del();
+}
+
 /** Count of a case's penalties not yet in a terminal state (for compliance rollup). */
 async function unresolvedCount(applicationId) {
   const { count } = await db('penalties')
@@ -56,4 +60,4 @@ async function unresolvedCount(applicationId) {
   return Number(count);
 }
 
-module.exports = { create, bulkCreate, getById, listForCase, existsAutoFor, queue, update, unresolvedCount };
+module.exports = { create, bulkCreate, getById, listForCase, existsAutoFor, queue, update, remove, unresolvedCount };

@@ -45,7 +45,7 @@ function PaginationLink({
       asChild
       variant={isActive ? "outline" : "ghost"}
       size={size}
-      className={cn(className)}>
+      className={cn("data-[active=true]:bg-primary data-[active=true]:text-primary-foreground", className)}>
       <a
         aria-current={isActive ? "page" : undefined}
         data-slot="pagination-link"

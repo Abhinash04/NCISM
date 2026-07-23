@@ -2,8 +2,12 @@
 
 Internal review/validation web portal for the **Medical Assessment and Rating Board (MARB-ISM)** of
 the National Commission for Indian System of Medicine. It wraps a governed, role-based case workflow
-around a deterministic document-processing + assessment engine: a visitor uploads a college
-inspection report (PDF), the assigned dealing staff runs extraction + a MARB-format compliance
+around a deterministic document-processing + assessment engine.
+
+> **⚠️ Scope (TCS boundary).** The **20–50-page Regulatory/Assessment Report is generated externally by TCS** (TCS runs the visitation). This platform's boundary **begins at report receipt** — production intake is the **TCS API**; until it exists, the **Visitor-portal manual upload is a temporary workaround**, not the production architecture. The engine and downstream workflow below are unchanged.
+
+The platform **receives the TCS-generated Regulatory Report** (production: TCS API; interim: a visitor
+manually uploads the report PDF), the assigned dealing staff runs extraction + a MARB-format compliance
 assessment against the NCISM MESAR regulations, and the case moves through review → clarification →
 hearing → board decision → official letters/orders → compliance monitoring → closure.
 

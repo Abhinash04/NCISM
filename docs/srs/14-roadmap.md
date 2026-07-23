@@ -8,9 +8,9 @@
 flowchart LR
     P0[Phase 0<br/>Inception: answers to Q-001..Q-020,<br/>integration discovery, schedule re-keying start] --> P1
     P1[Phase 1 - Foundation<br/>M1 Registries + rules tables<br/>M7 Documents, auth/RBAC, audit] --> P2
-    P2[Phase 2 - Core cycle MVP<br/>M3 Visitation capture<br/>M4 Assessment + punitive engine<br/>M6 Letters clarification] --> P3
+    P2[Phase 2 - Core cycle MVP<br/>M3 Report ingestion - interim upload<br/>M4 Assessment + punitive engine<br/>M6 Letters clarification] --> P3
     P3[Phase 3 - Decision layer<br/>M5 Board meetings + hearings<br/>M6 decision letters, M8 dashboards] --> P4
-    P4[Phase 4 - Section 29 + integrations<br/>M2 Applications/scrutiny, LOI-LOP ladder<br/>I-01/I-02 imports, I-04 verification] --> P5
+    P4[Phase 4 - Section 29 + integrations<br/>M2 Applications/scrutiny, LOI-LOP ladder<br/>I-11 TCS report API - retire interim upload<br/>I-01/I-02 imports, I-04 verification] --> P5
     P5[Phase 5 - Rating & expansion<br/>M9 Rating, publication exports,<br/>appeals tracking, AI/ML pilots]
 ```
 
@@ -27,7 +27,7 @@ Rationale for the order:
 |--------|----------|
 | Institute/teacher/visitor masters (migrated), work-allotment routing | Appeals processing (status-only until Q-008) |
 | MESAR standards tables for Ayurveda UG + one more system (pilot) | Full six-regulation coverage (staged per re-keying) |
-| Visitation scheduling, offline proforma, evidence, certifications | Live AEBAS API (import/manual first) |
+| Regulatory-report ingestion via interim Visitor upload (report is TCS-generated) | TCS report API (I-11) — replaces interim upload once contract lands (Q-021) |
 | Assessment computation + punitive ledger (golden-tested per SC-02) | Rating (M9) |
 | Clarification letters + dispatch log + deadline engine | College self-service portal beyond case/letter view |
 | Case audit trail end-to-end | Board meeting module (falls in Phase 3) |
@@ -41,6 +41,7 @@ Pilot recommendation: one high-volume state (e.g., Maharashtra, 155 Ayurveda col
 - Punitive-policy version for the target session must be Board-approved before the season's first computation (C-02).
 - Go-live windows must respect the season: deploy and train **before** visitation waves; freeze during the 60-day pre-counselling crunch (RSK-003).
 - Siddha UG / Sowa-Rigpa PG segments blocked on missing regulations (RSK-043).
+- **TCS report-API integration (I-11) blocked on the contract (Q-021, GAP-011)** — until then the interim Visitor-upload path stands; its retirement is the Phase-4 milestone (RSK-027).
 
 ## 4. Future enhancements (proposals)
 

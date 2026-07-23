@@ -12,6 +12,8 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { DownloadMenu } from '@/components/common/DownloadMenu';
 import { useMeeting, useAddMeetingItem, useConfirmMeeting } from '@/features/meetings/hooks';
 import { useApplications } from '@/features/applications/hooks';
+import { AiGenerateButton } from '@/components/common/AiGenerateButton';
+import { genMeetingMinutes } from '@/features/applications/generate';
 import { STATUS_META } from '@/pages/applications/ApplicationsList';
 
 export function MeetingDetail() {
@@ -116,6 +118,9 @@ export function MeetingDetail() {
             </>
           ) : canManage ? (
             <>
+              <div className="flex justify-end">
+                <AiGenerateButton generate={() => genMeetingMinutes(meeting)} onGenerated={setMinutes} disabled={confirm.isPending} />
+              </div>
               <Textarea placeholder="Minutes of the meeting…" value={minutes} onChange={(e) => setMinutes(e.target.value)} />
               <Button onClick={() => confirm.mutate(minutes)} disabled={confirm.isPending}>
                 {confirm.isPending ? 'Confirming…' : 'Confirm minutes'}

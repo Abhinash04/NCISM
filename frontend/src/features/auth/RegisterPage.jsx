@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Briefcase, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { AuthLayout } from './AuthLayout';
+import { neoField, NEO_PRIMARY_BTN } from './authStyles';
 import { toast } from 'sonner';
 
 export function RegisterPage() {
@@ -111,11 +112,8 @@ export function RegisterPage() {
 
   return (
     <AuthLayout footer={footerSlot}>
-      <div className="flex flex-col items-center justify-center text-center mb-8">
-        <span className="font-serif text-[24px] font-normal text-foreground tracking-wide select-none">
-          NCISM
-        </span>
-        <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight mt-3">
+      <div className="flex flex-col items-start text-left mb-8">
+        <h2 className="font-serif text-[28px] font-normal text-foreground tracking-tight leading-tight">
           Create your account
         </h2>
         <p className="font-sans text-sm text-muted-foreground mt-1">
@@ -139,11 +137,7 @@ export function RegisterPage() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Dr. Full Name"
-              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                errors.fullName
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!errors.fullName, 'pl-10 pr-4')}
             />
           </div>
           {errors.fullName && (
@@ -169,11 +163,7 @@ export function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                errors.email
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!errors.email, 'pl-10 pr-4')}
             />
           </div>
           {errors.email && (
@@ -199,11 +189,7 @@ export function RegisterPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
-              className={`w-full h-10 pl-10 pr-4 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                errors.phone
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!errors.phone, 'pl-10 pr-4')}
             />
           </div>
           {errors.phone && (
@@ -224,11 +210,7 @@ export function RegisterPage() {
               id="reg-role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground focus:outline-none focus:ring-2 transition-all duration-150 appearance-none ${
-                errors.role
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!errors.role, 'pl-10 pr-10 appearance-none')}
             >
               <option value="" disabled hidden>
                 Select your role
@@ -267,11 +249,7 @@ export function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min 8 characters"
-              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                errors.password
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!errors.password, 'pl-10 pr-10')}
             />
             <button
               type="button"
@@ -304,11 +282,7 @@ export function RegisterPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter password"
-              className={`w-full h-10 pl-10 pr-10 bg-background border rounded-[8px] font-sans text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 transition-all duration-150 ${
-                errors.confirmPassword
-                  ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-                  : 'border-border focus:border-primary focus:ring-ring/40'
-              }`}
+              className={neoField(!!errors.confirmPassword, 'pl-10 pr-10')}
             />
             <button
               type="button"
@@ -335,7 +309,7 @@ export function RegisterPage() {
               id="agreeTerms"
               checked={agreeTerms}
               onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="w-4 h-4 rounded text-primary border-border focus:ring-ring bg-background focus:ring-opacity-25 mt-0.5 accent-primary"
+              className="w-5 h-5 rounded-[4px] border-2 border-foreground bg-background accent-primary focus:ring-2 focus:ring-ring mt-0.5"
             />
             <label htmlFor="agreeTerms" className="font-sans text-xs text-muted-foreground select-none leading-normal">
               I agree to the{' '}
@@ -360,7 +334,7 @@ export function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-10 bg-primary text-primary-foreground rounded-[8px] font-sans text-sm font-medium flex items-center justify-center gap-2 transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
+            className={NEO_PRIMARY_BTN}
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />}
             {isLoading ? 'Creating Account...' : 'Create Account'}

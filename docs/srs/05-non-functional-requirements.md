@@ -26,7 +26,8 @@
 
 - **NFR-020 · Availability.** 99.5% during business hours; planned maintenance outside working hours. Statutory deadline days (counselling countdown, hearing dates) are blackout periods for maintenance. `[INFERRED — deadlines from UG Ayurveda 2024 § 55(7); hearing dates in letters]`
 - **NFR-021 · Recovery.** RPO ≤ 24 h, RTO ≤ 8 h. `[INFERRED — annual-cycle business tolerates short outages but not data loss of finalized decisions]`
-- **NFR-022 · Graceful degradation offline capture.** Visitation proforma capture must tolerate poor connectivity at college sites (draft locally, sync later) (source: visits occur at rural campuses, e.g. "Dongariya, Post Chillod, Tehsil Lalbaurra" — AYU0659 § header) `[INFERRED need]`.
+- **NFR-022 · ~~Graceful degradation offline capture~~ (moot under the TCS boundary).** Field proforma capture is now upstream (TCS); this NFR no longer applies to this platform. The corresponding platform requirement is **ingestion reliability** — see NFR-023. `[Superseded by scope revision — ASM-002/GAP-011]`
+- **NFR-023 · Regulatory-report ingestion reliability.** Report intake (TCS API — production; Visitor upload — interim) must be idempotent (safe re-delivery on retry), record provenance + content hash, and never block a case if the TCS API is down — the interim manual-upload path is the guaranteed fallback (NFR-080, BR-311). `[INFERRED — TCS boundary; contract pending Q-021]`
 
 ## Audit logging
 

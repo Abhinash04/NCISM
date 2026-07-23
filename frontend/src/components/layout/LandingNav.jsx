@@ -9,14 +9,15 @@ export function LandingNav() {
 
   const links = [
     { label: 'Home', href: '/' },
-    { label: 'About', href: '#about' },
+    { label: 'Overview', href: '#overview' },
     { label: 'Features', href: '#features' },
+    { label: 'FAQ', href: '#faq' },
     { label: 'Contact', href: '#contact' },
   ];
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-50 px-4 md:px-8">
+      <nav className="fixed top-0 left-0 right-0 h-16 bg-background border-b-2 border-foreground z-50 px-4 md:px-8">
         <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between">
 
           {/* Brand Logo */}
@@ -51,7 +52,7 @@ export function LandingNav() {
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="h-9 px-4 bg-primary text-primary-foreground rounded-[8px] font-sans text-xs font-semibold tracking-wide flex transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background items-center justify-center"
+              className="h-9 px-5 bg-primary text-primary-foreground rounded-full border-2 border-foreground font-sans text-xs font-semibold tracking-wide flex shadow-[4px_4px_0px_hsl(var(--foreground))] transition-all duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_hsl(var(--foreground))] active:translate-x-[3px] active:translate-y-[3px] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background items-center justify-center"
             >
               Get Started
             </button>
@@ -89,7 +90,7 @@ export function LandingNav() {
                 setIsOpen(false);
                 navigate('/login');
               }}
-              className="w-full h-11 bg-transparent border border-border text-foreground rounded-[8px] font-sans text-sm font-medium flex transition-[transform,background-color] duration-150 ease-out hover:bg-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring items-center justify-center"
+              className="w-full h-11 bg-background border-2 border-foreground text-foreground rounded-full font-sans text-sm font-medium flex shadow-[4px_4px_0px_hsl(var(--foreground))] transition-all duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_hsl(var(--foreground))] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring items-center justify-center"
             >
               Sign In
             </button>
@@ -98,7 +99,7 @@ export function LandingNav() {
                 setIsOpen(false);
                 navigate('/register');
               }}
-              className="w-full h-11 bg-primary text-primary-foreground rounded-[8px] font-sans text-sm font-semibold flex transition-[transform,background-color] duration-150 ease-out hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring items-center justify-center"
+              className="w-full h-11 bg-primary text-primary-foreground border-2 border-foreground rounded-full font-sans text-sm font-semibold flex shadow-[4px_4px_0px_hsl(var(--foreground))] transition-all duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_hsl(var(--foreground))] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring items-center justify-center"
             >
               Get Started
             </button>

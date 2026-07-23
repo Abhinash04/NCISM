@@ -37,6 +37,24 @@ class MeetingController {
     }
   }
 
+  async update(req, res, next) {
+    try {
+      const meeting = await meetingService.update(req.params.id, req.body || {});
+      res.json({ success: true, meeting });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateItem(req, res, next) {
+    try {
+      const meeting = await meetingService.updateItem(req.params.id, req.params.itemId, req.body || {});
+      res.json({ success: true, meeting });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async confirm(req, res, next) {
     try {
       const meeting = await meetingService.confirm(req.params.id, req.body?.minutesText);

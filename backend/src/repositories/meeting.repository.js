@@ -30,6 +30,9 @@ async function getWithItems(id) {
     .where('board_meeting_items.meeting_id', id)
     .select(
       'board_meeting_items.id',
+      'board_meeting_items.discussion_notes',
+      'board_meeting_items.item_decision',
+      'board_meeting_items.item_observations',
       'applications.id as application_id', 'applications.status', 'applications.decision',
       'institutions.name as institution_name', 'institutions.institute_id',
     );
@@ -42,9 +45,18 @@ async function addItem(meetingId, applicationId) {
     .onConflict(['meeting_id', 'application_id']).ignore();
 }
 
-async function confirm(id, minutesText) {
-  await db('board_meetings').where({ id }).update({ status: 'confirmed', minutes_text: minutesText || null, updated_at: db.fn.now() });
-  return getById(id);
+async function update(id, patch) {
+  await db('board_meetings').where({ id }).update({ ...patch, updated_at: db.fn.now() });
+  return getWithItems(id);
 }
 
-module.exports = { create, list, getById, getWithItems, addItem, confirm };
+async function updateItem(itemId, patch) {
+  await db('board_meeting_items').where({ id: itemId }).update(patch);
+}
+
+async function confirm(id, minutesText) {
+  await db('board_meetings').where({ id }).update({ status: 'confirmed', minutes_text: minutesText || null, updated_at: db.fn.now() });
+  return getWithItems(id);
+}
+
+module.exports = { create, list, getById, getWithItems, addItem, update, updateItem, confirm };

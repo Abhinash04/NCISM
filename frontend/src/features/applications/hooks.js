@@ -4,7 +4,7 @@ import {
   uploadApplication, actOnApplication, deleteApplication,
   getClarifications, issueClarification, respondClarification,
   getHearings, getCommitteeMembers, getLetters, previewLetter,
-  getPenalties, addPenalty, listPenalties, updatePenaltyStatus,
+  getPenalties, addPenalty, listPenalties, updatePenaltyStatus, deletePenalty,
 } from './application.api';
 
 export function useApplications() {
@@ -115,6 +115,17 @@ export function useUpdatePenalty(applicationId) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ penaltyId, status }) => updatePenaltyStatus(penaltyId, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['penalties'] });
+      if (applicationId) qc.invalidateQueries({ queryKey: ['application', applicationId] });
+    },
+  });
+}
+
+export function useDeletePenalty(applicationId) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (penaltyId) => deletePenalty(penaltyId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['penalties'] });
       if (applicationId) qc.invalidateQueries({ queryKey: ['application', applicationId] });

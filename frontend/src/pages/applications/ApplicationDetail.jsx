@@ -19,6 +19,10 @@ import {
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
 import { DownloadMenu } from '@/components/common/DownloadMenu';
 import { CasePdfViewer } from '@/features/applications/CasePdfViewer';
+import { AiGenerateButton } from '@/components/common/AiGenerateButton';
+import {
+  genHearingMinutes, genDecisionNote, genPenaltyDescription, genClarificationResponse,
+} from '@/features/applications/generate';
 import { getSourcePdf } from '@/features/applications/application.api';
 import { downloadBlob } from '@/lib/download';
 import { DragDropZone } from '@/features/documents/components/DragDropZone';
@@ -28,7 +32,7 @@ import {
   useApplication, useAllowedActions, useApplicationEvents, useApplicationAction, useDeleteApplication,
   useClarifications, useIssueClarification, useRespondClarification,
   useHearings, useCommitteeMembers, useLetters, previewLetter,
-  usePenalties, useAddPenalty, useUpdatePenalty,
+  usePenalties, useAddPenalty, useUpdatePenalty, useDeletePenalty,
 } from '@/features/applications/hooks';
 import { useAuth } from '@/features/auth/AuthContext';
 import { STATUS_META } from './ApplicationsList';
@@ -38,6 +42,19 @@ const PENALTY_LABELS = {
   teacher_code_revocation: 'Teacher-code revocation',
 };
 const PENALTY_STATUSES = ['pending', 'applied', 'paid', 'waived'];
+
+// Verdict options for the hearing-minutes dialog (no backend enum exists; free-text column).
+const VERDICT_OPTIONS = [
+  'Permission Granted',
+  'Permission Granted with Conditions',
+  'Seat Reduction Recommended',
+  'Permission Denied',
+  'Deferred for Clarification',
+];
+
+// Standard MESAR monetary fine auto-filled when a monetary penalty is selected
+// (no monetary formula exists in the ruleset; editable so it can be overridden).
+const STANDARD_MONETARY_FINE = 2500000;
 
 const SYSTEM_LABELS = { ayurveda: 'Ayurveda', unani: 'Unani', siddha: 'Siddha', sowa_rigpa: 'Sowa-Rigpa' };
 
@@ -106,9 +123,18 @@ export function ApplicationDetail() {
   const canManagePenalties = hasPermission('compliance:manage');
   const addPenalty = useAddPenalty(id);
   const updatePenalty = useUpdatePenalty(id);
+  const deletePenalty = useDeletePenalty(id);
   const [pType, setPType] = useState('monetary');
   const [pDesc, setPDesc] = useState('');
-  const [pAmount, setPAmount] = useState('');
+  const [pAmount, setPAmount] = useState(String(STANDARD_MONETARY_FINE));
+  const [delPenalty, setDelPenalty] = useState(null);
+
+  // Auto-calculate the amount from the selected penalty type (monetary → standard
+  // fine; teacher-code revocation is non-monetary → no amount).
+  const onPenaltyType = (type) => {
+    setPType(type);
+    setPAmount(type === 'monetary' ? String(STANDARD_MONETARY_FINE) : '');
+  };
   const action = useApplicationAction(id);
   const issue = useIssueClarification(id);
   const respond = useRespondClarification(id);
@@ -187,7 +213,7 @@ export function ApplicationDetail() {
   const dialogTitle = dialog ? (SPECIAL[dialog.key]?.label || ACTION_DEFS[dialog.key]?.label) : '';
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
       <Button variant="ghost" size="sm" onClick={() => navigate(listPath)}>
         <ArrowLeft className="h-4 w-4 mr-1" /> Back to cases
       </Button>
@@ -249,6 +275,9 @@ export function ApplicationDetail() {
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" /> Respond to clarification</CardTitle></CardHeader>
           <CardContent className="space-y-3">
+            <div className="flex justify-end">
+              <AiGenerateButton generate={() => genClarificationResponse(rounds)} onGenerated={setRespText} disabled={busy} />
+            </div>
             <Textarea placeholder="Your response to the shortcomings…" value={respText} onChange={(e) => setRespText(e.target.value)} />
             {respFile ? (
               <div className="flex items-center gap-2 rounded-lg border p-3 text-sm">
@@ -299,7 +328,7 @@ export function ApplicationDetail() {
                 <Download className="h-4 w-4 mr-1" /> Download Visitor Report (PDF)
               </Button>
             </CardHeader>
-            <CardContent><CasePdfViewer id={id} /></CardContent>
+            <CardContent className="p-3 md:p-4"><CasePdfViewer id={id} /></CardContent>
           </Card>
         </TabsContent>
 
@@ -390,7 +419,7 @@ export function ApplicationDetail() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-muted-foreground uppercase border-b">
-                    <tr><th className="py-2">Type</th><th className="py-2">Detail</th><th className="py-2">Seats/Amount</th><th className="py-2">Source</th><th className="py-2">Status</th></tr>
+                    <tr><th className="py-2">Type</th><th className="py-2">Detail</th><th className="py-2">Seats/Amount</th><th className="py-2">Source</th><th className="py-2">Status</th>{canManagePenalties && <th className="py-2 w-10 sr-only">Actions</th>}</tr>
                   </thead>
                   <tbody>
                     {penalties.map((p) => (
@@ -407,6 +436,16 @@ export function ApplicationDetail() {
                             </Select>
                           ) : <Badge variant={p.status === 'paid' || p.status === 'waived' ? 'default' : 'secondary'}>{p.status}</Badge>}
                         </td>
+                        {canManagePenalties && (
+                          <td className="py-2 text-right">
+                            <Button
+                              variant="ghost" size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                              title="Delete penalty" onClick={() => setDelPenalty(p)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -418,7 +457,7 @@ export function ApplicationDetail() {
               <div className="border-t pt-4 space-y-3">
                 <p className="text-sm font-medium">Add a penalty (monetary / teacher-code revocation)</p>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <Select value={pType} onValueChange={setPType}>
+                  <Select value={pType} onValueChange={onPenaltyType}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="monetary">Monetary penalty</SelectItem>
@@ -429,12 +468,15 @@ export function ApplicationDetail() {
                     <Input type="number" placeholder="Amount (₹) e.g. 2500000" value={pAmount} onChange={(e) => setPAmount(e.target.value)} />
                   )}
                 </div>
+                <div className="flex justify-end">
+                  <AiGenerateButton generate={() => genPenaltyDescription(app, pType)} onGenerated={setPDesc} disabled={addPenalty.isPending} />
+                </div>
                 <Textarea placeholder="Description (e.g. Ghost faculty — Dr. X)" value={pDesc} onChange={(e) => setPDesc(e.target.value)} />
                 <Button
                   disabled={addPenalty.isPending || (pType === 'monetary' && !pAmount)}
                   onClick={() => addPenalty.mutate(
                     { type: pType, description: pDesc, amount: pType === 'monetary' ? Number(pAmount) : undefined },
-                    { onSuccess: () => { setPDesc(''); setPAmount(''); } },
+                    { onSuccess: () => { setPDesc(''); setPAmount(pType === 'monetary' ? String(STANDARD_MONETARY_FINE) : ''); } },
                   )}>
                   {addPenalty.isPending ? 'Adding…' : 'Add penalty'}
                 </Button>
@@ -488,8 +530,16 @@ export function ApplicationDetail() {
             </div>
           ) : dialog?.kind === 'minutes' ? (
             <div className="space-y-3">
+              <div className="flex justify-end">
+                <AiGenerateButton generate={() => genHearingMinutes(app)} onGenerated={setText} disabled={busy} />
+              </div>
               <Textarea placeholder="Minutes — observations per shortcoming…" rows={5} value={text} onChange={(e) => setText(e.target.value)} />
-              <Input placeholder="Verdict (e.g. submission not considered / compliance verified)" value={verdict} onChange={(e) => setVerdict(e.target.value)} />
+              <Select value={verdict} onValueChange={setVerdict}>
+                <SelectTrigger><SelectValue placeholder="Select verdict" /></SelectTrigger>
+                <SelectContent>
+                  {VERDICT_OPTIONS.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           ) : dialog?.kind === 'approve' ? (
             <div className="space-y-3">
@@ -509,14 +559,24 @@ export function ApplicationDetail() {
                   <Input id="seats" type="number" value={seats} onChange={(e) => setSeats(e.target.value)} />
                 </div>
               )}
+              <div className="flex justify-end">
+                <AiGenerateButton generate={() => genDecisionNote(app, { outcome, seats })} onGenerated={setText} disabled={busy} />
+              </div>
               <Textarea placeholder="Decision note (optional)…" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
             </div>
           ) : (
             <div className="space-y-2">
               {(dialog?.kind === 'issue' || dialog?.kind === 'text') && (
-                <p className="text-xs text-muted-foreground">
-                  {drafting ? 'Drafting the official letter…' : 'Auto-drafted from the assessment — review and edit before issuing.'}
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {drafting ? 'Drafting the official letter…' : 'Auto-drafted from the assessment — review and edit before issuing.'}
+                  </p>
+                  <AiGenerateButton
+                    generate={() => previewLetter(id, dialog.kind === 'issue' ? 'clarification' : 'final_order')}
+                    onGenerated={setText}
+                    disabled={busy || drafting}
+                  />
+                </div>
               )}
               <Textarea
                 className={(dialog?.kind === 'issue' || dialog?.kind === 'text') ? 'font-mono text-xs' : undefined}
@@ -531,6 +591,26 @@ export function ApplicationDetail() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialog(null)}>Cancel</Button>
             <Button onClick={confirmDialog} disabled={confirmDisabled}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!delPenalty} onOpenChange={(o) => !o && setDelPenalty(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Remove this penalty?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This removes the {PENALTY_LABELS[delPenalty?.type] || delPenalty?.type} penalty from the
+            case ledger. This cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDelPenalty(null)} disabled={deletePenalty.isPending}>Cancel</Button>
+            <Button variant="destructive" disabled={deletePenalty.isPending}
+              onClick={() => deletePenalty.mutate(delPenalty.id, {
+                onSuccess: () => { toast.success('Penalty removed.'); setDelPenalty(null); },
+                onError: () => toast.error('Could not remove the penalty.'),
+              })}>
+              {deletePenalty.isPending ? 'Removing…' : 'Remove'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

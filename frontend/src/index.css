@@ -83,11 +83,61 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+    /* Offset anchor targets below the fixed 64px landing nav */
+    scroll-padding-top: 5rem;
+  }
   body {
     @apply bg-background text-foreground font-sans;
   }
   h1, h2, h3 {
     @apply font-display;
+  }
+}
+
+/*
+ * Neo-brutalist primitives — single source of truth shared by shadcn/ui
+ * components and the landing page. Keyed off --foreground so borders/shadows
+ * invert automatically between light (ink) and dark (cream) themes.
+ */
+@layer components {
+  .neo-border {
+    @apply border-2 border-foreground;
+  }
+  .neo-shadow {
+    box-shadow: 3px 3px 0 0 hsl(var(--foreground));
+  }
+  .neo-shadow-sm {
+    box-shadow: 2px 2px 0 0 hsl(var(--foreground));
+  }
+  .neo-shadow-lg {
+    box-shadow: 5px 5px 0 0 hsl(var(--foreground));
+  }
+  .neo-interactive {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .neo-interactive:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 hsl(var(--foreground));
+  }
+  .neo-interactive:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 0 hsl(var(--foreground));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .neo-interactive {
+      transition: none;
+    }
+    .neo-interactive:hover,
+    .neo-interactive:active {
+      transform: none;
+    }
+  }
+  /* Neo-brutalist toast (sonner applies this class to each toast) */
+  .cn-toast {
+    border-width: 2px;
+    box-shadow: 4px 4px 0 0 hsl(var(--foreground));
   }
 }
 

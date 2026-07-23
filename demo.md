@@ -1,6 +1,8 @@
 # NCISM Assessment Portal — Demo & Verification Guide (through Phase 7)
 
 A follow-along tutorial to run the platform locally and walk the **entire post-visitation case lifecycle** by hand: landing → login → visitor upload → junior processing → senior/board review → clarification cycle → hearing → board meeting → **structured decision + auto-generated official letters** → final-order dispatch → **Closed**, plus the **audit log**, **document downloads/viewer**, and the **multi-ruleset registry**.
+
+> **⚠️ Scope (TCS boundary).** The 20–50-page Regulatory Report is **generated externally by TCS**; the platform begins at report receipt. In this demo the **visitor upload (§3.2) stands in for the eventual TCS API** — a temporary workaround for walking the flow by hand. Everything after receipt is the real platform behaviour.
 Companion docs: [HANDOFF.md](HANDOFF.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [NCISM_Assessment_Portal_System_Architecture_Corrected.md](NCISM_Assessment_Portal_System_Architecture_Corrected.md) (AYU0038 case walk-through), [AuthCred.md](AuthCred.md).
 
 ---
@@ -93,7 +95,8 @@ Open `http://localhost:5173` → the public **landing page** (hero, features, st
 
 > **College logins:** besides `college.ayu0140`, the golden colleges **`college.ayu0038`**, **`college.ayu0265`**, **`college.ayu0659`** (`@ncism.local`, `Password123`) are seeded so their clarification/hearing cycles can be driven too.
 
-### 3.2 Visitor uploads the report → `uploaded`
+### 3.2 Visitor uploads the report → `uploaded`  *(interim workaround for the TCS API)*
+> The report is TCS-generated; this manual upload is the temporary intake until the TCS API is wired (see scope note above).
 Log in as **`visitor@ncism.local`**. In the sidebar open **My Uploads → New upload**:
 - **Institution:** type `AYU0140` (or `Maharashtra`) in the search box, then pick it from the select.
 - **Session/year:** `2026-27`; **Intake:** `100`; **Permission type:** `yearly`; **Visitation dates:** pick two dates. (These optional fields populate the generated letters — leave blank to fill later.)

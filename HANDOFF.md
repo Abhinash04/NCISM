@@ -15,8 +15,10 @@
 
 ## 1. Project overview
 
-An **internal** review/validation web portal for NCISM's Medical Assessment & Rating Board (MARB-ISM) for Indian Systems of Medicine (Ayurveda, Unani, Siddha, Sowa-Rigpa). It wraps a **governed multi-user portal** (auth, RBAC, org hierarchy, institution registry, and the **full case lifecycle** — visitor upload → junior processing → senior/board review → clarification cycle → hearings → board meetings → final-order dispatch → Closed) around an already-complete **document-processing + assessment engine** (PDF → structured markdown → deterministic MARB assessment report). Not the public 9-role regulatory SaaS described in `docs/srs/` — that is the
+An **internal** review/validation web portal for NCISM's Medical Assessment & Rating Board (MARB-ISM) for Indian Systems of Medicine (Ayurveda, Unani, Siddha, Sowa-Rigpa). It wraps a **governed multi-user portal** (auth, RBAC, org hierarchy, institution registry, and the **full case lifecycle** — report receipt → junior processing → senior/board review → clarification cycle → hearings → board meetings → final-order dispatch → Closed) around an already-complete **document-processing + assessment engine** (report PDF → structured markdown → deterministic MARB assessment report). Not the public 9-role regulatory SaaS described in `docs/srs/` — that is the
 reference superset, not the build target.
+
+> **⚠️ Scope (TCS boundary).** The **20–50-page Regulatory Report is generated externally by TCS** (TCS runs the visitation). The platform boundary **starts at report receipt**: production = **TCS API**; interim = **Visitor-portal manual upload** (temporary workaround). The processing engine (§12) and lifecycle are unchanged — they act on the *received* report. See `docs/srs/` GAP-011/Q-021.
 
 - **Backend:** Node.js + Express, PostgreSQL via Knex. Prefix `/api/v1`, port 3000.
 - **Frontend:** React 19 + Vite + react-router + TanStack Query + shadcn/ui + Tailwind. Port 5173.
@@ -243,8 +245,10 @@ pg-boss manages its own `pgboss` schema (job queue) on the same `DATABASE_URL`.
 
 ## 12. Document-processing pipeline (built, pre-portal)
 
+> **Scope note (TCS boundary):** the `Upload` step below is the intake of the **TCS-generated Regulatory Report** — production via the TCS API, interim via the Visitor-portal manual upload. The pipeline itself (extraction → CDM → rules → punitive → MARB report) is unchanged and remains this platform's work on the *received* report.
+
 ```
-Upload → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
+Upload (of the TCS-generated Regulatory Report) → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
        → semantic reconstruction (Canonical Document Model)
        → canonical Markdown + JSON
        → parameter extraction (precision-first: found|missing + provenance)

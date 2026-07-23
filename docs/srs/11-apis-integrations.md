@@ -16,10 +16,18 @@
 | I-08 | **Commission website publication** | Government | publish application deadlines; rating results before counselling | schedules, grade lists | outbound | PG Ayurveda 2024 § Ch. VIII 34; UG Ayurveda 2024 § 56 |
 | I-09 | **AACCC counselling** | Government | consume permission decisions/seat matrices before counselling | permitted colleges + intake per session | outbound | UG Ayurveda 2024 § 55(7); README glossary AACCC |
 | I-10 | **NCISM teacher-code registry** | Government (existence assumed) | teacher-code issuance/validation/revocation sync | codes, status, revocations | bidirectional | teacher codes throughout AYU reports; PUNITIVE POLICY § 5 `[INFERRED as a system — may be manual today: Q-014]` |
+| I-11 | **TCS Regulatory-Report Service** | Third-party (external report generator) | delivers the complete 20–50-page Regulatory/Assessment Report that opens each case at the platform boundary | report document (PDF) + metadata envelope (institute, session, visitation dates, ref) | **inbound** | ⚠️ Assumption — client scope instruction; **no corpus document names TCS or any external report source** (GAP-011/ASM-012/Q-021) |
 
-Integration phasing: I-03 and I-04 (manual verification screen) are MVP; I-01/I-02 begin as file-import (CSV/XLS extract upload with provenance) and graduate to APIs if contracts emerge; I-06/I-07 remain evidence-reference workflows (no live feeds) in the initial system; I-08/I-09 are export files. `[INFERRED phasing]`
+Integration phasing: **I-11 is the boundary dependency** — MVP intake is the **Visitor-portal manual upload (interim workaround)**; it graduates to the **TCS API** once the contract (Q-021) is available. I-03 and I-04 (manual verification screen) are MVP; I-01/I-02 begin as file-import (CSV/XLS extract upload with provenance) and graduate to APIs if contracts emerge; I-06/I-07 remain evidence-reference workflows (no live feeds) in the initial system; I-08/I-09 are export files. `[INFERRED phasing]`
 
 ## 2. Integration detail
+
+### I-11 TCS Regulatory-Report Service (inbound report — the platform boundary)
+- **Data in:** the finished 20–50-page Regulatory/Assessment Report (PDF) + a metadata envelope (institute ID, academic session, visitation dates/mode, report reference). `⚠️ Assumption — payload per ASM-012; no contract exists (GAP-011).`
+- **Mode:** **interim** — an authenticated Visitor-portal user manually uploads the TCS report (temporary workaround, MVP); **production** — TCS pushes/exposes the report via API to `POST /reports/ingest` once the contract (Q-021) lands. Idempotent on report reference/hash to make re-delivery safe.
+- **Auth (proposed):** server-to-server credentials / mTLS with per-institute or per-batch scoping (production); interim path uses the Visitor account's normal session. `[INFERRED]`
+- **Failure/fallback (NFR-080):** if the API is unavailable, the interim manual-upload path remains the guaranteed intake so no case is blocked. The platform never originates the report (BR-311).
+- **Downstream:** the received report feeds the platform's own extraction → rule evaluation → punitive computation (M4/FR-041–045) unchanged.
 
 ### I-01 NCISM portal (self-disclosure & proformas)
 - **Data in:** monthly self-disclosure datasets (staffing, hospital stats, admissions), Part-I (college) and Part-II (hospital) proformas per session.
@@ -59,6 +67,7 @@ Integration phasing: I-03 and I-04 (manual verification screen) are MVP; I-01/I-
 | Visitors (R5) | per-engagement activated accounts; scoped tokens to assigned visitations |
 | Colleges (R7) | account bound to Institute ID + official e-mail (BR-106); credential issuance follows LOP practice (UG Ayurveda 2024 § 63(3)); possible federation with existing portal login (Q-011) |
 | Server-to-server (AEBAS, mail, payment APIs) | service credentials/mTLS per provider; secrets vaulted; least-privilege scopes `[INFERRED]` |
+| **TCS report service (I-11)** | production: service credentials/mTLS, scoped to report ingestion (Q-021); interim: the Visitor account's standard session for manual upload `[INFERRED]` |
 
 ## 4. Data-exchange principles
 

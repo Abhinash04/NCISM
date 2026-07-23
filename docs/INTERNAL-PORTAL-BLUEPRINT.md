@@ -76,8 +76,13 @@ admin-provisioned (no public registration, no college/applicant/field portals). 
 **What is missing (this blueprint adds):** authentication, users/roles/RBAC, a real database,
 institution registry, the assessment **review/validation lifecycle**, audit history, reports.
 
-**Pipeline (given, complete):** upload → OpenDataLoader extract → CDM structured markdown →
+**Pipeline (given, complete):** receive the **TCS-generated Regulatory Report** (production: TCS API;
+interim workaround: manual PDF upload) → OpenDataLoader extract → CDM structured markdown →
 deterministic parse → **Assessment Report JSON = single source of truth**.
+
+> **⚠️ Scope (TCS boundary):** the 20–50pp Regulatory Report is authored **externally by TCS**; the
+> platform starts at report receipt. The "upload" throughout this blueprint is the **interim** intake
+> until the TCS API lands.
 
 **Confirmed decisions:**
 - **Maker-checker approval** — the validator ≠ the approver → **4 roles**.
@@ -101,7 +106,7 @@ Old SRS had **9** roles for the full regulatory lifecycle. Internal scope needs 
 | **Viewer** *(Auditor)* | R9 Commission Observer | Read-only across assessments, reports/analytics, audit. |
 
 **Dropped (unnecessary for an internal tool):**
-- **R5 Visitor** — no field capture; data arrives as an uploaded PDF, not a tablet PWA.
+- **R5 Visitor** — no field capture; the Regulatory Report arrives from **TCS** (production: API; interim: an uploaded PDF), not a tablet PWA.
 - **R4 Hearing Committee**, **R6 Secretariat**, **R7 College portal** — no hearings, board meetings,
   letters, or external portals in scope.
 - Rating (M9), appeals, penalties, fee module — out of scope (revisit if the platform grows).

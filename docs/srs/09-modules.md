@@ -40,7 +40,28 @@
 - Edge cases: document in regional language (status "submitted but not clear", clarification cycle — Agenda (0) hospital-registration row); government college exemptions (security deposit N/A on undertaking — BR-205); MoU-based interim facilities recorded as observations, not compliance.
 - Errors: decision without required scrutiny report version → 409; clarification beyond configured cycle bound → requires supervisor override (AMB-007).
 
-## M3 — Visitation Management
+## M3 — Report Ingestion (TCS API / interim upload)
+
+> **⚠️ Scope revision:** visitation execution + Regulatory-Report authoring are **external (TCS)**; this module's build scope is **receiving** that report at the platform boundary. The visitation-capture developer view below is retained as **archived upstream context** (the client documents describe it), not as build work.
+
+**Objective:** receive the TCS-generated 20–50-page Regulatory Report and open a case with recorded provenance (FR-038, BR-311).
+**Features:** report intake via the **TCS API** (production; contract pending Q-021) and via **Visitor-portal manual upload** (interim workaround); receipt validation (institute/session/integrity); provenance + content hash; allotment routing (BR-103) into M4.
+**Inputs:** Regulatory Report + metadata envelope (ASM-012). **Outputs:** a registered received report feeding M4.
+**Users:** TCS (system, production), R5 Visitor (interim uploader), R1 (owns the routed case).
+**Dependencies:** M1 (institute registry, allotment), M7 (report storage), I-11 (file 11).
+**Sources:** client scope instruction (no corpus doc describes TCS/API — GAP-011/ASM-012/Q-021); the report artifact structure is evidenced by AYU0659/AYU0038/AYU0265 (payload shape).
+
+**Developer view (ingestion)**
+- Entities: `RegulatoryReport` (source_channel, external_ref, received_at, hash, institute_id, session, status), plus the report's parsed payload projections.
+- APIs: `POST /reports/ingest` (TCS API landing / interim upload), `GET /reports/{id}`.
+- Backend logic: validate + hash on receipt; resolve institute + session; route by (state, system) allotment; idempotency on external_ref/hash (re-delivery safe).
+- Errors: unresolvable institute/session → 422; duplicate report (same hash) → 409.
+
+---
+
+## M3-legacy (archived) — Upstream Visitation Management context (External / TCS)
+
+> Retained for domain reference only; **not build scope** under the revised boundary.
 
 **Objective:** schedule visits, capture certified structured findings and evidence in the field (FR-031…FR-037).
 **Features:** visitation creation with modes and conflict-screened team assignment; Part-I/II intake; offline-capable digital proforma (sections 1–8); per-teacher verification; evidence attachments; per-visitor certification & lock; surprise re-visits.
@@ -60,11 +81,11 @@
 
 ## M4 — Assessment & Punitive Engine
 
-**Objective:** deterministic computation of compliance and punitive consequences, and generation of the assessment report (FR-041…FR-045).
-**Features:** compliance calculators (staff %, HF/LF, areas w/ 20% relaxation, equipment means, hospital metrics); AEBAS analysis; punitive ledger with denial triggers; report generation; review/finalize with versioning.
-**Inputs:** locked visitation + Part-I/II + AEBAS extracts + active policy version. **Outputs:** assessment report, seat-reduction ledger, shortcoming list, penalty/revocation proposals.
+**Objective:** deterministic computation of compliance and punitive consequences from the **received Regulatory Report**, and generation of the **internal MARB assessment report** (FR-041…FR-045). (The 20–50pp Regulatory Report is the TCS-generated *input*, ingested by M3.)
+**Features:** compliance calculators (staff %, HF/LF, areas w/ 20% relaxation, equipment means, hospital metrics); AEBAS analysis; punitive ledger with denial triggers; MARB report generation; review/finalize with versioning.
+**Inputs:** received Regulatory Report (its Part-I/II + visitation findings + AEBAS extracts) + active policy version. **Outputs:** MARB assessment report, seat-reduction ledger, shortcoming list, penalty/revocation proposals.
 **Users:** R1 (draft/review), R2/R3 (finalize — Q-003).
-**Dependencies:** M1 (standards, policy), M3 (visitation), M6 (report rendering).
+**Dependencies:** M1 (standards, policy), M3 (received report), M6 (report rendering).
 **Sources:** Assessment of Sardar PAtel... (report + punitive columns); PUNITIVE POLICY §§ 1–13; Hearing letters (formulas); AYU0659 §§ 7–8.
 
 **Developer view**
@@ -169,8 +190,9 @@
 
 ```mermaid
 flowchart LR
+    TCS[TCS Report Service - external] -. API / interim upload .-> M3
     M1[M1 Registries & Rules] --> M2[M2 Applications & Scrutiny]
-    M1 --> M3[M3 Visitation]
+    M1 --> M3[M3 Report Ingestion]
     M1 --> M4[M4 Assessment & Punitive]
     M3 --> M4
     M2 --> M5[M5 Board & Hearings]

@@ -42,7 +42,9 @@ stateDiagram-v2
 
 **Outcome:** disapproval (with appeal rights) or progression along the LOI→LOP→renewal ladder.
 
-## WF-2 · Visitation
+## WF-2 · Visitation — **External (TCS)**
+
+> **⚠️ Scope revision:** this workflow is executed **upstream by TCS** (ASM-002 revision, GAP-011) — TCS conducts the visitation and authors the 20–50-page Regulatory Report. It is retained here as domain context from the client documents; the platform's own entry point is **WF-2b (report receipt)** below.
 
 **Trigger:** annual suo-moto schedule (Section 28, BR-303), Board direction on a Section-29 case, or a surprise re-visit (BR-310).
 **Actors:** Dealing Staff (R1, scheduling), Visitors (R5), College (R7, hosts + Part-I/II), President/Board (visit ordering).
@@ -74,9 +76,34 @@ flowchart TD
 
 **Outcome:** locked, certified visitation report — or a denial route on non-cooperation.
 
+## WF-2b · Regulatory-report receipt (platform boundary)
+
+**Trigger:** TCS completes the visitation and generates the Regulatory Report (WF-2, external).
+**Actors:** TCS system (production), Visitor account (interim uploader), system (routing by BR-103 allotment).
+**Grounding:** client scope instruction — the TCS boundary and API are not described in any corpus document (`⚠️ Assumption` for delivery mechanics; GAP-011/ASM-012/Q-021).
+
+Steps:
+
+1. **Production:** TCS exposes the report via its API; the platform receives report + metadata (FR-038, I-11) — contract pending (Q-021).
+2. **Interim workaround:** an authenticated Visitor-portal user manually uploads the TCS-generated report PDF (temporary until the API is available; not production architecture).
+3. Receipt validation: institute resolvable, session stated, file integrity; provenance recorded (source, timestamp, identity, hash — BR-311).
+4. Case created in the received state and routed to the allotted dealing staff (BR-103) → WF-3.
+
+```mermaid
+flowchart TD
+    T[TCS conducts visitation +<br/>generates 20-50pp Regulatory Report - external] --> A{Delivery channel}
+    A -- "Production: TCS API (FR-038/I-11, contract pending Q-021)" --> R[Report + metadata received]
+    A -- "Interim: Visitor-portal manual upload (temporary workaround)" --> R
+    R --> V[Validate: institute, session, integrity;<br/>record provenance BR-311]
+    V --> C[Case created and routed to allotted dealing staff BR-103]
+    C --> W3[Assessment & punitive computation WF-3]
+```
+
+**Outcome:** a registered Regulatory Report opening a case at the platform boundary.
+
 ## WF-3 · Assessment & punitive computation
 
-**Trigger:** visitation locked (WF-2).
+**Trigger:** Regulatory Report received (WF-2b).
 **Actors:** system rules engine, Dealing Staff (R1 draft), Board Member/President (finalize — Q-003).
 **Grounding:** (source: Assessment of Sardar PAtel... (report structure incl. punitive columns); PUNITIVE POLICY §§ 1–13; Hearing letter without clarification format (percentage formulas)).
 
@@ -92,7 +119,7 @@ Steps:
 
 ```mermaid
 flowchart TD
-    A[Visitation locked] --> B[Compute compliance metrics FR-041]
+    A[Regulatory Report received WF-2b] --> B[Compute compliance metrics FR-041]
     B --> C{Direct-denial condition?<br/>BR-401/404/409}
     C -- yes --> D[Denial proposed - hearing still required BR-502]
     C -- no --> E[Additive seat-reduction ledger FR-042]

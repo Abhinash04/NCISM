@@ -8,7 +8,7 @@ The **National Commission for Indian System of Medicine (NCISM)**, through its *
 
 Today this workflow runs on Word letters, Excel registers and e-mail (source: clarification letter format; Master data of institute; Work Allotment in Staff.md), even though the regulations themselves mandate a digital ecosystem — monthly online self-disclosure, AEBAS biometric feeds to a central server, CCTV integration, and even "an Artificial-Intelligence-based online system for transparency" (source: NCISM(...Postgraduate...Ayurveda)-Regulations-2024 § Ch. VIII 43(5); Minimum Essential Standards... Undergraduate Ayurveda... 2024 § 8–11, 55(2)).
 
-This project specifies a **MARB-ISM Assessment & Permission Management System**: a workflow platform that digitizes the full lifecycle — application → scrutiny → visitation → assessment → clarification → Board meeting → hearing → decision → letters → rating — with a rules engine for deficiency computation and punitive policy, full traceability, and integration points to the existing NCISM portal, AEBAS and payment channels. `[INFERRED — ASM-001/ASM-002: system owner and scope derived from the corpus being entirely MARB-side operational artefacts]`
+This project specifies a **MARB-ISM Assessment & Permission Management System**: a workflow platform that digitizes the lifecycle **from the point the TCS-generated Regulatory Report is received** — report ingestion (API; interim manual upload) → assessment computation → clarification → Board meeting → hearing → decision → letters → rating — with a rules engine for deficiency computation and punitive policy, full traceability, and integration points to the existing NCISM portal, AEBAS and payment channels. Application scrutiny and the upstream visitation/report authoring (TCS) are documented as context. `[INFERRED — ASM-001/ASM-002 (as revised): system owner derived from the corpus; the TCS boundary is a client scope instruction]`
 
 ## 2. Problem statement
 
@@ -22,8 +22,8 @@ This project specifies a **MARB-ISM Assessment & Permission Management System**:
 
 | # | Goal | Measure |
 |---|------|---------|
-| G-01 | Digitize the end-to-end permission workflow (Sections 28/29) for all four systems of medicine, UG and PG | 100% of academic-session decisions processed in-system |
-| G-02 | Automate deficiency computation and punitive-policy application from structured visitation data | Zero manual arithmetic in seat-reduction/denial calculations; every figure traceable to a rule version |
+| G-01 | Digitize the end-to-end permission workflow (Sections 28/29) for all four systems of medicine, UG and PG — **beginning at receipt of the TCS-generated Regulatory Report** | 100% of academic-session decisions processed in-system |
+| G-02 | Automate deficiency computation and punitive-policy application from the **received Regulatory Report** (TCS-generated; ingested via API, interim manual upload) | Zero manual arithmetic in seat-reduction/denial calculations; every figure traceable to a rule version |
 | G-03 | Generate all statutory correspondence (clarification, hearing, decision letters) from templates + structured data | No hand-edited letters; template validation blocks date/session inconsistencies |
 | G-04 | Give MARB staff, Board and management real-time visibility of file status per college/session | Dashboard of pipeline states; decisions issued ≥60 days before counselling (source: UG Ayurveda 2024 § 55(7)) |
 | G-05 | Maintain a clean single institute/teacher/visitor master with full audit trail | Institute master migrated and deduplicated; all edits audited |
@@ -39,7 +39,8 @@ This project specifies a **MARB-ISM Assessment & Permission Management System**:
 | MARB Board Members | Sign letters; sit in numbered Board meetings deciding permissions | Board meeting Agenda (0); hearing letters § signature blocks |
 | MARB dealing staff (assessors/section staff) | State-and-system-wise file processing per work allotment | Work Allotment in Staff.md § Sheet1 (ASM-006) |
 | Hearing Committee members | Conduct virtual hearings, record observations per shortcoming | Board meeting Agenda (1) Minutes § Agenda Item No. 6 |
-| Visitors / visitation teams | Conduct physical/virtual/hybrid visits; submit reports & certifications | AYU0659 § Visitor Details & Certification Details |
+| Visitors / visitation teams | Conduct physical/virtual/hybrid visits; submit reports & certifications — **performed upstream under the TCS-run report-generation process (scope revision; ASM-002)** | AYU0659 § Visitor Details & Certification Details |
+| TCS (external report generator) | Conducts the visitation and generates the 20–50-page Regulatory/Assessment Report; will deliver it to this platform via API (GAP-011/Q-021) | ⚠️ Assumption-free only as to existence — client scope instruction; no corpus document describes TCS |
 | Colleges (Principal/Dean, management) | Applicants and respondents: submit Part-I/II, clarifications, hearing submissions, fees | hearing/clarification letters; Board meeting Agenda (0) § Agenda Item 2 |
 | Affiliating universities & State/UT governments | Issue Consent of Affiliation and Essentiality Certificates consumed by scrutiny | Board meeting Agenda (0) § FORM-29C/29E rows |
 | Ministry of Ayush (Central Government) | Second/final appellate authority | PG Ayurveda 2024 § Ch. VIII 44(g) |
@@ -57,6 +58,10 @@ This project specifies a **MARB-ISM Assessment & Permission Management System**:
 
 ## 6. Scope
 
-**In scope (initial):** institute/teacher/visitor masters; work allotment; new-proposal scrutiny; visitation scheduling & report capture; assessment report generation; deficiency & punitive computation; clarification cycle; Board meeting agenda/minutes; hearing management; decision & letter generation; document management; dashboards; notifications; role-based access.
+> **⚠️ Scope revision (client-directed — see ASM-002/GAP-011 in [file 12](12-gaps-and-questions.md)):** the system boundary **begins at receipt of the TCS-generated Regulatory Report**. Visitation execution and authoring of the 20–50-page Regulatory/Assessment Report are performed **externally by TCS** and are upstream of this platform.
+
+**Upstream (TCS — outside this platform):** visitation scheduling & execution; field capture; authoring of the 20–50-page Regulatory/Assessment Report. Documented in this suite (WF-2, FR-030 series, module M3 field-capture) as domain context only.
+
+**In scope (initial):** **Regulatory-report ingestion** (production: TCS API — FR-038/I-11; interim: Visitor-portal manual upload as a temporary workaround); institute/teacher/visitor masters; work allotment; new-proposal scrutiny; deficiency & punitive computation from the received report; clarification cycle; Board meeting agenda/minutes; hearing management; decision & letter generation; document management; dashboards; notifications; role-based access.
 
 **Out of scope (initial), tracked in [14-roadmap.md](14-roadmap.md):** the college-facing self-disclosure portal replacement; rating computation; appeals processing beyond status tracking; LMS/HIMS/CCTV real-time command-centre; AI/ML features. `[INFERRED — scope boundary chosen because sources document the MARB-internal workflow in operational detail, while portal/rating/command-centre exist only as regulatory mandates; see ASM-002 and Q-009/Q-011]`

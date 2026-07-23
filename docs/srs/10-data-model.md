@@ -7,7 +7,9 @@
 | Class | Entities | Change cadence |
 |-------|----------|----------------|
 | **Master** | Institute, Teacher, Visitor, WorkAllotment, DocumentType, LetterTemplate, StandardsTable/StandardsLine (MESAR schedules), PunitivePolicyVersion/PunitiveRule, FeeMatrix, AcademicSession | Slow; versioned; Board/gazette-driven |
-| **Transactional** | Application, ChecklistItem, FeePayment, Visitation, ProformaLine, StaffVerification, EvidenceItem, Assessment, Shortcoming, PunitiveLedger, Clarification, BoardMeeting, AgendaItem, BoardDecision, Hearing, HearingMinuteLine, Decision, Letter, DispatchLog, Penalty, TeacherCodeRevocation, Appeal, RatingScorecard, AuditEvent | Per case/session |
+| **Transactional** | Application, ChecklistItem, FeePayment, **RegulatoryReport (received; TCS-sourced)**, Visitation *(externally sourced — payload of the TCS report)*, ProformaLine, StaffVerification, EvidenceItem, Assessment, Shortcoming, PunitiveLedger, Clarification, BoardMeeting, AgendaItem, BoardDecision, Hearing, HearingMinuteLine, Decision, Letter, DispatchLog, Penalty, TeacherCodeRevocation, Appeal, RatingScorecard, AuditEvent | Per case/session |
+
+> **⚠️ Scope revision:** `Visitation`, `ProformaLine`, `StaffVerification`, `EvidenceItem` and `VisitorCertification` are **not captured by this platform** — they arrive as the payload of the TCS-generated **`RegulatoryReport`** (production: TCS API; interim: Visitor upload). New receipt entity **`RegulatoryReport`** { id, institute_id, session, source_channel (`tcs_api`\|`interim_upload`), external_ref, received_at, content_hash, status } records provenance (BR-311, FR-038, GAP-011/ASM-012).
 
 ## 2. Entity-relationship diagram
 
@@ -34,6 +36,9 @@ erDiagram
     VISITATION ||--|{ VISITOR_CERTIFICATION : "certified by"
     PART_SUBMISSION }o--|| VISITATION : "baselines"
 
+    REGULATORY_REPORT }o--|| INSTITUTE : "received for"
+    REGULATORY_REPORT ||--o| VISITATION : "payload projects"
+    REGULATORY_REPORT ||--o| ASSESSMENT : "computed from"
     VISITATION ||--o| ASSESSMENT : "assessed as"
     ASSESSMENT ||--|{ COMPLIANCE_METRIC : computes
     ASSESSMENT ||--|{ SHORTCOMING : identifies

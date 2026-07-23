@@ -90,6 +90,21 @@ export async function addPenalty(id, body) {
   return data.penalty;
 }
 
+/** Monetary penalty rates derived from the case's active punitive policy (Bug 4). */
+export async function getPenaltyPolicy(id) {
+  const { data } = await apiClient.get(`/applications/${id}/penalty-policy`);
+  return data.policy || {};
+}
+
+/** Records an AI-generated draft in the audit log (Bug 2 traceability; best-effort). */
+export async function logAiDraft(id, { field, content }) {
+  try {
+    await apiClient.post(`/applications/${id}/ai-log`, { field, content });
+  } catch {
+    // Non-blocking: never fail the user's generate action on an audit hiccup.
+  }
+}
+
 /** Cross-case compliance queue. */
 export async function listPenalties(status) {
   const { data } = await apiClient.get('/penalties', { params: status ? { status } : {} });
@@ -120,5 +135,17 @@ export async function respondClarification(id, { responseText, file }) {
   const { data } = await apiClient.post(`/applications/${id}/clarification/respond`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  return data.application;
+}
+
+/** Consultant reviews clarification. */
+export async function reviewClarification(id, { remarks, verdict }) {
+  const { data } = await apiClient.post(`/applications/${id}/clarification/review`, { remarks, verdict });
+  return data.application;
+}
+
+/** Consultant requests revision on clarification. */
+export async function requestRevision(id, { remarks }) {
+  const { data } = await apiClient.post(`/applications/${id}/clarification/revise`, { remarks });
   return data.application;
 }

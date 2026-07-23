@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listApplications, getApplication, getAllowedActions, getEvents,
   uploadApplication, actOnApplication, deleteApplication,
-  getClarifications, issueClarification, respondClarification,
+  getClarifications, issueClarification, respondClarification, reviewClarification, requestRevision,
   getHearings, getCommitteeMembers, getLetters, previewLetter,
-  getPenalties, addPenalty, listPenalties, updatePenaltyStatus, deletePenalty,
+  getPenalties, addPenalty, listPenalties, updatePenaltyStatus, deletePenalty, getPenaltyPolicy,
 } from './application.api';
 
 export function useApplications() {
@@ -86,6 +86,16 @@ export function useRespondClarification(id) {
   return useMutation({ mutationFn: (payload) => respondClarification(id, payload), onSuccess: () => invalidateCase(qc, id) });
 }
 
+export function useReviewClarification(id) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (payload) => reviewClarification(id, payload), onSuccess: () => invalidateCase(qc, id) });
+}
+
+export function useRequestRevision(id) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (payload) => requestRevision(id, payload), onSuccess: () => invalidateCase(qc, id) });
+}
+
 export function useHearings(id) {
   return useQuery({ queryKey: ['application', id, 'hearings'], queryFn: () => getHearings(id), enabled: !!id });
 }
@@ -100,6 +110,10 @@ export function useLetters(id) {
 
 export function usePenalties(id) {
   return useQuery({ queryKey: ['application', id, 'penalties'], queryFn: () => getPenalties(id), enabled: !!id });
+}
+
+export function usePenaltyPolicy(id) {
+  return useQuery({ queryKey: ['application', id, 'penalty-policy'], queryFn: () => getPenaltyPolicy(id), enabled: !!id, staleTime: 5 * 60 * 1000 });
 }
 
 export function useAddPenalty(id) {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel, Trash2, FileText, Download } from 'lucide-react';
+import { ArrowLeft, Building2, Clock, FileCheck2, Mail, Gavel, Trash2, FileText, Download, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,7 @@ import { CasePdfViewer } from '@/features/applications/CasePdfViewer';
 import { AiGenerateButton } from '@/components/common/AiGenerateButton';
 import {
   genHearingMinutes, genDecisionNote, genPenaltyDescription, genClarificationResponse,
+  genForwardNote, genReturnNote, genRejectNote, genHearingRequest, genClarificationReview,
 } from '@/features/applications/generate';
 import { getSourcePdf } from '@/features/applications/application.api';
 import { downloadBlob } from '@/lib/download';
@@ -30,9 +31,9 @@ import { StructureViewer } from '@/features/workspace/components/StructureViewer
 import { useJob } from '@/features/workspace/hooks/useJob';
 import {
   useApplication, useAllowedActions, useApplicationEvents, useApplicationAction, useDeleteApplication,
-  useClarifications, useIssueClarification, useRespondClarification,
+  useClarifications, useIssueClarification, useRespondClarification, useReviewClarification, useRequestRevision,
   useHearings, useCommitteeMembers, useLetters, previewLetter,
-  usePenalties, useAddPenalty, useUpdatePenalty, useDeletePenalty,
+  usePenalties, useAddPenalty, useUpdatePenalty, useDeletePenalty, usePenaltyPolicy,
 } from '@/features/applications/hooks';
 import { useAuth } from '@/features/auth/AuthContext';
 import { STATUS_META } from './ApplicationsList';
@@ -53,7 +54,6 @@ const VERDICT_OPTIONS = [
 ];
 
 // Standard MESAR monetary fine auto-filled when a monetary penalty is selected
-// (no monetary formula exists in the ruleset; editable so it can be overridden).
 const STANDARD_MONETARY_FINE = 2500000;
 
 const SYSTEM_LABELS = { ayurveda: 'Ayurveda', unani: 'Unani', siddha: 'Siddha', sowa_rigpa: 'Sowa-Rigpa' };
@@ -69,7 +69,6 @@ const ACTION_DEFS = {
 };
 
 // Actions with their own form dialog (kind drives which fields render).
-// `letterKind` — prefill the textarea from a generated draft when the dialog opens.
 const SPECIAL = {
   request_clarification: { label: 'Request clarification', variant: 'outline', kind: 'issue', letterKind: 'clarification' },
   request_hearing: { label: 'Request hearing', variant: 'outline', route: 'request-hearing', kind: 'note' },
@@ -124,20 +123,44 @@ export function ApplicationDetail() {
   const addPenalty = useAddPenalty(id);
   const updatePenalty = useUpdatePenalty(id);
   const deletePenalty = useDeletePenalty(id);
+  // Bug 4: ghost-faculty penalty rate derived from the case's active punitive policy
+  // (falls back to the standard ₹25 lakh if the policy has no monetary entry).
+  const { data: penaltyPolicy } = usePenaltyPolicy(id);
+  const ghostRate = penaltyPolicy?.ghostFacultyPenalty || STANDARD_MONETARY_FINE;
+
+  // Bug 4: Penalty Amount Calculation state
   const [pType, setPType] = useState('monetary');
   const [pDesc, setPDesc] = useState('');
+  const [ghostCount, setGhostCount] = useState('1');
   const [pAmount, setPAmount] = useState(String(STANDARD_MONETARY_FINE));
   const [delPenalty, setDelPenalty] = useState(null);
 
-  // Auto-calculate the amount from the selected penalty type (monetary → standard
-  // fine; teacher-code revocation is non-monetary → no amount).
+  // Auto-calculate the amount from the selected penalty type and ghost faculty count.
+  // Ghost-faculty count is a human determination (not produced by the deterministic
+  // assessment); the per-faculty rate is policy-derived (ghostRate).
   const onPenaltyType = (type) => {
     setPType(type);
-    setPAmount(type === 'monetary' ? String(STANDARD_MONETARY_FINE) : '');
+    if (type === 'monetary') {
+      const cnt = parseInt(ghostCount, 10) || 1;
+      setPAmount(String(cnt * ghostRate));
+    } else {
+      setPAmount('');
+    }
   };
+
+  const onGhostCountChange = (val) => {
+    setGhostCount(val);
+    if (pType === 'monetary') {
+      const cnt = parseInt(val, 10) || 1;
+      setPAmount(String(cnt * ghostRate));
+    }
+  };
+
   const action = useApplicationAction(id);
   const issue = useIssueClarification(id);
   const respond = useRespondClarification(id);
+  const reviewClarificationMut = useReviewClarification(id);
+  const requestRevisionMut = useRequestRevision(id);
   const del = useDeleteApplication();
 
   const [dialog, setDialog] = useState(null); // { key, kind }
@@ -156,11 +179,15 @@ export function ApplicationDetail() {
   const [respText, setRespText] = useState('');
   const [respFile, setRespFile] = useState(null);
 
+  // Bug 1: Clarification review state
+  const [reviewRemarks, setReviewRemarks] = useState('');
+  const [reviewVerdict, setReviewVerdict] = useState('accepted');
+
   if (isLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
   if (isError || !app) return <div className="p-8 text-destructive">Case not found.</div>;
 
   const meta = STATUS_META[app.status] || { label: app.status, variant: 'secondary' };
-  const busy = action.isPending || issue.isPending || respond.isPending;
+  const busy = action.isPending || issue.isPending || respond.isPending || reviewClarificationMut.isPending || requestRevisionMut.isPending;
   const canDelete = actions.includes('delete');
   const buttonActions = actions.filter((a) => a !== 'respond' && a !== 'delete');
 
@@ -210,7 +237,22 @@ export function ApplicationDetail() {
     onSuccess: () => { setRespText(''); setRespFile(null); },
   });
 
+  const submitReview = (verdictValue) => {
+    if (verdictValue === 'requires_revision') {
+      requestRevisionMut.mutate({ remarks: reviewRemarks }, {
+        onSuccess: () => { setReviewRemarks(''); toast.success('Revision R1 requested from college.'); },
+      });
+    } else {
+      reviewClarificationMut.mutate({ remarks: reviewRemarks, verdict: verdictValue }, {
+        onSuccess: () => { setReviewRemarks(''); toast.success('Clarification reviewed and acknowledged.'); },
+      });
+    }
+  };
+
   const dialogTitle = dialog ? (SPECIAL[dialog.key]?.label || ACTION_DEFS[dialog.key]?.label) : '';
+
+  // Latest clarification round for review card
+  const latestRound = rounds.length ? rounds[rounds.length - 1] : null;
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto">
@@ -257,6 +299,19 @@ export function ApplicationDetail() {
         </p>
       )}
 
+      {/* Bug 5 Warning Banner when compliance is not complied for approved case */}
+      {app.status === 'approved' && app.compliance_status && app.compliance_status !== 'complied' && (
+        <div className="rounded-lg border-2 border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <p className="font-semibold">Dispatch Final Order Blocked</p>
+            <p className="text-xs opacity-90 mt-0.5">
+              The Dispatch Final Order action remains disabled until all pending compliance penalties are marked as complied (Current status: {app.compliance_status}).
+            </p>
+          </div>
+        </div>
+      )}
+
       {buttonActions.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {buttonActions.map((key) => {
@@ -276,7 +331,7 @@ export function ApplicationDetail() {
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" /> Respond to clarification</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-end">
-              <AiGenerateButton generate={() => genClarificationResponse(rounds)} onGenerated={setRespText} disabled={busy} />
+              <AiGenerateButton generate={() => genClarificationResponse(rounds)} onGenerated={setRespText} disabled={busy} audit={{ applicationId: id, field: 'clarification_response' }} />
             </div>
             <Textarea placeholder="Your response to the shortcomings…" value={respText} onChange={(e) => setRespText(e.target.value)} />
             {respFile ? (
@@ -289,6 +344,63 @@ export function ApplicationDetail() {
             <Button onClick={submitResponse} disabled={busy || (!respText && !respFile)}>
               {respond.isPending ? 'Submitting…' : 'Submit response'}
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Bug 1: Clarification Review Interface for the Consultant */}
+      {(app.status === 'clarification_responded' || actions.includes('review_clarification')) && latestRound && (
+        <Card className="border-2 border-primary/40 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-primary" /> Clarification Review & Verdict (Consultant)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border bg-card p-4 space-y-2 text-sm">
+              <p className="font-medium text-xs uppercase text-muted-foreground tracking-wider">Submitted Clarification (Round {latestRound.round})</p>
+              {latestRound.response_text ? (
+                <p className="whitespace-pre-wrap">{latestRound.response_text}</p>
+              ) : (
+                <p className="italic text-muted-foreground">No text response provided.</p>
+              )}
+              {latestRound.response_file && (
+                <div className="flex items-center gap-2 pt-2 border-t text-xs text-primary font-medium">
+                  📎 Attached document: <span>{latestRound.response_file}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold">Consultant Review Remarks</Label>
+                <AiGenerateButton generate={() => genClarificationReview(rounds)} onGenerated={setReviewRemarks} disabled={busy} audit={{ applicationId: id, field: 'clarification_review' }} />
+              </div>
+              <Textarea
+                placeholder="Record structured observations on the college's submitted clarification..."
+                rows={4}
+                value={reviewRemarks}
+                onChange={(e) => setReviewRemarks(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Select value={reviewVerdict} onValueChange={setReviewVerdict}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="Select verdict" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="accepted">Accepted (Satisfactory)</SelectItem>
+                  <SelectItem value="requires_revision">Requires Revision (R1)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant={reviewVerdict === 'requires_revision' ? 'outline' : 'default'}
+                disabled={busy}
+                onClick={() => submitReview(reviewVerdict)}
+              >
+                {busy ? 'Processing…' : reviewVerdict === 'requires_revision' ? 'Request Revision (R1)' : 'Acknowledge & Accept Review'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -353,7 +465,7 @@ export function ApplicationDetail() {
         <TabsContent value="clarifications">
           <Card><CardContent className="pt-6 space-y-4">
             {rounds.length ? rounds.map((r) => (
-              <div key={r.id} className="rounded-lg border p-4 space-y-2">
+              <div key={r.id} className="rounded-lg border p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">Round {r.round}</span>
                   <Badge variant={r.status === 'responded' ? 'default' : 'secondary'}>{r.status}</Badge>
@@ -364,6 +476,14 @@ export function ApplicationDetail() {
                   <div className="border-t pt-2"><p className="text-xs text-muted-foreground">Response{r.responded_by_name ? ` · ${r.responded_by_name}` : ''}</p>
                     {r.response_text && <p className="text-sm whitespace-pre-wrap">{r.response_text}</p>}
                     {r.response_file && <p className="text-xs text-muted-foreground mt-1">📎 {r.response_file}</p>}</div>
+                )}
+                {r.review_remarks && (
+                  <div className="border-t pt-2 bg-muted/20 p-2 rounded text-xs space-y-1">
+                    <p className="font-semibold text-foreground">
+                      Junior Review Remarks ({r.review_verdict || 'Reviewed'}){r.reviewed_by_name ? ` · ${r.reviewed_by_name}` : ''}
+                    </p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{r.review_remarks}</p>
+                  </div>
                 )}
               </div>
             )) : <p className="text-sm text-muted-foreground">No clarifications issued.</p>}
@@ -453,6 +573,7 @@ export function ApplicationDetail() {
               </div>
             ) : <p className="text-sm text-muted-foreground">No penalties. Seat-reduction / denial penalties are derived automatically once the board decides.</p>}
 
+            {/* Bug 4: Enhanced Penalty Calculation */}
             {canManagePenalties && (
               <div className="border-t pt-4 space-y-3">
                 <p className="text-sm font-medium">Add a penalty (monetary / teacher-code revocation)</p>
@@ -460,23 +581,48 @@ export function ApplicationDetail() {
                   <Select value={pType} onValueChange={onPenaltyType}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="monetary">Monetary penalty</SelectItem>
+                      <SelectItem value="monetary">Monetary penalty (Ghost Faculty)</SelectItem>
                       <SelectItem value="teacher_code_revocation">Teacher-code revocation</SelectItem>
                     </SelectContent>
                   </Select>
+
                   {pType === 'monetary' && (
-                    <Input type="number" placeholder="Amount (₹) e.g. 2500000" value={pAmount} onChange={(e) => setPAmount(e.target.value)} />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="ghostCount" className="text-xs text-muted-foreground shrink-0">Ghost Faculty Count:</Label>
+                        <Input
+                          id="ghostCount"
+                          type="number"
+                          min="1"
+                          className="h-8 w-20"
+                          value={ghostCount}
+                          onChange={(e) => onGhostCountChange(e.target.value)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
+
+                {pType === 'monetary' && (
+                  <div className="space-y-1">
+                    <Label htmlFor="pAmount" className="text-xs font-semibold">Total Monetary Fine (₹)</Label>
+                    <Input id="pAmount" type="number" value={pAmount} onChange={(e) => setPAmount(e.target.value)} />
+                    <p className="text-xs text-muted-foreground">
+                      Calculation: {parseInt(ghostCount, 10) || 1} Ghost Faculty × ₹{ghostRate.toLocaleString('en-IN')} = ₹{Number(pAmount || 0).toLocaleString('en-IN')}
+                      <span className="ml-1 opacity-70">(rate from punitive policy)</span>
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
-                  <AiGenerateButton generate={() => genPenaltyDescription(app, pType)} onGenerated={setPDesc} disabled={addPenalty.isPending} />
+                  <AiGenerateButton generate={() => genPenaltyDescription(app, pType, ghostCount, ghostRate)} onGenerated={setPDesc} disabled={addPenalty.isPending} audit={{ applicationId: id, field: 'penalty_description' }} />
                 </div>
                 <Textarea placeholder="Description (e.g. Ghost faculty — Dr. X)" value={pDesc} onChange={(e) => setPDesc(e.target.value)} />
                 <Button
                   disabled={addPenalty.isPending || (pType === 'monetary' && !pAmount)}
                   onClick={() => addPenalty.mutate(
                     { type: pType, description: pDesc, amount: pType === 'monetary' ? Number(pAmount) : undefined },
-                    { onSuccess: () => { setPDesc(''); setPAmount(pType === 'monetary' ? String(STANDARD_MONETARY_FINE) : ''); } },
+                    { onSuccess: () => { setPDesc(''); setGhostCount('1'); setPAmount(pType === 'monetary' ? String(STANDARD_MONETARY_FINE) : ''); } },
                   )}>
                   {addPenalty.isPending ? 'Adding…' : 'Add penalty'}
                 </Button>
@@ -493,11 +639,16 @@ export function ApplicationDetail() {
                 {events.map((e) => (
                   <li key={e.id} className="flex gap-3 text-sm">
                     <Clock className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <div>
+                    <div className="flex-1">
                       <p><span className="font-medium">{(STATUS_META[e.to_state] || {}).label || e.to_state}</span>
                         {e.actor_name && <span className="text-muted-foreground"> · {e.actor_name}</span>}
                         <span className="text-muted-foreground"> · {new Date(e.created_at).toLocaleString()}</span></p>
-                      {e.note && <p className="text-muted-foreground">{e.note}</p>}
+                      {/* Bug 6: Render Markdown in Timeline */}
+                      {e.note && (
+                        <div className="mt-1 prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
+                          <MarkdownRenderer markdown={e.note} />
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -507,6 +658,7 @@ export function ApplicationDetail() {
         </TabsContent>
       </Tabs>
 
+      {/* Bug 2: AI Generate buttons in ALL dialogs */}
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className={dialog?.kind === 'issue' || dialog?.kind === 'text' ? 'sm:max-w-3xl' : undefined}>
           <DialogHeader><DialogTitle>{dialogTitle}</DialogTitle></DialogHeader>
@@ -531,7 +683,7 @@ export function ApplicationDetail() {
           ) : dialog?.kind === 'minutes' ? (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <AiGenerateButton generate={() => genHearingMinutes(app)} onGenerated={setText} disabled={busy} />
+                <AiGenerateButton generate={() => genHearingMinutes(app)} onGenerated={setText} disabled={busy} audit={{ applicationId: id, field: 'hearing_minutes' }} />
               </div>
               <Textarea placeholder="Minutes — observations per shortcoming…" rows={5} value={text} onChange={(e) => setText(e.target.value)} />
               <Select value={verdict} onValueChange={setVerdict}>
@@ -560,30 +712,40 @@ export function ApplicationDetail() {
                 </div>
               )}
               <div className="flex justify-end">
-                <AiGenerateButton generate={() => genDecisionNote(app, { outcome, seats })} onGenerated={setText} disabled={busy} />
+                <AiGenerateButton generate={() => genDecisionNote(app, { outcome, seats })} onGenerated={setText} disabled={busy} audit={{ applicationId: id, field: 'decision_note' }} />
               </div>
               <Textarea placeholder="Decision note (optional)…" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
             </div>
           ) : (
             <div className="space-y-2">
-              {(dialog?.kind === 'issue' || dialog?.kind === 'text') && (
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-muted-foreground">
-                    {drafting ? 'Drafting the official letter…' : 'Auto-drafted from the assessment — review and edit before issuing.'}
-                  </p>
-                  <AiGenerateButton
-                    generate={() => previewLetter(id, dialog.kind === 'issue' ? 'clarification' : 'final_order')}
-                    onGenerated={setText}
-                    disabled={busy || drafting}
-                  />
-                </div>
-              )}
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  {dialog?.kind === 'issue' || dialog?.kind === 'text'
+                    ? (drafting ? 'Drafting the official letter…' : 'Auto-drafted from the assessment — review and edit before issuing.')
+                    : 'Draft context-aware note before submitting.'}
+                </p>
+                <AiGenerateButton
+                  generate={() => {
+                    if (dialog?.kind === 'issue' || dialog?.kind === 'text') {
+                      return previewLetter(id, dialog.kind === 'issue' ? 'clarification' : 'final_order');
+                    }
+                    if (dialog?.key === 'forward') return genForwardNote(app);
+                    if (dialog?.key === 'return') return genReturnNote(app);
+                    if (dialog?.key === 'reject') return genRejectNote(app);
+                    if (dialog?.key === 'request_hearing') return genHearingRequest(app);
+                    return Promise.resolve('');
+                  }}
+                  onGenerated={setText}
+                  disabled={busy || drafting}
+                  audit={{ applicationId: id, field: dialog?.key || dialog?.kind || 'note' }}
+                />
+              </div>
               <Textarea
                 className={(dialog?.kind === 'issue' || dialog?.kind === 'text') ? 'font-mono text-xs' : undefined}
                 placeholder={dialog?.kind === 'issue' ? 'Clarification letter…'
                   : dialog?.kind === 'text' ? 'Final order…'
                   : 'Add a note (optional)…'}
-                rows={dialog?.kind === 'issue' || dialog?.kind === 'text' ? 16 : 3}
+                rows={dialog?.kind === 'issue' || dialog?.kind === 'text' ? 16 : 4}
                 value={text} onChange={(e) => setText(e.target.value)} />
             </div>
           )}

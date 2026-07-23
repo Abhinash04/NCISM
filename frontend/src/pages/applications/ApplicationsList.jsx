@@ -21,6 +21,7 @@ export const STATUS_META = {
   under_validation: { label: 'Validation', variant: 'secondary' },
   clarification_open: { label: 'Clarification sent', variant: 'secondary' },
   clarification_responded: { label: 'Clarification answered', variant: 'default' },
+  clarification_reviewed: { label: 'Clarification reviewed', variant: 'default' },
   senior_review: { label: 'Senior review', variant: 'default' },
   board_review: { label: 'Board review', variant: 'default' },
   hearing_requested: { label: 'Hearing requested', variant: 'secondary' },

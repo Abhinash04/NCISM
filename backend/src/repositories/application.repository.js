@@ -64,8 +64,8 @@ function listEvents(applicationId) {
 /**
  * Role-scoped queue. Ownership/routing follows the org hierarchy:
  * - visitor: cases they uploaded
- * - junior_consultant: cases whose (system,state) is in their allotments
- * - senior_consultant: cases submitted by a junior they supervise
+ * - consultant: cases whose (system,state) is in their allotments
+ * - senior_consultant: cases submitted by a consultant they supervise
  * - board_member / president: board-review + decided cases (all)
  * - admin / viewer: everything
  */
@@ -93,7 +93,7 @@ async function queueFor(user) {
     const supervisees = db('users').where({ supervisor_id: user.id }).select('id');
     return q.whereIn('applications.submitted_by', supervisees);
   }
-  if (roles.includes('junior_consultant')) {
+  if (roles.includes('consultant')) {
     const allot = db('staff_allotments').where({ user_id: user.id });
     return q.whereExists(
       allot.whereRaw('staff_allotments.system = applications.system')

@@ -1,6 +1,6 @@
 /**
  * Phase 3a RBAC: the `visitor` role + `application:*` permissions, mapped onto
- * the case review chain (visitor → junior → senior → board). Idempotent.
+ * the case review chain (visitor → consultant → senior → board). Idempotent.
  */
 
 const VISITOR_ROLE = {
@@ -19,7 +19,7 @@ const PERMS = [
 // Grants added to each role (merged with whatever they already hold).
 const GRANTS = {
   visitor: ['application:create', 'application:read', 'institution:read'],
-  junior_consultant: ['application:read', 'application:process', 'application:submit'],
+  consultant: ['application:read', 'application:process', 'application:submit'],
   senior_consultant: ['application:read', 'application:review'],
   board_member: ['application:read', 'application:decide'],
   president: ['application:read', 'application:decide'],

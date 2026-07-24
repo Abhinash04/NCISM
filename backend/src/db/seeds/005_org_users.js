@@ -1,8 +1,8 @@
 /**
  * Seeds the 17 MARB-ISM org users (President, 2 Board Members, 2 Senior
- * Consultants, 12 Junior/Dealing Staff) with MOCK credentials, wires the
+ * Consultants, 12 consultant/Dealing Staff) with MOCK credentials, wires the
  * reporting chain (supervisor_id), assigns org roles, and seeds staff_allotments
- * for the junior consultants by parsing markdown/Work Allotment in Staff.md.
+ * for the consultant consultants by parsing markdown/Work Allotment in Staff.md.
  *
  * Mock password: MOCK_PASSWORD env (default 'Password123'). Idempotent by email.
  * These are placeholders — replace with real credentials before production.
@@ -28,22 +28,22 @@ const ORG_USERS = [
   { email: GAURAV, name: 'Dr. Gaurav Bhandari', role: 'senior_consultant', supervisor: MEHRA, alias: 'gaurav bhandari' },
   { email: KRITIKA, name: 'Dr. Kritika', role: 'senior_consultant', supervisor: KANAUJIA, alias: 'kritika' },
   // Team-1 (supervised by Gaurav Bhandari)
-  { email: 'sunil@ncism.local', name: 'Dr. Sunil', role: 'junior_consultant', supervisor: GAURAV, alias: 'sunil' },
-  { email: 'tanya@ncism.local', name: 'Dr. Tanya', role: 'junior_consultant', supervisor: GAURAV, alias: 'tanya' },
-  { email: 'smarnika@ncism.local', name: 'Dr. Smarnika', role: 'junior_consultant', supervisor: GAURAV, alias: 'smarnika' },
-  { email: 'akshay@ncism.local', name: 'Dr. Akshay', role: 'junior_consultant', supervisor: GAURAV, alias: 'akshay' },
-  { email: 'shubhangi@ncism.local', name: 'Dr. Shubhangi', role: 'junior_consultant', supervisor: GAURAV, alias: 'shubhangi' },
-  { email: 'mitali@ncism.local', name: 'Dr. Mitali', role: 'junior_consultant', supervisor: GAURAV, alias: 'mitali' },
+  { email: 'sunil@ncism.local', name: 'Dr. Sunil', role: 'consultant', supervisor: GAURAV, alias: 'sunil' },
+  { email: 'tanya@ncism.local', name: 'Dr. Tanya', role: 'consultant', supervisor: GAURAV, alias: 'tanya' },
+  { email: 'smarnika@ncism.local', name: 'Dr. Smarnika', role: 'consultant', supervisor: GAURAV, alias: 'smarnika' },
+  { email: 'akshay@ncism.local', name: 'Dr. Akshay', role: 'consultant', supervisor: GAURAV, alias: 'akshay' },
+  { email: 'shubhangi@ncism.local', name: 'Dr. Shubhangi', role: 'consultant', supervisor: GAURAV, alias: 'shubhangi' },
+  { email: 'mitali@ncism.local', name: 'Dr. Mitali', role: 'consultant', supervisor: GAURAV, alias: 'mitali' },
   // Team-2 (supervised by Kritika)
-  { email: 'pooja@ncism.local', name: 'Dr. Pooja', role: 'junior_consultant', supervisor: KRITIKA, alias: 'pooja' },
-  { email: 'divesh.rana@ncism.local', name: 'Dr. Divesh Rana', role: 'junior_consultant', supervisor: KRITIKA, alias: 'divesh rana' },
-  { email: 'dheeraj@ncism.local', name: 'Dr. Dheeraj', role: 'junior_consultant', supervisor: KRITIKA, alias: 'dheeraj' },
-  { email: 'ritu.saini@ncism.local', name: 'Dr. Ritu Saini', role: 'junior_consultant', supervisor: KRITIKA, alias: 'ritu saini' },
-  { email: 'abdulla@ncism.local', name: 'Dr. Abdulla', role: 'junior_consultant', supervisor: KRITIKA, alias: 'abdulla' },
-  { email: 'steave@ncism.local', name: 'Dr. Steave', role: 'junior_consultant', supervisor: KRITIKA, alias: 'steave' },
+  { email: 'pooja@ncism.local', name: 'Dr. Pooja', role: 'consultant', supervisor: KRITIKA, alias: 'pooja' },
+  { email: 'divesh.rana@ncism.local', name: 'Dr. Divesh Rana', role: 'consultant', supervisor: KRITIKA, alias: 'divesh rana' },
+  { email: 'dheeraj@ncism.local', name: 'Dr. Dheeraj', role: 'consultant', supervisor: KRITIKA, alias: 'dheeraj' },
+  { email: 'ritu.saini@ncism.local', name: 'Dr. Ritu Saini', role: 'consultant', supervisor: KRITIKA, alias: 'ritu saini' },
+  { email: 'abdulla@ncism.local', name: 'Dr. Abdulla', role: 'consultant', supervisor: KRITIKA, alias: 'abdulla' },
+  { email: 'steave@ncism.local', name: 'Dr. Steave', role: 'consultant', supervisor: KRITIKA, alias: 'steave' },
 ];
 
-/** Normalize a name for matching against the allotment sheet ("Dr. Divesh Rana" → "divesh rana"). */
+/** Normalization */
 function normName(s) {
   return String(s).toLowerCase().replace(/dr\.?/g, '').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
 }
@@ -115,12 +115,12 @@ exports.seed = async function seed(knex) {
       .onConflict(['user_id', 'role_key']).ignore();
   }
 
-  // 3. Staff allotments for the junior consultants.
+  // 3. Staff allotments for the consultant consultants.
   let allotRows = [];
   if (fs.existsSync(ALLOTMENT_FILE)) {
     const byAlias = parseAllotments(fs.readFileSync(ALLOTMENT_FILE, 'utf8'));
     for (const u of ORG_USERS) {
-      if (u.role !== 'junior_consultant' || !u.alias) continue;
+      if (u.role !== 'consultant' || !u.alias) continue;
       const set = byAlias[u.alias];
       if (!set) continue;
       for (const key of set) {

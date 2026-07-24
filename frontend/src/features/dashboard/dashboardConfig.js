@@ -27,7 +27,7 @@ export const DASHBOARD_CONFIG = {
     ],
   },
 
-  junior_consultant: {
+  consultant: {
     title: 'My case queue',
     subtitle: 'Colleges allotted to you across their assessment lifecycle.',
     kpis: [
@@ -54,8 +54,8 @@ export const DASHBOARD_CONFIG = {
       { label: 'Decided', statuses: DECIDED },
     ],
     groups: [
-      { label: 'Awaiting your review', statuses: ['senior_review'], hint: 'Forward to the board or return to the junior.' },
-      { label: 'Returned to junior', statuses: ['under_validation'] },
+      { label: 'Awaiting your review', statuses: ['senior_review'], hint: 'Forward to the board or return to the consultant.' },
+      { label: 'Returned to consultant', statuses: ['under_validation'] },
       { label: 'Forwarded', statuses: ['board_review', 'hearing_requested', 'hearing_scheduled', ...DECIDED] },
     ],
   },

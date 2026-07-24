@@ -33,7 +33,7 @@ After login each user lands on their role-scoped landing route.
 | Dr. Gaurav Bhandari | `gaurav.bhandari@ncism.local` | `Password123` | B. L. Mehra          | Team-1          |
 | Dr. Kritika         | `kritika@ncism.local`         | `Password123` | Dr. Sushrut Kanaujia | Team-2          |
 
-## Junior Consultants / Dealing Staff (`junior_consultant`) — landing `/junior_consultant/dashboard`
+## Consultants / Dealing Staff (`consultant`) — landing `/consultant/dashboard`
 
 Allotment = the system(s) × states this user is routed cases for (`staff_allotments`).
 
@@ -65,10 +65,10 @@ Admin console: `/admin/institutions` (registry), `/admin/institutions/import`, `
 
 ## Notes
 
-- **Reporting chain:** President → Board Members → Senior Consultants → Junior Consultants
+- **Reporting chain:** President → Board Members → Senior Consultants → Consultants
   (`users.supervisor_id`). Team-1 = Sunil, Tanya, Smarnika, Akshay, Shubhangi, Mitali (→ Gaurav);
   Team-2 = Pooja, Divesh Rana, Dheeraj, Ritu Saini, Abdulla, Steave (→ Kritika).
-- **Permissions:** analyst-equivalent for juniors; senior gets read/update review scope; board
+- **Permissions:** analyst-equivalent for consultants; senior gets read/update review scope; board
   members/president get approve/finalize; admin manages users/roles/master data. Fine-grained
   lifecycle permissions (hearings, letters, board meetings) arrive in Phase 3.
 - **Re-seed:** `cd backend && npm run db:setup` (idempotent — safe to re-run).

@@ -15,10 +15,10 @@
 
 ## 1. Project overview
 
-An **internal** review/validation web portal for NCISM's Medical Assessment & Rating Board (MARB-ISM) for Indian Systems of Medicine (Ayurveda, Unani, Siddha, Sowa-Rigpa). It wraps a **governed multi-user portal** (auth, RBAC, org hierarchy, institution registry, and the **full case lifecycle** — report receipt → junior processing → senior/board review → clarification cycle → hearings → board meetings → final-order dispatch → Closed) around an already-complete **document-processing + assessment engine** (report PDF → structured markdown → deterministic MARB assessment report). Not the public 9-role regulatory SaaS described in `docs/srs/` — that is the
+An **internal** review/validation web portal for NCISM's Medical Assessment & Rating Board (MARB-ISM) for Indian Systems of Medicine (Ayurveda, Unani, Siddha, Sowa-Rigpa). It wraps a **governed multi-user portal** (auth, RBAC, org hierarchy, institution registry, and the **full case lifecycle** — report receipt → consultant processing → senior/board review → clarification cycle → hearings → board meetings → final-order dispatch → Closed) around an already-complete **document-processing + assessment engine** (report PDF → structured markdown → deterministic MARB assessment report). Not the public 9-role regulatory SaaS described in `docs/srs/` — that is the
 reference superset, not the build target.
 
-> **⚠️ Scope (TCS boundary).** The **20–50-page Regulatory Report is generated externally by TCS** (TCS runs the visitation). The platform boundary **starts at report receipt**: production = **TCS API**; interim = **Visitor-portal manual upload** (temporary workaround). The processing engine (§12) and lifecycle are unchanged — they act on the *received* report. See `docs/srs/` GAP-011/Q-021.
+> **⚠️ Scope (TCS boundary).** The **20–50-page Regulatory Report is generated externally by TCS** (TCS runs the visitation). The platform boundary **starts at report receipt**: production = **TCS API**; interim = **Visitor-portal manual upload** (temporary workaround). The processing engine (§12) and lifecycle are unchanged — they act on the _received_ report. See `docs/srs/` GAP-011/Q-021.
 
 - **Backend:** Node.js + Express, PostgreSQL via Knex. Prefix `/api/v1`, port 3000.
 - **Frontend:** React 19 + Vite + react-router + TanStack Query + shadcn/ui + Tailwind. Port 5173.
@@ -27,32 +27,32 @@ reference superset, not the build target.
 
 ## 2. Current implementation status
 
-| Area | Status |
-|---|---|
-| Document extraction pipeline (OpenDataLoader → CDM → structured markdown) | ✅ Built (pre-portal) |
-| Deterministic assessment engine (extractors → evaluator → punitive → MARB report) | ✅ Built (pre-portal) |
-| PostgreSQL + Knex migrations/seeds | ✅ Phase 0 |
-| JWT auth (access + refresh) + bcrypt | ✅ Phase 1 |
-| RBAC (roles, permissions, guards) | ✅ Phase 1 |
-| Role-prefixed portal shell + admin console | ✅ Phase 1/2 |
-| Institutions master registry (672) + import | ✅ Phase 2 |
-| NCISM org hierarchy (supervisor chain, allotments) | ✅ Phase 2 |
-| Case model + workflow guard + review chain (upload→process→senior→board) | ✅ Phase 3a |
-| Clarification cycle + college role | ✅ Phase 3b |
-| Hearings + board meetings + final-order dispatch → Closed | ✅ Phase 3c |
-| 13 roles incl. visitor/college/hearing_committee/secretariat/observer | ✅ Phase 3 |
-| Structured board outcomes + official letter/order generation | ✅ Phase 3d |
-| System-wide append-only audit log + viewer | ✅ Phase 4 |
-| Compliance/penalty ledger + monitoring | ✅ Phase 5a |
-| Reports/analytics + CSV export | ✅ Phase 5b |
-| Ruleset registry + activation (SoD) + per-case resolution | ✅ Phase 6a |
-| Async processing worker (pg-boss) | ✅ Phase 6b |
-| RBAC-matrix test + per-role E2E | ✅ Phase 6c |
-| TOTP MFA (self-enroll + login step-up) + frontend code-splitting | ✅ Phase 6d |
-| UG Unani + UG Sowa-Rigpa + PG Ayurveda/Unani/Siddha rulesets (content + template + golden + active) | ✅ Phase 7a–7c |
-| Document downloads (MD/PDF/DOCX) + in-app PDF viewer (uploaded report) | ✅ |
-| Themed landing + auth redesign (theme-aware, forgot-password, MFA, a11y) | ✅ |
-| UG Siddha ruleset content · live non-Ayurveda extraction | 🔜 Phase 7 — remaining |
+| Area                                                                                                | Status                 |
+| --------------------------------------------------------------------------------------------------- | ---------------------- |
+| Document extraction pipeline (OpenDataLoader → CDM → structured markdown)                           | ✅ Built (pre-portal)  |
+| Deterministic assessment engine (extractors → evaluator → punitive → MARB report)                   | ✅ Built (pre-portal)  |
+| PostgreSQL + Knex migrations/seeds                                                                  | ✅ Phase 0             |
+| JWT auth (access + refresh) + bcrypt                                                                | ✅ Phase 1             |
+| RBAC (roles, permissions, guards)                                                                   | ✅ Phase 1             |
+| Role-prefixed portal shell + admin console                                                          | ✅ Phase 1/2           |
+| Institutions master registry (672) + import                                                         | ✅ Phase 2             |
+| NCISM org hierarchy (supervisor chain, allotments)                                                  | ✅ Phase 2             |
+| Case model + workflow guard + review chain (upload→process→senior→board)                            | ✅ Phase 3a            |
+| Clarification cycle + college role                                                                  | ✅ Phase 3b            |
+| Hearings + board meetings + final-order dispatch → Closed                                           | ✅ Phase 3c            |
+| 13 roles incl. visitor/college/hearing_committee/secretariat/observer                               | ✅ Phase 3             |
+| Structured board outcomes + official letter/order generation                                        | ✅ Phase 3d            |
+| System-wide append-only audit log + viewer                                                          | ✅ Phase 4             |
+| Compliance/penalty ledger + monitoring                                                              | ✅ Phase 5a            |
+| Reports/analytics + CSV export                                                                      | ✅ Phase 5b            |
+| Ruleset registry + activation (SoD) + per-case resolution                                           | ✅ Phase 6a            |
+| Async processing worker (pg-boss)                                                                   | ✅ Phase 6b            |
+| RBAC-matrix test + per-role E2E                                                                     | ✅ Phase 6c            |
+| TOTP MFA (self-enroll + login step-up) + frontend code-splitting                                    | ✅ Phase 6d            |
+| UG Unani + UG Sowa-Rigpa + PG Ayurveda/Unani/Siddha rulesets (content + template + golden + active) | ✅ Phase 7a–7c         |
+| Document downloads (MD/PDF/DOCX) + in-app PDF viewer (uploaded report)                              | ✅                     |
+| Themed landing + auth redesign (theme-aware, forgot-password, MFA, a11y)                            | ✅                     |
+| UG Siddha ruleset content · live non-Ayurveda extraction                                            | 🔜 Phase 7 — remaining |
 
 ## 3. Completed phases
 
@@ -60,12 +60,12 @@ reference superset, not the build target.
 - **Phase 1 — Auth + RBAC + shell:** `users`/`roles`/`permissions`/`user_roles`/`role_permissions`/`refresh_tokens`; local login (bcrypt, JWT access+refresh); `authenticate` + `requirePermission`/`requireRole`; React `AuthContext`/`ProtectedRoute`/`RoleGate`, app shell.
 - **Phase 2 — Institutions + Org hierarchy + role portal:** `institutions` (672) + `staff_allotments` + `users.supervisor_id`; markdown import w/ exception queue; org tiers seeded; 17 org users (mock creds) + reporting chain; `/:role/*` portal + `/admin/*` console.
 - **Phase 3 — Post-visitation case lifecycle** (three slices):
-  - **3a** — `applications` + `application_events`; `workflow.service` guard (allowedActions/ assertCan); visitor upload → route to allotted junior → `process` (runs the engine, persists the report) → junior submit → senior forward/return → board approve/reject. Role `visitor`.
-  - **3b** — clarification cycle: board `request_clarification` → college responds → junior re-examines → back up the chain. Role `college` (bound to an institution via `users.institution_id`); `clarifications` table.
+  - **3a** — `applications` + `application_events`; `workflow.service` guard (allowedActions/ assertCan); visitor upload → route to allotted consultant → `process` (runs the engine, persists the report) → consultant submit → senior forward/return → board approve/reject. Role `visitor`.
+  - **3b** — clarification cycle: board `request_clarification` → college responds → **Consultant reviews the response** (`clarification_responded` → `review_clarification` → `clarification_reviewed`), then either **accepts** (submit → up the chain) or **requests revision R1** (→ `clarification_open`, college resubmits). Review remarks + verdict stored on the `clarifications` row (`review_remarks`, `review_verdict`, `reviewed_by`, `reviewed_at`). Role `college` (bound via `users.institution_id`); `clarifications` table.
   - **3c** — hearings (board `request_hearing` → President `appoint_committee` → committee `record_minutes` → board), board meetings (secretariat overlay: schedule + agenda + confirm), final-order `dispatch` → `closed`. Roles `hearing_committee`, `secretariat`, `commission_observer`; `hearings`/`hearing_members`/`board_meetings`/`board_meeting_items`.
-- **Phase 3d — Structured outcomes + official letters:** the board decision carries a structured `outcome` (grant / grant-with-conditions / reduce-intake + `approved_seats` / deny). The clarification/hearing/dispatch actions **auto-generate the official NCISM letters** (Clarification Letter, Hearing Notice with/without prior clarification, Final Order) that reproduce the approved formats — data-driven from the case institution, the ruleset manifest (regulation + course), `report_json.findings` (the staff-shortcoming **tables** + percentages) and `punitiveSummary` (outcome/seats/penalties). The actor edits the draft, issues it, and the college sees it on its case. `letters` table; `letter.service`; `utils/mesar-catalog`; letter-context fields on `applications` (intake, level, permission_type, visitation_*).
+- **Phase 3d — Structured outcomes + official letters:** the board decision carries a structured `outcome` (grant / grant-with-conditions / reduce-intake + `approved_seats` / deny). The clarification/hearing/dispatch actions **auto-generate the official NCISM letters** (Clarification Letter, Hearing Notice with/without prior clarification, Final Order) that reproduce the approved formats — data-driven from the case institution, the ruleset manifest (regulation + course), `report_json.findings` (the staff-shortcoming **tables** + percentages) and `punitiveSummary` (outcome/seats/penalties). The actor edits the draft, issues it, and the college sees it on its case. `letters` table; `letter.service`; `utils/mesar-catalog`; letter-context fields on `applications` (intake, level, permission*type, visitation*\*).
 - **Phase 4 — Audit log:** an app-wide `audit.middleware` records every successful write to an append-only `audit_log`; `GET /audit` + an Audit viewer (admin / board / president / observer).
-- **Phase 5a — Compliance/penalty ledger:** on board approve, `penalty.service.deriveForCase` reads `report_json.punitiveSummary.contributions` → auto `seat_reduction`/`denial` penalty rows; the dealing junior adds **manual** `monetary` (₹25-lakh ghost-faculty) + `teacher_code_revocation` penalties and tracks status (pending → applied → paid/waived); the case rolls to `compliance_status='complied'` when nothing is pending. `penalties` table; roles `compliance:{read,manage}`; a **Penalties** tab + a cross-case **Compliance** queue.
+- **Phase 5a — Compliance/penalty ledger:** on board approve, `penalty.service.deriveForCase` reads `report_json.punitiveSummary.contributions` → auto `seat_reduction`/`denial` penalty rows; the dealing consultant adds **manual** `monetary` (₹25-lakh ghost-faculty) + `teacher_code_revocation` penalties and tracks status (pending → applied → paid/waived); the case rolls to `compliance_status='complied'` when nothing is pending. **Final-order `dispatch` is gated on `compliance='complied'`** — `allowedActions` hides the button while `monitoring` and `dispatchOrder` throws `COMPLIANCE_INCOMPLETE` if forced. The **monetary (ghost-faculty) rate is read from the case's active punitive policy** (`ghost-faculty` entry in the ruleset `punitive-policy-*.json`, via `GET /:id/penalty-policy`), not hardcoded; penalty rows are deletable. `penalties` table; roles `compliance:{read,manage}`; a **Penalties** tab + a cross-case **Compliance** queue.
 - **Phase 5b — Reports/analytics:** `report.service` runs read-only Knex group-by aggregations (no schema change) → headline KPIs (total/decided cases, avg days-to-decision, seat-reduction + monetary totals), status/outcome/compliance distributions, throughput (approvals per month from `application_events`, open vs decided), by-system counts, penalty ledger by type×status, and top institutions by penalty. `GET /reports/overview` + `GET /reports/export?dataset=cases|penalties` (CSV attachment), both `report:read`; seed 013 grants `report:read` to observer + secretariat. Frontend: a **Reports** page (KPI tiles + dependency-free `BarList` bars + tables + CSV export), perm-gated in the nav.
 - **Phase 6 — Admin hardening & multi-ruleset:**
   - **6a — Ruleset registry + activation:** `ruleset_versions` table (migration 010) tracks the file-based rulesets and which one is **active** per (system, level) — partial unique index enforces one active each. `ruleset.service` `activate()` requires a Board ref (SoD → 422 without it) and retires the previous active; `resolveForCase(system, level)` returns the active ruleset (or a loud `NO_ACTIVE_RULESET`). `application.process` now **resolves per case** instead of hardcoding Ayurveda. `GET /rulesets`, `GET /rulesets/:id`, `POST /rulesets/:id/activate` + an admin **Rulesets** page. Seed 015 registers `mesar-ug-ayurveda-2024/v1` active for (ayurveda, UG).
@@ -75,7 +75,7 @@ reference superset, not the build target.
 
 ## 4. Remaining phases (Planned)
 
-- **Phase 7 — Non-Ayurveda ruleset content** *(unblocked by 6a)*: author Unani/Siddha/Sowa-Rigpa/PG rulesets from `markdown/MESAR_*.md` (rules + punitive policy + per-system report template + golden fixtures), then register + activate. Infra is ready — this is pure content work.
+- **Phase 7 — Non-Ayurveda ruleset content** _(unblocked by 6a)_: author Unani/Siddha/Sowa-Rigpa/PG rulesets from `markdown/MESAR_*.md` (rules + punitive policy + per-system report template + golden fixtures), then register + activate. Infra is ready — this is pure content work.
 - **Phase 8 — Notifications / "next action" feed** (in-app + email on queue hand-off).
 - **Phase 9 — Production readiness** (real secrets, CORS/HTTPS, rate-limiting, backups, CI/CD, deploy, observability; replace all mock credentials).
 - **Phase 10 — Reports depth & document polish** (date-range/per-institution drill-down, PDF export, retire the legacy Dexie `/documents` workflow). See blueprint §6.
@@ -108,21 +108,22 @@ A case runs the engine through a disk job, then persists `report_markdown`/`repo
 
 **Model:** `role → permission` (`resource:action`); users hold ≥1 role; guards re-check on the backend for every request; the **case** guard (`workflow.service`) further constrains by status × ownership. **13 roles seeded:**
 
-| Role key | Tier | Core responsibility |
-|---|---|---|
-| `president` | Apex | Final authority; appoints hearing committees; decides |
-| `board_member` | Signatory | Review/finalize; approve/reject/request clarification or hearing |
-| `senior_consultant` | Supervisory | Supervises dealing staff; forwards/returns cases |
-| `junior_consultant` | Dealing staff | Processes allotted colleges; drafts + submits |
-| `visitor` | External-ish | Uploads visitation reports → starts a case |
-| `college` | External | Bound to one institution (`users.institution_id`); answers clarifications |
-| `hearing_committee` | Panel | Conducts appointed hearings; records minutes |
-| `secretariat` | Support | Assembles board meetings; dispatches final orders |
-| `commission_observer` | Oversight | Read-only across all cases |
-| `admin` | System | Users, roles, master data; **no business approval** (SoD) |
-| `reviewer`/`analyst`/`viewer` | Phase-1 coarse | Retained maker/checker/auditor roles |
+| Role key                      | Tier           | Core responsibility                                                                                                                                    |
+| ----------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `president`                   | Apex           | Final authority; appoints hearing committees; decides                                                                                                  |
+| `board_member`                | Signatory      | Review/finalize; approve/reject/request clarification or hearing                                                                                       |
+| `senior_consultant`           | Supervisory    | Supervises dealing staff; forwards/returns cases                                                                                                       |
+| `consultant`                  | Dealing staff  | Processes allotted colleges; drafts + submits; reviews college clarifications _(role renamed from `consultant_consultant`; display name "Consultant")_ |
+| `visitor`                     | External-ish   | Uploads visitation reports → starts a case                                                                                                             |
+| `college`                     | External       | Bound to one institution (`users.institution_id`); answers clarifications                                                                              |
+| `hearing_committee`           | Panel          | Conducts appointed hearings; records minutes                                                                                                           |
+| `secretariat`                 | Support        | Assembles board meetings; dispatches final orders                                                                                                      |
+| `commission_observer`         | Oversight      | Read-only across all cases                                                                                                                             |
+| `admin`                       | System         | Users, roles, master data; **no business approval** (SoD)                                                                                              |
+| `reviewer`/`analyst`/`viewer` | Phase-1 coarse | Retained maker/checker/auditor roles                                                                                                                   |
 
 **Org chart (`users.supervisor_id`):**
+
 ```
 President (Mukul Patel)
 ├── Board Member: B. L. Mehra ──── Senior: Gaurav Bhandari ── Team-1: Sunil, Tanya, Smarnika,
@@ -133,7 +134,7 @@ President (Mukul Patel)
 
 **Permission catalogue (36):** `institution:{create,read,update,delete}`, `assessment:*` (legacy), `application:{create,read,process,submit,review,decide,delete}`, `clarification:{issue,respond}`, `hearing:{appoint,conduct}`, `meeting:manage`, `order:dispatch`, `compliance:{read,manage}`, `issue:{read,resolve}`, `user:manage`, `role:read`, `ruleset:{read,create,activate}`, `report:read`, `audit:read`. Per-role bundles seeded across `001_rbac`, `003_org_roles`, `006_application_rbac`, `008_college_rbac`, `010_hearing_meeting_rbac`, `012_compliance_rbac`, `013_report_rbac` (`report:read` → observer + secretariat), `014_application_delete_rbac` (`application:delete` → visitor + admin).
 
-**Case guard (`workflow.service`):** `allowedActions(app, user, ctx)` returns the actions a user may take given `status × roles × ownership`; `assertCan` throws **403** (`ACTION_NOT_ALLOWED`) or **423** (`CASE_FINALIZED`). The frontend renders action buttons **only** from `/allowed-actions` — no role literals in the UI. **SoD** examples enforced: a junior can't decide; only the President appoints a committee; only the Secretariat dispatches; a college can't touch another institution's case; admin
+**Case guard (`workflow.service`):** `allowedActions(app, user, ctx)` returns the actions a user may take given `status × roles × ownership`; `assertCan` throws **403** (`ACTION_NOT_ALLOWED`) or **423** (`CASE_FINALIZED`). The frontend renders action buttons **only** from `/allowed-actions` — no role literals in the UI. **SoD** examples enforced: a consultant can't decide; only the President appoints a committee; only the Secretariat dispatches; a college can't touch another institution's case; admin
 holds no business-approval perms.
 
 ## 7. Authentication flow
@@ -154,7 +155,7 @@ Files: `services/auth.service.js`, `controllers/auth.controller.js`, `middleware
 - **`/admin/*`** (`ProtectedRoute roles={['admin']}`): `institutions` (registry), `institutions/import`, `institutions/:id`, `users`, `users/:userId`, `roles`, `permissions`.
 - **Legacy documents (all roles):** `/documents`, `/documents/:id`, `/pdf|text|structure|metadata|pipeline|report`, `/documents/new`; `/history` + `/workspace/*` redirect. Retained for ad-hoc extraction alongside the case flow.
 
-`primaryRole` priority: `admin > president > board_member > senior_consultant > junior_consultant > secretariat > hearing_committee > commission_observer > visitor > college > reviewer > analyst > viewer` (`features/auth/AuthContext.jsx`).
+`primaryRole` priority: `admin > president > board_member > senior_consultant > consultant > secretariat > hearing_committee > commission_observer > visitor > college > reviewer > analyst > viewer` (`features/auth/AuthContext.jsx`). _(The dealing-staff role was renamed `consultant_consultant` → `consultant`.)_
 
 ## 9. Backend module overview (`backend/src/`)
 
@@ -231,13 +232,13 @@ board_meetings ──1:N── board_meeting_items ──→ applications
 audit_log (append-only; actor · action · entity · entity_id · status · created_at)
 ```
 
-| Group | Tables |
-|---|---|
-| Auth/RBAC (6) | `users` (+`supervisor_id`, `institution_id`, `mfa_secret`, `mfa_enabled`) · `roles` · `permissions` · `role_permissions` · `user_roles` · `refresh_tokens` |
-| Registry (2) | `institutions` (unique `institute_id`) · `staff_allotments` |
-| Cases (9) | `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`, `visitation_*`, `compliance_status`) · `application_events` · `clarifications` · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` · `letters` · `penalties` |
-| Rulesets (1) | `ruleset_versions` (one `active` per system+level; `board_ref`, `dir_path`, `activated_by`) |
-| Governance (1) | `audit_log` (append-only) |
+| Group          | Tables                                                                                                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Auth/RBAC (6)  | `users` (+`supervisor_id`, `institution_id`, `mfa_secret`, `mfa_enabled`) · `roles` · `permissions` · `role_permissions` · `user_roles` · `refresh_tokens`                                                                                                               |
+| Registry (2)   | `institutions` (unique `institute_id`) · `staff_allotments`                                                                                                                                                                                                              |
+| Cases (9)      | `applications` (+`outcome`, `approved_seats`, `intake`, `level`, `permission_type`, `visitation_*`, `compliance_status`) · `application_events` · `clarifications` · `hearings` · `hearing_members` · `board_meetings` · `board_meeting_items` · `letters` · `penalties` |
+| Rulesets (1)   | `ruleset_versions` (one `active` per system+level; `board_ref`, `dir_path`, `activated_by`)                                                                                                                                                                              |
+| Governance (1) | `audit_log` (append-only)                                                                                                                                                                                                                                                |
 
 pg-boss manages its own `pgboss` schema (job queue) on the same `DATABASE_URL`.
 
@@ -245,7 +246,7 @@ pg-boss manages its own `pgboss` schema (job queue) on the same `DATABASE_URL`.
 
 ## 12. Document-processing pipeline (built, pre-portal)
 
-> **Scope note (TCS boundary):** the `Upload` step below is the intake of the **TCS-generated Regulatory Report** — production via the TCS API, interim via the Visitor-portal manual upload. The pipeline itself (extraction → CDM → rules → punitive → MARB report) is unchanged and remains this platform's work on the *received* report.
+> **Scope note (TCS boundary):** the `Upload` step below is the intake of the **TCS-generated Regulatory Report** — production via the TCS API, interim via the Visitor-portal manual upload. The pipeline itself (extraction → CDM → rules → punitive → MARB report) is unchanged and remains this platform's work on the _received_ report.
 
 ```
 Upload (of the TCS-generated Regulatory Report) → OpenDataLoader-PDF extraction (Java engine; optional Docling hybrid)
@@ -264,21 +265,21 @@ Upload (of the TCS-generated Regulatory Report) → OpenDataLoader-PDF extractio
 
 ## 13. API summary (`/api/v1`)
 
-| Group | Status | Endpoints |
-|---|---|---|
-| Health | ✅ | `GET /health` |
-| Auth | ✅ | `POST /auth/login` (→ tokens **or** `{mfaRequired, challenge}`) · `POST /auth/mfa/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` · authed `POST /auth/mfa/{enroll,verify,disable}` |
-| Institutions | ✅ | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` · `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import` |
-| Admin | ✅ | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions` |
-| Cases | ✅ | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `GET /applications/:id/source.pdf` (uploaded report — viewer + download) · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members` |
-| Case transitions | ✅ | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `DELETE /applications/:id` (`application:delete` — uploader pre-processing or admin override) · `POST /:id/clarification` · `POST /:id/clarification/respond` (`decide` carries `outcome`+`approvedSeats`) |
-| Letters | ✅ | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}` |
-| Compliance | ✅ | `GET/POST /applications/:id/penalties` (`compliance:read`/`:manage`) · `GET /penalties` (cross-case queue) · `PATCH /penalties/:id` `{status}` |
-| Meetings | ✅ | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |
-| Audit | ✅ | `GET /audit` (entity/actor/date filters; `audit:read`) |
-| Reports | ✅ | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) — both `report:read` |
-| Extraction/Jobs | ✅ | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run) |
-| Rulesets | ✅ | `GET /rulesets` · `GET /rulesets/:id` · `POST /rulesets/:id/activate` `{boardRef}` (`ruleset:read`/`:activate`; activation needs a Board ref → 422 without) |
+| Group            | Status | Endpoints                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Health           | ✅     | `GET /health`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Auth             | ✅     | `POST /auth/login` (→ tokens **or** `{mfaRequired, challenge}`) · `POST /auth/mfa/login` · `POST /auth/refresh` · `POST /auth/logout` · `GET /auth/me` · authed `POST /auth/mfa/{enroll,verify,disable}`                                                                                                                                                                                                                                                                                              |
+| Institutions     | ✅     | `GET /institutions` (system/state/q + page) · `GET /institutions/meta` · `GET /institutions/:id` · `POST /institutions` · `PATCH /institutions/:id` · `POST /institutions/import`                                                                                                                                                                                                                                                                                                                     |
+| Admin            | ✅     | `GET /admin/users` · `GET /admin/users/:id` · `GET /admin/roles` · `GET /admin/permissions`                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Cases            | ✅     | `GET /applications` (role-scoped queue) · `POST /applications` (visitor upload) · `GET /applications/:id` · `GET /applications/:id/source.pdf` (uploaded report — viewer + download) · `/:id/{allowed-actions,events,hearings,clarifications}` · `GET /applications/committee-members`                                                                                                                                                                                                                |
+| Case transitions | ✅     | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `DELETE /applications/:id` (`application:delete` — uploader pre-processing or admin override) · `POST /:id/clarification` · `POST /:id/clarification/respond` · `POST /:id/clarification/review` · `POST /:id/clarification/revise` (`decide` carries `outcome`+`approvedSeats`) · `GET /:id/penalty-policy` (policy-derived rates) · `POST /:id/ai-log` (AI-draft audit) |
+| Letters          | ✅     | `GET /applications/:id/letters` · `POST /applications/:id/letters/preview` `{kind}`                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Compliance       | ✅     | `GET/POST /applications/:id/penalties` (`compliance:read`/`:manage`) · `GET /penalties` (cross-case queue) · `PATCH /penalties/:id` `{status}`                                                                                                                                                                                                                                                                                                                                                        |
+| Meetings         | ✅     | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}`                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Audit            | ✅     | `GET /audit` (entity/actor/date filters; `audit:read`)                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Reports          | ✅     | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) — both `report:read`                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Extraction/Jobs  | ✅     | `POST /extract` · `GET /jobs/:id` · `POST /assessments` (engine run)                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Rulesets         | ✅     | `GET /rulesets` · `GET /rulesets/:id` · `POST /rulesets/:id/activate` `{boardRef}` (`ruleset:read`/`:activate`; activation needs a Board ref → 422 without)                                                                                                                                                                                                                                                                                                                                           |
 
 **Guards:** institution read/write per `institution:*`; admin group per `admin` + `user:manage`/
 `role:read`; case transitions per `application:*`/`clarification:*`/`hearing:*`/`order:dispatch`,
@@ -290,25 +291,26 @@ re-checked by the workflow guard. **Error codes:** 401 (`NO_TOKEN`/`INVALID_TOKE
 
 Backend `.env` (loaded from `backend/.env`):
 
-| Var | Default | Purpose |
-|---|---|---|
-| `PORT` | 3000 | API port |
-| `DATABASE_URL` | — | Postgres connection (else POSTGRES_* fallbacks in `knexfile.js`) |
-| `JWT_SECRET` | `dev-only-change-me` | JWT signing secret (**change in prod**) |
-| `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | `15m` / `7d` | token lifetimes |
-| `BCRYPT_ROUNDS` | 12 | password hash cost |
-| `CORS_ORIGIN` | `http://localhost:5173` | SPA origin |
-| `EXTRACTION_MODE` | `fast` | `fast` (Java) or `hybrid` (Docling) |
-| `CDM_RENDERER` | `cdm` | `cdm` or `legacy` markdown render |
-| `OPENDATALOADER_CLI_PATH` | Windows path | extraction CLI |
-| `HYBRID_SERVER_URL` | `http://localhost:5002` | Docling hybrid server (hybrid mode) |
-| `JOB_RETENTION_HOURS` / `KEEP_JOBS` / `MAX_UPLOAD_MB` | 24 / false / 100 | job store |
-| `ASYNC_PROCESSING` | `true` | run the engine on the pg-boss worker; `false` = inline in-request (tests/dev) |
+| Var                                                           | Default                                          | Purpose                                                                           |
+| ------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `PORT`                                                        | 3000                                             | API port                                                                          |
+| `DATABASE_URL`                                                | —                                                | Postgres connection (else POSTGRES\_\* fallbacks in `knexfile.js`)                |
+| `JWT_SECRET`                                                  | `dev-only-change-me`                             | JWT signing secret (**change in prod**)                                           |
+| `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL`                          | `15m` / `7d`                                     | token lifetimes                                                                   |
+| `BCRYPT_ROUNDS`                                               | 12                                               | password hash cost                                                                |
+| `CORS_ORIGIN`                                                 | `http://localhost:5173`                          | SPA origin                                                                        |
+| `EXTRACTION_MODE`                                             | `fast`                                           | `fast` (Java) or `hybrid` (Docling)                                               |
+| `CDM_RENDERER`                                                | `cdm`                                            | `cdm` or `legacy` markdown render                                                 |
+| `OPENDATALOADER_CLI_PATH`                                     | Windows path                                     | extraction CLI                                                                    |
+| `HYBRID_SERVER_URL`                                           | `http://localhost:5002`                          | Docling hybrid server (hybrid mode)                                               |
+| `JOB_RETENTION_HOURS` / `KEEP_JOBS` / `MAX_UPLOAD_MB`         | 24 / false / 100                                 | job store                                                                         |
+| `ASYNC_PROCESSING`                                            | `true`                                           | run the engine on the pg-boss worker; `false` = inline in-request (tests/dev)     |
 | Seed-only: `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `MOCK_PASSWORD` | `admin@ncism.local` / `Admin123` / `Password123` | bootstrap admin + org-user mock creds (actual logins: [AuthCred.md](AuthCred.md)) |
 
 Frontend: `VITE_API_URL` (e.g. `http://localhost:3000/api/v1`).
 
 **Bring-up:**
+
 ```
 docker compose up -d db          # Postgres 16
 cd backend && npm install
@@ -316,6 +318,7 @@ npm run db:setup                 # migrate + seed (idempotent) → 672 instituti
 npm start                        # API on :3000
 cd ../frontend && npm install && npm run dev   # SPA on :5173
 ```
+
 Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (73 pass). Per-role SoD E2E (server + DB up): `node scripts/e2e-rbac.mjs`.
 
 ## 15. Known limitations
@@ -331,7 +334,7 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (73 
 
 ## 16. Pending work (next: Phase 7 remainder)
 
-- **Phase 7 — Non-Ayurveda rulesets** *(7a–7c done)*: UG **Unani** + UG **Sowa-Rigpa** + PG **Ayurveda/Unani/Siddha** are authored, templated, golden-tested, and active (six rulesets total with UG Ayurveda). Remaining: UG **Siddha** (no `MESAR_UG_Siddha` source in repo) + **tuning the parameter extractors** to real non-Ayurveda/PG report layouts so live uploads assess (today those params resolve `insufficient-data`; the golden fixtures are synthetic). PG is modeled on **flat standards** (no engine changes) — guide:student + per-dept bed ratios stay report-driven.
+- **Phase 7 — Non-Ayurveda rulesets** _(7a–7c done)_: UG **Unani** + UG **Sowa-Rigpa** + PG **Ayurveda/Unani/Siddha** are authored, templated, golden-tested, and active (six rulesets total with UG Ayurveda). Remaining: UG **Siddha** (no `MESAR_UG_Siddha` source in repo) + **tuning the parameter extractors** to real non-Ayurveda/PG report layouts so live uploads assess (today those params resolve `insufficient-data`; the golden fixtures are synthetic). PG is modeled on **flat standards** (no engine changes) — guide:student + per-dept bed ratios stay report-driven.
 - **Phase 8 — Notifications / "next action" feed:** in-app + email when a case enters your queue.
 - **Phase 9 — Production readiness:** real secrets/creds, CORS/HTTPS, rate-limiting, DB backups, CI/CD, container deploy, observability; replace all mock credentials; rotate `JWT_SECRET`.
 - **Phase 10 — Reports depth & document polish:** date-range + per-institution drill-down, report snapshots, PDF export of assessments/letters, retire the legacy Dexie `/documents` workflow.
@@ -340,11 +343,11 @@ Logins: [AuthCred.md](AuthCred.md). Backend tests: `cd backend && npm test` (73 
 ## 17. Assumptions & design decisions
 
 - **Role-model reconciliation:** the client confirmed a 5-tier NCISM org hierarchy after Phase-1's 4-role model; org roles were added **additively** and made primary, keeping the Phase-1 roles so nothing breaks. President↔Member authority nuance is intentionally collapsed (both approve) — captured in name/title, not a separate mechanism.
-- **SoD via the workflow guard**, not role removal — enforced by `workflow.service` (status × role × ownership): a junior can't decide their own case, only the President appoints a hearing committee, only the Secretariat dispatches, a college is scoped to its own institution.
+- **SoD via the workflow guard**, not role removal — enforced by `workflow.service` (status × role × ownership): a consultant can't decide their own case, only the President appoints a hearing committee, only the Secretariat dispatches, a college is scoped to its own institution.
 - **Board meetings are an overlay** — the secretariat schedules a meeting + agenda and confirms minutes, but the board decides cases with the normal actions; meetings don't gate the decide.
 - **Processing runs on a pg-boss worker** (engine ~3–35s) off the request thread (Phase 6b); `ASYNC_PROCESSING=false` keeps the inline path so the deterministic golden E2E stays simple.
 - **Report JSON is the source of truth**, immutable once approved (`closed`/`approved` edits → 423).
-- **Uploaded case PDFs live in `backend/data/applications/`** (gitignored) — outside `temp/` so job retention can't purge them before a junior processes the case.
+- **Uploaded case PDFs live in `backend/data/applications/`** (gitignored) — outside `temp/` so job retention can't purge them before a consultant processes the case.
 - **Engines reused, not rewritten** — `application.service.process` calls the existing extraction + assessment services.
 - **Idempotent seeds** — `db:setup` is safe to re-run; upserts on `institute_id`/email.
 - **No-hardcoding constraint** on the extraction/CDM side (generic reconstruction).

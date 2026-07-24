@@ -1,19 +1,12 @@
-/**
- * Adds the MARB-ISM org role tiers on top of the Phase-1 roles (admin/reviewer/
- * analyst/viewer, which are kept so existing code/tests keep working). Fine-
- * grained lifecycle permissions (review/hearing/letters/board) arrive in Phase 3;
- * here each org role reuses the existing permission catalogue. Idempotent.
- */
-
 const ORG_ROLES = [
   { key: 'president', name: 'President (MARB-ISM)', description: 'Apex competent authority: appointments, final approvals, oversight.' },
   { key: 'board_member', name: 'Board Member (MARB-ISM)', description: 'Reviews/finalizes assessments; signs outbound letters; decides in Board.' },
   { key: 'senior_consultant', name: 'Senior Consultant', description: 'Supervises dealing staff; verifies assessment computations; quality control.' },
-  { key: 'junior_consultant', name: 'Consultant (Dealing Staff)', description: 'Processes allotted colleges: scrutiny, drafting, rules run.' },
+  { key: 'consultant', name: 'Consultant (Dealing Staff)', description: 'Processes allotted colleges: scrutiny, drafting, rules run.' },
 ];
 
 // Reuse existing permission keys (defined in 001_rbac.js).
-const JUNIOR = [
+const CONSULTANT = [
   'assessment:read', 'assessment:create', 'assessment:update', 'assessment:submit', 'assessment:reprocess',
   'issue:read', 'issue:resolve', 'institution:read', 'ruleset:read', 'report:read', 'audit:read',
 ];
@@ -26,10 +19,10 @@ const BOARD = [
 ];
 
 const ROLE_PERMS = {
-  junior_consultant: JUNIOR,
+  consultant: CONSULTANT,
   senior_consultant: SENIOR,
   board_member: BOARD,
-  president: BOARD, // hearing-appoint/approve perms added in Phase 3
+  president: BOARD,
 };
 
 exports.seed = async function seed(knex) {

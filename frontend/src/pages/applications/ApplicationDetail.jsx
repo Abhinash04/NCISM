@@ -63,7 +63,7 @@ const ACTION_DEFS = {
   process: { route: 'process', label: 'Process (run engine)', variant: 'default' },
   submit: { route: 'submit', label: 'Submit for review', variant: 'default' },
   forward: { route: 'review', body: { action: 'forward' }, label: 'Forward to board', variant: 'default', note: true },
-  return: { route: 'review', body: { action: 'return' }, label: 'Return to junior', variant: 'outline', note: true },
+  return: { route: 'review', body: { action: 'return' }, label: 'Return to consultant', variant: 'outline', note: true },
   reject: { route: 'decide', body: { action: 'reject' }, label: 'Reject', variant: 'destructive', note: true },
   revise: { route: 'revise', label: 'Reopen for revision', variant: 'default' },
 };
@@ -480,7 +480,7 @@ export function ApplicationDetail() {
                 {r.review_remarks && (
                   <div className="border-t pt-2 bg-muted/20 p-2 rounded text-xs space-y-1">
                     <p className="font-semibold text-foreground">
-                      Junior Review Remarks ({r.review_verdict || 'Reviewed'}){r.reviewed_by_name ? ` · ${r.reviewed_by_name}` : ''}
+                      consultant Review Remarks ({r.review_verdict || 'Reviewed'}){r.reviewed_by_name ? ` · ${r.reviewed_by_name}` : ''}
                     </p>
                     <p className="text-muted-foreground whitespace-pre-wrap">{r.review_remarks}</p>
                   </div>

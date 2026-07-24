@@ -1,6 +1,6 @@
 /**
  * Phase 5b RBAC: reports/analytics read access. `report:read` already exists
- * (seed 001) and is granted to admin/reviewer/analyst/viewer + junior/senior/
+ * (seed 001) and is granted to admin/reviewer/analyst/viewer + consultant/senior/
  * board/president. This extends it to the oversight (commission_observer) and
  * support (secretariat) roles, which review portfolio trends but lacked it.
  * Idempotent.

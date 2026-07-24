@@ -13,7 +13,7 @@ const workflow = require('../src/services/workflow.service');
 const user = (...roles) => ({ id: 'u1', roles });
 // Every ownership flag defaults false; callers flip only the ones under test.
 const ctx = (over = {}) => ({
-  isAssignedJunior: false, isAllottedJunior: false, supervisesSubmitter: false,
+  isAssignedconsultant: false, isAllottedconsultant: false, supervisesSubmitter: false,
   isCollegeOwner: false, isHearingMember: false, isUploader: false, ...over,
 });
 const app = (status) => ({ id: 'AYU0001', status });
@@ -24,12 +24,12 @@ const thrown = (fn) => { try { fn(); } catch (e) { return e; } return null; };
 // --- Positive matrix: the right actor, correctly owning the case, sees exactly
 // these actions. Each row is one authorized (status, role, ownership) cell. ---
 const ALLOWED = [
-  ['uploaded',                user('junior_consultant'), ctx({ isAllottedJunior: true }),               ['process']],
-  ['failed',                  user('junior_consultant'), ctx({ isAllottedJunior: true }),               ['process']],
+  ['uploaded',                user('consultant'), ctx({ isAllottedconsultant: true }),               ['process']],
+  ['failed',                  user('consultant'), ctx({ isAllottedconsultant: true }),               ['process']],
   ['uploaded',                user('visitor'),           ctx({ isUploader: true }),                     ['delete']],
-  ['processed',               user('junior_consultant'), ctx({ isAssignedJunior: true }),               ['process', 'submit']],
-  ['under_validation',        user('junior_consultant'), ctx({ isAssignedJunior: true }),               ['process', 'submit']],
-  ['clarification_responded', user('junior_consultant'), ctx({ isAssignedJunior: true }),               ['process', 'submit']],
+  ['processed',               user('consultant'), ctx({ isAssignedconsultant: true }),               ['process', 'submit']],
+  ['under_validation',        user('consultant'), ctx({ isAssignedconsultant: true }),               ['process', 'submit']],
+  ['clarification_responded', user('consultant'), ctx({ isAssignedconsultant: true }),               ['process', 'submit']],
   ['senior_review',           user('senior_consultant'), ctx({ supervisesSubmitter: true }),            ['forward', 'return']],
   ['board_review',            user('board_member'),      ctx(),                                         ['approve', 'reject', 'request_clarification', 'request_hearing']],
   ['board_review',            user('president'),         ctx(),                                         ['approve', 'reject', 'request_clarification', 'request_hearing']],
@@ -37,7 +37,7 @@ const ALLOWED = [
   ['hearing_requested',       user('president'),         ctx(),                                         ['appoint_committee']],
   ['hearing_scheduled',       user('hearing_committee'), ctx({ isHearingMember: true }),                ['record_minutes']],
   ['approved',                user('secretariat'),       ctx(),                                         ['dispatch_order']],
-  ['rejected',                user('junior_consultant'), ctx({ isAllottedJunior: true }),               ['revise']],
+  ['rejected',                user('consultant'), ctx({ isAllottedconsultant: true }),               ['revise']],
 ];
 
 test('allowedActions — authorized actors see exactly their actions', () => {
@@ -57,8 +57,8 @@ test('allowedActions — authorized actors see exactly their actions', () => {
 // --- Ownership negatives: correct role, wrong ownership → nothing. ---
 test('allowedActions — role without ownership is denied', () => {
   const cases = [
-    ['uploaded',           user('junior_consultant'), ctx(/* not allotted */)],
-    ['processed',          user('junior_consultant'), ctx({ isAllottedJunior: true /* allotted ≠ assigned owner */ })],
+    ['uploaded',           user('consultant'), ctx(/* not allotted */)],
+    ['processed',          user('consultant'), ctx({ isAllottedconsultant: true /* allotted ≠ assigned owner */ })],
     ['senior_review',      user('senior_consultant'), ctx(/* does not supervise submitter */)],
     ['clarification_open', user('college'),           ctx(/* wrong college */)],
     ['hearing_scheduled',  user('hearing_committee'), ctx(/* not a member of this hearing */)],
@@ -70,10 +70,10 @@ test('allowedActions — role without ownership is denied', () => {
   }
 });
 
-// --- Role negatives: a junior can't decide, only the President appoints, only
+// --- Role negatives: a consultant can't decide, only the President appoints, only
 // Secretariat dispatches — the SoD gates. ---
 test('allowedActions — wrong role for the state is denied', () => {
-  assert.deepStrictEqual(workflow.allowedActions(app('board_review'), user('junior_consultant'), ctx({ isAssignedJunior: true })), []);
+  assert.deepStrictEqual(workflow.allowedActions(app('board_review'), user('consultant'), ctx({ isAssignedconsultant: true })), []);
   assert.deepStrictEqual(workflow.allowedActions(app('board_review'), user('senior_consultant'), ctx({ supervisesSubmitter: true })), []);
   // A board_member may decide but may NOT appoint the committee (President-only).
   assert.deepStrictEqual(workflow.allowedActions(app('hearing_requested'), user('board_member'), ctx()), []);
@@ -83,7 +83,7 @@ test('allowedActions — wrong role for the state is denied', () => {
 
 test('assertCan — disallowed action throws 403 ACTION_NOT_ALLOWED', () => {
   const err = thrown(() =>
-    workflow.assertCan(app('board_review'), user('junior_consultant'), ctx(), 'approve'));
+    workflow.assertCan(app('board_review'), user('consultant'), ctx(), 'approve'));
   assert.strictEqual(err.status, 403);
   assert.strictEqual(err.code, 'ACTION_NOT_ALLOWED');
 });

@@ -29,8 +29,8 @@ const ADMIN_PW = process.env.ADMIN_PASSWORD || 'Admin123';
 
 const U = {
   visitor: ['visitor@ncism.local', PW],
-  smarnika: ['smarnika@ncism.local', PW],   // junior allotted Maharashtra → the owner
-  sunil: ['sunil@ncism.local', PW],          // another junior → never the owner
+  smarnika: ['smarnika@ncism.local', PW],   // consultant allotted Maharashtra → the owner
+  sunil: ['sunil@ncism.local', PW],          // another consultant → never the owner
   gaurav: ['gaurav.bhandari@ncism.local', PW], // senior, supervises smarnika
   kritika: ['kritika@ncism.local', PW],      // senior, does NOT supervise smarnika
   president: ['president@ncism.local', PW],
@@ -109,9 +109,9 @@ async function main() {
   if (!inst) throw new Error(`institution ${INSTITUTE} not seeded`);
   console.log(`RBAC E2E — ${INSTITUTE} (${inst.system}/${inst.state}) @ ${BASE}\n`);
 
-  // 1. Upload (visitor). A junior cannot upload; the visitor can.
+  // 1. Upload (visitor). A consultant cannot upload; the visitor can.
   console.log('uploaded:');
-  await denied('junior cannot upload', 'smarnika', 'POST', '/applications', { body: {} }, 403);
+  await denied('consultant cannot upload', 'smarnika', 'POST', '/applications', { body: {} }, 403);
   const form = new FormData();
   form.set('file', new Blob([fs.readFileSync(PDF)], { type: 'application/pdf' }), `${INSTITUTE}.pdf`);
   form.set('institutionId', inst.id);
@@ -120,7 +120,7 @@ async function main() {
   const id = created.application.id;
   console.log(`  case ${id}\n`);
 
-  // 2. Process (only an allotted junior). Visitor lacks the permission entirely.
+  // 2. Process (only an allotted consultant). Visitor lacks the permission entirely.
   console.log('process:');
   await denied('visitor cannot process', 'visitor', 'POST', `/applications/${id}/process`, {}, 403);
   await allowed('smarnika (allotted) processes', 'smarnika', 'POST', `/applications/${id}/process`, {});
@@ -129,8 +129,8 @@ async function main() {
 
   // 3. processed → submit is owner-only.
   console.log('processed:');
-  await denied('non-owner junior cannot submit', 'sunil', 'POST', `/applications/${id}/submit`, {}, 403);
-  await allowed('owner junior submits', 'smarnika', 'POST', `/applications/${id}/submit`, {});
+  await denied('non-owner consultant cannot submit', 'sunil', 'POST', `/applications/${id}/submit`, {}, 403);
+  await allowed('owner consultant submits', 'smarnika', 'POST', `/applications/${id}/submit`, {});
   console.log('');
 
   // 4. senior_review → only the supervising senior forwards.
@@ -139,9 +139,9 @@ async function main() {
   await allowed('supervising senior forwards', 'gaurav', 'POST', `/applications/${id}/review`, { body: { action: 'forward' } });
   console.log('');
 
-  // 5. board_review → juniors/seniors cannot decide; board requests clarification.
+  // 5. board_review → consultants/seniors cannot decide; board requests clarification.
   console.log('board_review:');
-  await denied('junior cannot approve', 'smarnika', 'POST', `/applications/${id}/decide`, { body: { action: 'approve' } }, 403);
+  await denied('consultant cannot approve', 'smarnika', 'POST', `/applications/${id}/decide`, { body: { action: 'approve' } }, 403);
   await denied('senior cannot approve', 'gaurav', 'POST', `/applications/${id}/decide`, { body: { action: 'approve' } }, 403);
   await allowed('board requests clarification', 'president', 'POST', `/applications/${id}/clarification`, { body: { letterText: 'Please clarify the faculty shortfall.' } });
   console.log('');
@@ -155,7 +155,7 @@ async function main() {
 
   // 7. back up the chain to the board.
   console.log('resubmit → board:');
-  await allowed('junior resubmits', 'smarnika', 'POST', `/applications/${id}/submit`, {});
+  await allowed('consultant resubmits', 'smarnika', 'POST', `/applications/${id}/submit`, {});
   await allowed('senior forwards', 'gaurav', 'POST', `/applications/${id}/review`, { body: { action: 'forward' } });
   console.log('');
 
@@ -170,21 +170,21 @@ async function main() {
 
   // 9. hearing_scheduled → only a committee member records minutes.
   console.log('hearing_scheduled:');
-  await denied('junior cannot record minutes', 'smarnika', 'POST', `/applications/${id}/hearing/minutes`, { body: { minutes: 'x' } }, 403);
+  await denied('consultant cannot record minutes', 'smarnika', 'POST', `/applications/${id}/hearing/minutes`, { body: { minutes: 'x' } }, 403);
   await allowed('committee member records minutes', 'hearing1', 'POST', `/applications/${id}/hearing/minutes`, { body: { minutes: 'Heard; deficiencies partly cured.', verdict: 'grant-with-conditions' } });
   console.log('');
 
   // 10. board approves → secretariat-only dispatch.
   console.log('approve → dispatch:');
   await allowed('board approves', 'president', 'POST', `/applications/${id}/decide`, { body: { action: 'approve', outcome: 'grant', approvedSeats: 100 } });
-  await denied('approved case is immutable to junior (423)', 'smarnika', 'POST', `/applications/${id}/process`, {}, 423);
+  await denied('approved case is immutable to consultant (423)', 'smarnika', 'POST', `/applications/${id}/process`, {}, 423);
   await denied('non-secretariat cannot dispatch', 'president', 'POST', `/applications/${id}/dispatch`, { body: {} }, 403);
   await allowed('secretariat dispatches order', 'secretariat', 'POST', `/applications/${id}/dispatch`, { body: { orderText: 'Final order: granted.' } });
   console.log('');
 
   // 11. closed is fully immutable — even to admin.
   console.log('closed:');
-  await denied('closed case rejects junior process (423)', 'smarnika', 'POST', `/applications/${id}/process`, {}, 423);
+  await denied('closed case rejects consultant process (423)', 'smarnika', 'POST', `/applications/${id}/process`, {}, 423);
   await denied('admin cannot delete a finalized case (423)', 'admin', 'DELETE', `/applications/${id}`, {}, 423);
   console.log('');
 

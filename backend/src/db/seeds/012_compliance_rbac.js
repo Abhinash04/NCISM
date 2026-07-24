@@ -1,5 +1,5 @@
 /**
- * Phase 5a RBAC: compliance monitoring permissions. Dealing staff (junior) +
+ * Phase 5a RBAC: compliance monitoring permissions. Dealing staff (consultant) +
  * admin manage the penalty ledger; the rest of the chain reads it. Idempotent.
  */
 
@@ -9,7 +9,7 @@ const PERMS = [
 ];
 
 const GRANTS = {
-  junior_consultant: ['compliance:read', 'compliance:manage'],
+  consultant: ['compliance:read', 'compliance:manage'],
   admin: ['compliance:read', 'compliance:manage'],
   senior_consultant: ['compliance:read'],
   board_member: ['compliance:read'],

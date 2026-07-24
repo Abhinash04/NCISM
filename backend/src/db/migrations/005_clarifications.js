@@ -1,6 +1,6 @@
 /**
  * Phase 3b — clarification cycle. The board can issue a clarification letter to
- * a college, which responds; the junior then re-examines. Adds the two new case
+ * a college, which responds; the consultant then re-examines. Adds the two new case
  * statuses, binds college users to an institution, and stores each round.
  *
  * transaction:false because ALTER TYPE ... ADD VALUE cannot run inside a

@@ -144,7 +144,7 @@ class ApplicationController {
     }
   }
 
-  /** POST /applications/:id/clarification/review — junior consultant reviews clarification. */
+  /** POST /applications/:id/clarification/review — consultant reviews clarification. */
   async reviewClarification(req, res, next) {
     try {
       const application = await applicationService.reviewClarification(req.params.id, req.user, req.body || {});
@@ -154,7 +154,7 @@ class ApplicationController {
     }
   }
 
-  /** POST /applications/:id/clarification/revise — junior consultant requests revision R1/R2. */
+  /** POST /applications/:id/clarification/revise — consultant requests revision R1/R2. */
   async requestRevision(req, res, next) {
     try {
       const application = await applicationService.requestRevision(req.params.id, req.user, req.body || {});
@@ -273,7 +273,7 @@ class ApplicationController {
     }
   }
 
-  /** Records an AI-generated draft in the audit log (Bug 2 traceability). */
+  /** Records an AI-generated draft in the audit log. */
   async aiLog(req, res, next) {
     try {
       await auditService.record({

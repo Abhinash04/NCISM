@@ -10,11 +10,11 @@ phases (see [§ Rollout](#rollout)).
 > **⚠️ Scope (TCS boundary):** the Regulatory Report is **TCS-generated**; the platform starts at its receipt. The `Visitor ─upload→` step below is the **interim workaround** for the eventual **TCS API** intake.
 
 ```
-Visitor ─upload (interim; TCS API in production)→ Junior (process → submit) ─→ Senior (forward/return) ─→ Board
+Visitor ─upload (interim; TCS API in production)→ consultant (process → submit) ─→ Senior (forward/return) ─→ Board
           Board ─decide→ approve(outcome) | reject(→revise)
-          Board ─→ Clarification → College responds → Junior re-submits → Senior → Board
+          Board ─→ Clarification → College responds → Consultant reviews (accept→submit | request revision R1→College) → Senior → Board
           Board ─→ Hearing requested → President appoints committee → Committee minutes → Board
-          Board approve → Secretariat dispatches Final Order → CLOSED
+          Board approve → Secretariat dispatches Final Order (only when compliance=complied) → CLOSED
           (post-decision) → Compliance / penalty monitoring → complied
 ```
 
@@ -25,25 +25,25 @@ actions **only** from the backend `allowedActions` — never from role literals.
 ## IA principles
 
 1. **Queue-first.** Each portal lands on the work waiting for that role, not an upload box.
-2. **Only the Visitor uploads.** No upload affordance anywhere else. *(Interim: the report is TCS-generated; in production the TCS API replaces this manual upload — GAP-011/Q-021.)*
+2. **Only the Visitor uploads.** No upload affordance anywhere else. _(Interim: the report is TCS-generated; in production the TCS API replaces this manual upload — GAP-011/Q-021.)_
 3. **Nav = responsibility.** A role sees a nav item only if its duty needs it (and it holds the perm).
 4. **One case, many lenses.** Shared case detail; tabs/actions a role can't use are hidden.
 5. **Least surface.** Legacy/unused pages and roles are retired from the portal.
 
 ## Role → navigation matrix
 
-| Role | Landing | Nav items |
-|---|---|---|
-| **Visitor** | My Uploads | Dashboard · My Uploads · Settings |
-| **Junior Consultant** | My Case Queue | Dashboard · Cases · Compliance · Settings |
-| **Senior Consultant** | Review Queue | Dashboard · Review Queue · Compliance* · Settings |
-| **Board Member** | Board Queue | Dashboard · Board Queue · Meetings · Institutions* · Compliance* · Reports · Audit · Settings |
-| **President** | President Queue | Dashboard · Board Queue · Hearings · Meetings · Institutions* · Compliance* · Reports · Audit · Settings |
-| **Hearing Committee** | My Hearings | Dashboard · Hearings · Settings |
-| **Secretariat** | Meetings + Dispatch | Dashboard · Meetings · Dispatch Queue · Reports · Settings |
-| **College** | My Case | Dashboard · My Case · Settings |
-| **Commission Observer** | Portfolio (Reports) | Dashboard · Cases · Meetings · Compliance · Reports · Audit · Settings |
-| **Administrator** | Admin Overview | Institutions · Import · Users · Roles · Permissions · Cases · Compliance · Reports · Audit |
+| Role                    | Landing             | Nav items                                                                                                |
+| ----------------------- | ------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Visitor**             | My Uploads          | Dashboard · My Uploads · Settings                                                                        |
+| **Consultant**          | My Case Queue       | Dashboard · Cases · Compliance · Settings                                                                |
+| **Senior Consultant**   | Review Queue        | Dashboard · Review Queue · Compliance\* · Settings                                                       |
+| **Board Member**        | Board Queue         | Dashboard · Board Queue · Meetings · Institutions* · Compliance* · Reports · Audit · Settings            |
+| **President**           | President Queue     | Dashboard · Board Queue · Hearings · Meetings · Institutions* · Compliance* · Reports · Audit · Settings |
+| **Hearing Committee**   | My Hearings         | Dashboard · Hearings · Settings                                                                          |
+| **Secretariat**         | Meetings + Dispatch | Dashboard · Meetings · Dispatch Queue · Reports · Settings                                               |
+| **College**             | My Case             | Dashboard · My Case · Settings                                                                           |
+| **Commission Observer** | Portfolio (Reports) | Dashboard · Cases · Meetings · Compliance · Reports · Audit · Settings                                   |
+| **Administrator**       | Admin Overview      | Institutions · Import · Users · Roles · Permissions · Cases · Compliance · Reports · Audit               |
 
 `*` = read-only. Retired from portal: **reviewer / analyst / viewer** (legacy, no org users) and the
 ad-hoc `/documents` extraction workflow (reachable by URL only).
@@ -56,10 +56,12 @@ Each plan: **Responsibilities · Landing · Nav · Widgets/KPIs · Queues · Pag
 Sees / Must-not-see · Permissions→workflow · UX.**
 
 ### 1. Visitor
+
 Perms: `application:create`, `application:read`, `application:delete`, `institution:read`.
+
 - **Responsibilities:** upload the regulatory visitation report for an institution; track own cases;
   remove a mistaken upload before processing begins.
-- **Landing:** *My Uploads* queue.
+- **Landing:** _My Uploads_ queue.
 - **Nav:** Dashboard · My Uploads (+ New upload CTA) · Settings.
 - **Widgets/KPIs:** uploaded · in review · decided/closed; recent uploads list.
 - **Queues:** own cases (`queueFor` visitor = `uploaded_by = me`).
@@ -73,18 +75,20 @@ Perms: `application:create`, `application:read`, `application:delete`, `institut
 - **UX:** status stepper ("Uploaded → Under review → Decided"); "what happens next" hint; guard against
   duplicate uploads for the same institution+session.
 
-### 2. Junior Consultant (Dealing Staff)
+### 2. Consultant (Dealing Staff)
+
 Perms: `application:read/process/submit`, `compliance:read/manage`, `institution:read`, `ruleset:read`.
+
 - **Responsibilities:** process **allotted** colleges (run the engine), scrutinize the extracted
   structure + assessment, submit up to the Senior; rework on return/reject; re-submit after a
   clarification is answered; own the compliance/penalty ledger during monitoring.
-- **Landing:** *My Case Queue*, grouped by required action: **To process · To submit · Returned/Rejected
+- **Landing:** _My Case Queue_, grouped by required action: **To process · To submit · Returned/Rejected
   · Clarification answered · Monitoring**.
 - **Nav:** Dashboard · Cases · Compliance · Settings.
 - **Widgets/KPIs:** awaiting process · awaiting submit · returned · avg turnaround · open penalties.
-- **Queues:** allotted `(system,state)` cases (`queueFor` junior); cross-case compliance queue.
+- **Queues:** allotted `(system,state)` cases (`queueFor` consultant); cross-case compliance queue.
 - **Pages:** Cases queue, Case detail (**Assessment report** + **Extracted structure** tabs + timeline
-  + penalties tab), Compliance queue.
+  - penalties tab), Compliance queue.
 - **Actions (from `allowedActions`):** process, submit, revise; add/settle penalties.
 - **Sees:** allotted cases + extracted document + assessment + penalty ledger. **Must-not-see:** upload,
   decision controls, clarification/hearing/dispatch actions, cases outside allotment.
@@ -94,25 +98,29 @@ Perms: `application:read/process/submit`, `compliance:read/manage`, `institution
   report; inline penalty status.
 
 ### 3. Senior Consultant
+
 Perms: `application:read/review`, `compliance:read`, `institution:read`.
-- **Responsibilities:** quality-control the junior's computations; forward to Board or return to Junior.
-- **Landing:** *Review Queue* (cases submitted by supervised juniors).
+
+- **Responsibilities:** quality-control the consultant's computations; forward to Board or return to consultant.
+- **Landing:** _Review Queue_ (cases submitted by supervised consultants).
 - **Nav:** Dashboard · Review Queue · Compliance (read) · Settings.
 - **Widgets/KPIs:** awaiting review · returned this week · forwarded · supervisee load.
 - **Queues:** cases `submitted_by` a supervisee (`queueFor` senior).
 - **Pages:** Review Queue, Case detail (report + structure + timeline + review panel).
-- **Actions:** forward (→ board), return (→ junior) — note required.
-- **Sees:** supervised juniors' submitted cases. **Must-not-see:** process/decide/upload; non-supervised
-  juniors' cases.
-- **Permissions→workflow:** `application:review` = the Senior gate between Junior and Board.
+- **Actions:** forward (→ board), return (→ consultant) — note required.
+- **Sees:** supervised consultants' submitted cases. **Must-not-see:** process/decide/upload; non-supervised
+  consultants' cases.
+- **Permissions→workflow:** `application:review` = the Senior gate between consultant and Board.
 - **UX:** shortcoming + punitive summary up top; mandatory note on forward/return.
 
 ### 4. Board Member
+
 Perms: `application:read/decide`, `clarification:issue`, `compliance:read`, `institution:read`.
+
 - **Responsibilities:** decide the case — approve with a structured **outcome** (grant /
   grant-with-conditions / reduce-intake + seats / deny) or reject; request clarification; request a
   hearing; issue the official Clarification Letter.
-- **Landing:** *Board Queue* (board_review + in-flight clarification/hearing + decided).
+- **Landing:** _Board Queue_ (board_review + in-flight clarification/hearing + decided).
 - **Nav:** Dashboard · Board Queue · Meetings · Institutions (read) · Compliance (read) · Reports ·
   Audit · Settings.
 - **Widgets/KPIs:** awaiting decision · in clarification · in hearing · decided this session · seat
@@ -130,10 +138,12 @@ Perms: `application:read/decide`, `clarification:issue`, `compliance:read`, `ins
   badges on the case.
 
 ### 5. President (MARB-ISM)
+
 Perms: board perms + `hearing:appoint`, `clarification:issue`.
+
 - **Responsibilities:** apex authority — all Board decisions **plus** appoint the 2-member Hearing
   Committee (segregation of duties); portfolio oversight.
-- **Landing:** *President Queue* = Board Queue **+ Hearings to constitute** (`hearing_requested`).
+- **Landing:** _President Queue_ = Board Queue **+ Hearings to constitute** (`hearing_requested`).
 - **Nav:** Dashboard · Board Queue · Hearings · Meetings · Institutions · Compliance · Reports · Audit ·
   Settings.
 - **Widgets/KPIs:** awaiting appointment · board decisions pending · hearings in progress · portfolio
@@ -147,10 +157,12 @@ Perms: board perms + `hearing:appoint`, `clarification:issue`.
 - **UX:** committee picker enforcing 2 conflict-free members; oversight KPIs.
 
 ### 6. Hearing Committee
+
 Perms: `application:read`, `hearing:conduct`.
+
 - **Responsibilities:** conduct the appointed hearing; record minutes + verdict → returns the case to
   the Board.
-- **Landing:** *My Hearings* (`hearing_scheduled` where I'm a panel member).
+- **Landing:** _My Hearings_ (`hearing_scheduled` where I'm a panel member).
 - **Nav:** Dashboard · Hearings · Settings.
 - **Widgets/KPIs:** hearings assigned · awaiting minutes · held.
 - **Queues:** cases with an open hearing this user sits on (`queueFor` hearing_committee).
@@ -164,10 +176,12 @@ Perms: `application:read`, `hearing:conduct`.
 - **UX:** hearing context (shortcomings + prior clarification) beside the minutes form; verdict presets.
 
 ### 7. Secretariat
+
 Perms: `application:read`, `meeting:manage`, `order:dispatch`, `report:read`.
+
 - **Responsibilities:** assemble Board meetings (agenda + confirm minutes); dispatch the Final Order →
   **Closed**.
-- **Landing:** split — *Meetings* + *Ready to dispatch* (`approved`).
+- **Landing:** split — _Meetings_ + _Ready to dispatch_ (`approved`).
 - **Nav:** Dashboard · Meetings · Dispatch Queue · Reports · Settings.
 - **Widgets/KPIs:** upcoming meetings · unconfirmed agenda items · orders ready to dispatch · dispatched
   this week.
@@ -182,9 +196,11 @@ Perms: `application:read`, `meeting:manage`, `order:dispatch`, `report:read`.
 - **UX:** meeting builder; final-order preview from outcome + punitive data before dispatch.
 
 ### 8. College (institution user)
+
 Perms: `application:read`, `clarification:respond`.
+
 - **Responsibilities:** view its own case; respond to a Board clarification (text + optional PDF).
-- **Landing:** *My Case* (own institution).
+- **Landing:** _My Case_ (own institution).
 - **Nav:** Dashboard · My Case · Settings.
 - **Widgets/KPIs:** current status · open clarification (respond-by) · issued letters.
 - **Queues:** own institution's case(s) (`queueFor` college).
@@ -196,7 +212,9 @@ Perms: `application:read`, `clarification:respond`.
 - **UX:** "Action required" banner; response upload; read-only official letters.
 
 ### 9. Commission Observer
+
 Perms: `application:read`, `audit:read`, `compliance:read`, `report:read`.
+
 - **Responsibilities:** read-only oversight across the whole pipeline.
 - **Landing:** Portfolio overview (Reports).
 - **Nav:** Dashboard · Cases · Meetings · Compliance · Reports · Audit · Settings.
@@ -210,8 +228,10 @@ Perms: `application:read`, `audit:read`, `compliance:read`, `report:read`.
 - **UX:** oversight dashboard = the Reports overview; every screen strictly read-only.
 
 ### 10. Administrator
+
 Perms: `institution:*`, `user:manage`, `role:read`, `ruleset:*`, `report:read`, `audit:read`,
 `application:read/delete`, `compliance:read/manage`.
+
 - **Responsibilities:** platform administration — users/roles/permissions, institution registry +
   import, oversight of all cases, data correction (case-delete override), compliance, audit, reports.
 - **Landing:** Admin Overview (system health + registry + user counts + pipeline).
@@ -228,6 +248,7 @@ Perms: `institution:*`, `user:manage`, `role:read`, `ruleset:*`, `report:read`, 
 - **UX:** admin-console tone; **no** upload box; legacy `/documents` retired from nav.
 
 ### 11–13. Retired from the portal
+
 - **reviewer / analyst / viewer** — legacy assessment-workflow roles with **no org users assigned**.
   Removed from nav + routing; grants/rows kept for back-compat.
 - Legacy **`/documents/*`** ad-hoc extraction workflow — kept in the router (URL-reachable) but off
@@ -237,31 +258,33 @@ Perms: `institution:*`, `user:manage`, `role:read`, `ruleset:*`, `report:read`, 
 
 ## Permission → workflow map (summary)
 
-| Stage | Actor | Action perm | State transition |
-|---|---|---|---|
-| Upload | Visitor | `application:create` | → `uploaded` |
-| Process | Junior (allotted) | `application:process` | `uploaded/failed` → `processed` |
-| Submit | Junior (owner) | `application:submit` | `processed` → `senior_review` |
-| Review | Senior (supervisor) | `application:review` | `senior_review` → `board_review` / `under_validation` |
-| Decide | Board / President | `application:decide` | `board_review` → `approved` / `rejected` |
-| Clarify | Board / President | `clarification:issue` | `board_review` → `clarification_open` |
-| Respond | College (owner) | `clarification:respond` | `clarification_open` → `clarification_responded` |
-| Hearing | Board / President | `application:decide` | `board_review` → `hearing_requested` |
-| Appoint | President | `hearing:appoint` | `hearing_requested` → `hearing_scheduled` |
-| Minutes | Hearing Committee | `hearing:conduct` | `hearing_scheduled` → `board_review` |
-| Dispatch | Secretariat | `order:dispatch` | `approved` → `closed` |
-| Monitor | Junior / Admin | `compliance:manage` | penalty ledger → `complied` |
-| Delete | Visitor(own,pre-proc) / Admin | `application:delete` | removes non-finalized case |
+| Stage    | Actor                         | Action perm             | State transition                                      |
+| -------- | ----------------------------- | ----------------------- | ----------------------------------------------------- |
+| Upload   | Visitor                       | `application:create`    | → `uploaded`                                          |
+| Process  | consultant (allotted)         | `application:process`   | `uploaded/failed` → `processed`                       |
+| Submit   | consultant (owner)            | `application:submit`    | `processed` → `senior_review`                         |
+| Review   | Senior (supervisor)           | `application:review`    | `senior_review` → `board_review` / `under_validation` |
+| Decide   | Board / President             | `application:decide`    | `board_review` → `approved` / `rejected`              |
+| Clarify  | Board / President             | `clarification:issue`   | `board_review` → `clarification_open`                 |
+| Respond  | College (owner)               | `clarification:respond` | `clarification_open` → `clarification_responded`      |
+| Hearing  | Board / President             | `application:decide`    | `board_review` → `hearing_requested`                  |
+| Appoint  | President                     | `hearing:appoint`       | `hearing_requested` → `hearing_scheduled`             |
+| Minutes  | Hearing Committee             | `hearing:conduct`       | `hearing_scheduled` → `board_review`                  |
+| Dispatch | Secretariat                   | `order:dispatch`        | `approved` → `closed`                                 |
+| Monitor  | consultant / Admin            | `compliance:manage`     | penalty ledger → `complied`                           |
+| Delete   | Visitor(own,pre-proc) / Admin | `application:delete`    | removes non-finalized case                            |
 
 ## Recommendations (not changed without approval)
-- **Grant hygiene:** Junior/Senior currently also hold `report:read` + `audit:read` (legacy from
+
+- **Grant hygiene:** consultant/Senior currently also hold `report:read` + `audit:read` (legacy from
   seed 003). Consider dropping these for a tighter portal (they aren't part of dealing-staff duties).
 - **Legacy `assessment:*` perms** (from the document workflow) are vestigial for org roles — safe to
   leave, but they map to no portal page anymore.
 
 ## Rollout
+
 - **Phase A:** this document + role dashboards (replace the shared upload "Command Center") + scoped
-  nav for Visitor / Junior / Senior / Board; retire the "Documents" nav item.
+  nav for Visitor / consultant / Senior / Board; retire the "Documents" nav item.
 - **Phase B:** President / Hearing Committee / Secretariat portals + dashboards (+ Dispatch Queue).
 - **Phase C:** Commission Observer / College / Admin portals + dashboards; retire reviewer/analyst/
   viewer from nav + routing.

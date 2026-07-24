@@ -10,30 +10,30 @@ const ApiError = require('../utils/api-error');
 
 // status → { action: [capability, ...] }  (any capability satisfies the action)
 const POLICY = {
-  uploaded: { process: ['junior_allotted'], delete: ['uploader'] },
-  failed: { process: ['junior_allotted'], delete: ['uploader'] },
+  uploaded: { process: ['consultant_allotted'], delete: ['uploader'] },
+  failed: { process: ['consultant_allotted'], delete: ['uploader'] },
   processing: {},
-  processed: { process: ['junior_owner'], submit: ['junior_owner'] },
-  under_validation: { process: ['junior_owner'], submit: ['junior_owner'] },
+  processed: { process: ['consultant_owner'], submit: ['consultant_owner'] },
+  under_validation: { process: ['consultant_owner'], submit: ['consultant_owner'] },
   senior_review: { forward: ['senior_supervisor'], return: ['senior_supervisor'] },
   board_review: { approve: ['board'], reject: ['board'], request_clarification: ['board'], request_hearing: ['board'] },
   clarification_open: { respond: ['college_owner'] },
-  clarification_responded: { review_clarification: ['junior_owner_allotted', 'junior_owner'] },
-  clarification_reviewed: { process: ['junior_owner'], submit: ['junior_owner'], request_revision: ['junior_owner'] },
+  clarification_responded: { review_clarification: ['consultant_owner_allotted', 'consultant_owner'] },
+  clarification_reviewed: { process: ['consultant_owner'], submit: ['consultant_owner'], request_revision: ['consultant_owner'] },
   hearing_requested: { appoint_committee: ['president'] },
   hearing_scheduled: { record_minutes: ['committee_member'] },
   approved: { dispatch_order: ['secretariat'] },
   closed: {},
-  rejected: { revise: ['junior_owner_allotted'] },
+  rejected: { revise: ['consultant_owner_allotted'] },
 };
 
 function hasCapability(cap, user, ctx) {
   const roles = user.roles || [];
-  const isJunior = roles.includes('junior_consultant');
+  const isconsultant = roles.includes('consultant');
   switch (cap) {
-    case 'junior_allotted': return isJunior && ctx.isAllottedJunior;
-    case 'junior_owner': return isJunior && ctx.isAssignedJunior;
-    case 'junior_owner_allotted': return isJunior && (ctx.isAssignedJunior || ctx.isAllottedJunior);
+    case 'consultant_allotted': return isconsultant && ctx.isAllottedconsultant;
+    case 'consultant_owner': return isconsultant && ctx.isAssignedconsultant;
+    case 'consultant_owner_allotted': return isconsultant && (ctx.isAssignedconsultant || ctx.isAllottedconsultant);
     case 'senior_supervisor': return roles.includes('senior_consultant') && ctx.supervisesSubmitter;
     case 'board': return roles.includes('board_member') || roles.includes('president');
     case 'president': return roles.includes('president');

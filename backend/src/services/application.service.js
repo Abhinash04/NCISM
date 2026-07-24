@@ -23,13 +23,13 @@ const UPLOADS_DIR = path.join(config.dataDir, 'applications'); // persistent (su
 
 /** Computes the ownership context the workflow guard needs for this user × case. */
 async function buildContext(app, user) {
-  const isAssignedJunior = !!app.assigned_to && app.assigned_to === user.id;
+  const isAssignedconsultant = !!app.assigned_to && app.assigned_to === user.id;
 
-  let isAllottedJunior = false;
-  if ((user.roles || []).includes('junior_consultant')) {
+  let isAllottedconsultant = false;
+  if ((user.roles || []).includes('consultant')) {
     const hit = await db('staff_allotments')
       .where({ user_id: user.id, system: app.system, state: app.state }).first('id');
-    isAllottedJunior = !!hit;
+    isAllottedconsultant = !!hit;
   }
 
   let supervisesSubmitter = false;
@@ -49,7 +49,7 @@ async function buildContext(app, user) {
     isHearingMember = !!active && (await hearingRepo.isMember(active.id, user.id));
   }
 
-  return { isAssignedJunior, isAllottedJunior, supervisesSubmitter, isCollegeOwner, isHearingMember, isUploader };
+  return { isAssignedconsultant, isAllottedconsultant, supervisesSubmitter, isCollegeOwner, isHearingMember, isUploader };
 }
 
 async function getForUser(id, user) {
@@ -116,7 +116,7 @@ async function createUpload({ file, institutionId, session, user, intake, level,
 }
 
 /**
- * Junior triggers processing: guards, marks the case `processing`, then either
+ * consultant triggers processing: guards, marks the case `processing`, then either
  * enqueues the engine run on the background worker (default) or runs it inline
  * (`ASYNC_PROCESSING=false`). Returns immediately in async mode.
  */
@@ -173,7 +173,7 @@ async function runProcessing(id, actorId) {
   }
 }
 
-/** Junior submits the generated report up to their senior consultant. */
+/** consultant submits the generated report up to their senior consultant. */
 async function submit(id, user) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, 'submit');
@@ -182,17 +182,17 @@ async function submit(id, user) {
   return updated;
 }
 
-/** Senior forwards to the board or returns to the junior. */
+/** Senior forwards to the board or returns to the consultant. */
 async function review(id, user, { action, note }) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, action); // 'forward' | 'return'
   const toState = action === 'forward' ? 'board_review' : 'under_validation';
   const updated = await appRepo.update(id, { status: toState, reviewed_by: user.id });
-  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState, actorId: user.id, note: note || (action === 'forward' ? 'Forwarded to board' : 'Returned to junior') });
+  await appRepo.addEvent({ applicationId: id, fromState: app.status, toState, actorId: user.id, note: note || (action === 'forward' ? 'Forwarded to board' : 'Returned to consultant') });
   return updated;
 }
 
-/** Board approves (grant) or rejects (back to junior). Approve carries a structured outcome. */
+/** Board approves (grant) or rejects (back to consultant). Approve carries a structured outcome. */
 async function decide(id, user, { action, note, outcome, approvedSeats }) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, action); // 'approve' | 'reject'
@@ -445,7 +445,7 @@ async function remove(id, user) {
   return { id };
 }
 
-/** Junior reopens a rejected case for rework. */
+/** consultant reopens a rejected case for rework. */
 async function revise(id, user) {
   const { app, ctx } = await getForUser(id, user);
   workflow.assertCan(app, user, ctx, 'revise');

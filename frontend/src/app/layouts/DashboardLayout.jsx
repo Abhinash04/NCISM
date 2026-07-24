@@ -37,14 +37,14 @@ export function DashboardLayout() {
       { name: 'My Uploads', path: '/visitor/applications', icon: FileStack },
       { name: 'Settings', path: '/visitor/settings', icon: Settings },
     ],
-    // Junior (dealing staff): allotted cases + compliance ledger. No upload.
-    junior_consultant: [
-      { name: 'Dashboard', path: '/junior_consultant/dashboard', icon: Home },
-      { name: 'Cases', path: '/junior_consultant/applications', icon: FileStack },
-      { name: 'Compliance', path: '/junior_consultant/compliance', icon: ClipboardCheck, perm: 'compliance:read' },
-      { name: 'Settings', path: '/junior_consultant/settings', icon: Settings },
+    // consultant (dealing staff): allotted cases + compliance ledger. No upload.
+    consultant: [
+      { name: 'Dashboard', path: '/consultant/dashboard', icon: Home },
+      { name: 'Cases', path: '/consultant/applications', icon: FileStack },
+      { name: 'Compliance', path: '/consultant/compliance', icon: ClipboardCheck, perm: 'compliance:read' },
+      { name: 'Settings', path: '/consultant/settings', icon: Settings },
     ],
-    // Senior: review queue for supervised juniors + read compliance.
+    // Senior: review queue for supervised consultants + read compliance.
     senior_consultant: [
       { name: 'Dashboard', path: '/senior_consultant/dashboard', icon: Home },
       { name: 'Review Queue', path: '/senior_consultant/applications', icon: FileStack },

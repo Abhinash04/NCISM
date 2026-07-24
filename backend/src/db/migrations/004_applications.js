@@ -1,8 +1,8 @@
 /**
  * Phase 3a — assessment cases (applications) + their transition timeline.
  * A visitor uploads a report for an institution; it routes to the allotted
- * junior consultant, who runs the pipeline, then submits it up the org chain
- * (junior → senior → board) to an approve/reject decision.
+ * consultant, who runs the pipeline, then submits it up the org chain
+ * (consultant → senior consultant → board) to an approve/reject decision.
  */
 
 const STATUSES = [

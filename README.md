@@ -30,7 +30,7 @@ handoff), **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** (as-built reference),
 
 ## Roles & lifecycle (short)
 
-13 roles: `president`, `board_member`, `senior_consultant`, `junior_consultant` (dealing staff),
+13 roles: `president`, `board_member`, `senior_consultant`, `consultant` (dealing staff),
 `visitor`, `college`, `hearing_committee`, `secretariat`, `commission_observer`, `admin` (+ retained
 `reviewer`/`analyst`/`viewer`). Case states: `uploaded → processing → processed → under_validation →
 senior_review → board_review → approved → closed`, with `clarification_*` and `hearing_*` branches
@@ -43,7 +43,7 @@ which action each role may take.
 
 - **Node.js 20+**
 - **Docker Desktop** (for PostgreSQL) — running
-- **Java 11+** and the [OpenDataLoader-PDF](https://github.com/opendataloader-project/opendataloader-pdf) CLI (installed via pip; wraps the Java core) — only needed to *process* an uploaded report.
+- **Java 11+** and the [OpenDataLoader-PDF](https://github.com/opendataloader-project/opendataloader-pdf) CLI (installed via pip; wraps the Java core) — only needed to _process_ an uploaded report.
 
 ## One-time setup
 
@@ -104,11 +104,11 @@ rm -rf backend/temp/*                # extraction job workspaces (input.pdf, art
 
 Two terminals (a third only for `EXTRACTION_MODE=hybrid`):
 
-| Terminal | Command (cwd) | Service | Port |
-| --- | --- | --- | --- |
-| 1 | `npm run dev` (`backend/`) — or `npm start` | Backend API | 3000 |
-| 2 | `npm run dev` (`frontend/`) | Frontend (Vite) | 5173 |
-| 3 | `opendataloader-pdf-hybrid --port 5002` | Docling hybrid | 5002 (hybrid only) |
+| Terminal | Command (cwd)                               | Service         | Port               |
+| -------- | ------------------------------------------- | --------------- | ------------------ |
+| 1        | `npm run dev` (`backend/`) — or `npm start` | Backend API     | 3000               |
+| 2        | `npm run dev` (`frontend/`)                 | Frontend (Vite) | 5173               |
+| 3        | `opendataloader-pdf-hybrid --port 5002`     | Docling hybrid  | 5002 (hybrid only) |
 
 ```bash
 # Terminal 1
@@ -148,12 +148,12 @@ This guide explains how to set up and run the OpenDataLoader-PDF project from so
 
 Before starting, ensure the following software is installed:
 
-* Git
-* Python 3.13 (or the project-supported Python version)
-* JDK 17 or later
-* Apache Maven
-* Visual Studio Build Tools (recommended for Python native packages)
-* NVIDIA CUDA Toolkit (optional, only if GPU acceleration is required)
+- Git
+- Python 3.13 (or the project-supported Python version)
+- JDK 17 or later
+- Apache Maven
+- Visual Studio Build Tools (recommended for Python native packages)
+- NVIDIA CUDA Toolkit (optional, only if GPU acceleration is required)
 
 Verify the installations:
 
@@ -248,13 +248,13 @@ pip install -e ".[hybrid]"
 
 This installs:
 
-* OpenDataLoader-PDF CLI
-* Hybrid Server
-* Docling
-* FastAPI
-* Uvicorn
-* OCR engines
-* Required Python dependencies
+- OpenDataLoader-PDF CLI
+- Hybrid Server
+- Docling
+- FastAPI
+- Uvicorn
+- OCR engines
+- Required Python dependencies
 
 ---
 
@@ -475,20 +475,19 @@ If Maven is missing, install Apache Maven and add its `bin` directory to the sys
 
 A successful setup satisfies all of the following:
 
-* Java installed
-* Maven installed
-* Java CLI builds successfully
-* JAR file generated
-* Python package installed
-* Hybrid dependencies installed
-* PATH configured
-* `opendataloader-pdf --help` works
-* `opendataloader-pdf-hybrid --help` works
-* Hybrid server starts successfully
-* Java CLI connects to the Hybrid server and extracts PDFs successfully
+- Java installed
+- Maven installed
+- Java CLI builds successfully
+- JAR file generated
+- Python package installed
+- Hybrid dependencies installed
+- PATH configured
+- `opendataloader-pdf --help` works
+- `opendataloader-pdf-hybrid --help` works
+- Hybrid server starts successfully
+- Java CLI connects to the Hybrid server and extracts PDFs successfully
 
 Once these checks pass, the local OpenDataLoader-PDF environment is fully configured and ready for development and document extraction.
-
 
 ## Extraction modes
 
@@ -508,20 +507,20 @@ Once these checks pass, the local OpenDataLoader-PDF environment is fully config
 
 ## API (`/api/v1`)
 
-| Group | Endpoints |
-| --- | --- |
-| Health | `GET /health` |
-| Auth | `POST /auth/{login,mfa/login,refresh,logout}` · `GET /auth/me` · `POST /auth/mfa/{enroll,verify,disable}` |
-| Institutions | `GET /institutions[/meta/:id]` · `POST /institutions[/import]` · `PATCH /institutions/:id` |
-| Admin | `GET /admin/{users,users/:id,roles,permissions}` |
-| Cases | `GET /applications[/:id]` · `POST /applications` (visitor upload) · `/:id/{allowed-actions,events,hearings,clarifications,letters}` |
+| Group            | Endpoints                                                                                                                                                       |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Health           | `GET /health`                                                                                                                                                   |
+| Auth             | `POST /auth/{login,mfa/login,refresh,logout}` · `GET /auth/me` · `POST /auth/mfa/{enroll,verify,disable}`                                                       |
+| Institutions     | `GET /institutions[/meta/:id]` · `POST /institutions[/import]` · `PATCH /institutions/:id`                                                                      |
+| Admin            | `GET /admin/{users,users/:id,roles,permissions}`                                                                                                                |
+| Cases            | `GET /applications[/:id]` · `POST /applications` (visitor upload) · `/:id/{allowed-actions,events,hearings,clarifications,letters}`                             |
 | Case transitions | `POST /applications/:id/{process,submit,review,decide,revise,request-hearing,appoint-committee,hearing/minutes,dispatch}` · `POST /:id/clarification[/respond]` |
-| Compliance | `GET/POST /applications/:id/penalties` · `GET /penalties` · `PATCH /penalties/:id` |
-| Meetings | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}` |
-| Audit | `GET /audit` |
-| Reports | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV) |
-| Rulesets | `GET /rulesets[/:id]` · `POST /rulesets/:id/activate` `{boardRef}` |
-| Extraction/Jobs | `POST /extract` · `GET /jobs/:id[/artifacts/:type]` · `POST /assessments` (engine run) |
+| Compliance       | `GET/POST /applications/:id/penalties` · `GET /penalties` · `PATCH /penalties/:id`                                                                              |
+| Meetings         | `GET/POST /meetings` · `GET /meetings/:id` · `POST /meetings/:id/{items,confirm}`                                                                               |
+| Audit            | `GET /audit`                                                                                                                                                    |
+| Reports          | `GET /reports/overview` · `GET /reports/export?dataset=cases\|penalties` (CSV)                                                                                  |
+| Rulesets         | `GET /rulesets[/:id]` · `POST /rulesets/:id/activate` `{boardRef}`                                                                                              |
+| Extraction/Jobs  | `POST /extract` · `GET /jobs/:id[/artifacts/:type]` · `POST /assessments` (engine run)                                                                          |
 
 Errors use `{ success:false, error:{ code, message } }`; codes include 401 (`NO_TOKEN`/`INVALID_TOKEN`),
 403 (`ACTION_NOT_ALLOWED`/missing perm), 409 (`INSTITUTION_EXISTS`), 423 (`CASE_FINALIZED`).

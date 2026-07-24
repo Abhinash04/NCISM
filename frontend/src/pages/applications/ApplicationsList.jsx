@@ -35,7 +35,7 @@ export const STATUS_META = {
 const TITLE_BY_ROLE = {
   admin: 'All cases',
   visitor: 'My uploads',
-  junior_consultant: 'My case queue',
+  consultant: 'My case queue',
   senior_consultant: 'Review queue',
   board_member: 'Board decisions',
   president: 'Board decisions',

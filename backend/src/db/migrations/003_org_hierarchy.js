@@ -1,6 +1,6 @@
 /**
  * Org reporting chain: a self-referential supervisor link on users
- * (president → board members → senior consultants → junior consultants).
+ * (president → board members → senior consultants → consultants).
  */
 
 exports.up = async function up(knex) {

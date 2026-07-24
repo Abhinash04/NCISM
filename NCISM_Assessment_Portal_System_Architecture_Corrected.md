@@ -10,13 +10,13 @@ This document provides a high-level summary of how the NCISM Assessment Portal w
 
 The NCISM organization enforces a strict hierarchical chain of reporting and supervision.
 
-* Case routing is determined by **allotments** (`staff_allotments` table) based on the **System of Medicine** (Ayurveda, Unani, Siddha, Sowa-Rigpa) and the **State** of the institution.
-* **Gaur Brahmin Ayurvedic College & Hospital (AYU0038)** is an **Ayurveda** college in **Haryana**.
-* **Dr. Dheeraj** is the allocated Junior Consultant (dealing staff) for Haryana/Ayurveda.
+- Case routing is determined by **allotments** (`staff_allotments` table) based on the **System of Medicine** (Ayurveda, Unani, Siddha, Sowa-Rigpa) and the **State** of the institution.
+- **Gaur Brahmin Ayurvedic College & Hospital (AYU0038)** is an **Ayurveda** college in **Haryana**.
+- **Dr. Dheeraj** is the allocated Consultant (dealing staff) for Haryana/Ayurveda.
 
 ### Reporting Chain for Case `AYU0038`
 
-Since `AYU0038` is an **Ayurveda** college in **Haryana**, the case is routed to **Dr. Dheeraj** (Junior Consultant allotted to Haryana).
+Since `AYU0038` is an **Ayurveda** college in **Haryana**, the case is routed to **Dr. Dheeraj** (Consultant allotted to Haryana).
 
 ```mermaid
 graph TD
@@ -26,11 +26,11 @@ graph TD
     President["President<br/>(Dr. Mukul Patel)"]:::apex
     BM2["Board Member (Team 2)<br/>(Dr. Sushrut Kanaujia)"]:::roles
     SC2["Senior Consultant<br/>(Dr. Kritika)"]:::roles
-    JC_Dheeraj["Junior Consultant (Dealing Staff)<br/>(Dr. Dheeraj)<br/><i>Allotted: Haryana (Ayurveda)</i>"]:::roles
+    JC_Dheeraj["Consultant (Dealing Staff)<br/>(Dr. Dheeraj)<br/><i>Allotted: Haryana (Ayurveda)</i>"]:::roles
 
     BM1["Board Member (Team 1)<br/>(B. L. Mehra)"]:::roles
     SC1["Senior Consultant<br/>(Dr. Gaurav Bhandari)"]:::roles
-    JC_Others1["Team 1 Juniors<br/>(Smarnika, Sunil, Tanya, etc.)"]:::roles
+    JC_Others1["Team 1 consultants<br/>(Smarnika, Sunil, Tanya, etc.)"]:::roles
 
     President --> BM1
     President --> BM2
@@ -55,7 +55,7 @@ When a visitor uploads the visitation report for **AYU0038**, it drives a state-
 flowchart TD
     %% Styling definitions
     classDef visitor fill:#efe9de,stroke:#e6dfd8,color:#141413;
-    classDef junior fill:#cc785c,stroke:#cc785c,color:#ffffff;
+    classDef consultant fill:#cc785c,stroke:#cc785c,color:#ffffff;
     classDef senior fill:#efe9de,stroke:#e6dfd8,color:#141413;
     classDef board fill:#efe9de,stroke:#e6dfd8,color:#141413;
     classDef college fill:#efe9de,stroke:#e6dfd8,color:#141413;
@@ -68,7 +68,7 @@ flowchart TD
     VisitorUploader["<b>Visitor</b> (visitor@ncism.local)<br/>Interim workaround: uploads the TCS report PDF<br/><i>production: TCS API</i>"]:::visitor
     UploadedState{"State: <b>uploaded</b>"}
 
-    JuniorProcess["<b>Junior Consultant</b> (Dr. Dheeraj)<br/>Allotted Haryana/Ayurveda<br/>Clicks 'Process'"]:::junior
+    consultantProcess["<b>Consultant</b> (Dr. Dheeraj)<br/>Allotted Haryana/Ayurveda<br/>Clicks 'Process'"]:::consultant
 
     subgraph AsyncPipeline ["Async Processing Engine (pg-boss Worker)"]
         OpenDataLoader["1. OpenDataLoader CLI<br/>(Extract PDF to element JSON)"]:::system
@@ -81,7 +81,7 @@ flowchart TD
 
     ProcessedState{"State: <b>processed</b>"}
 
-    JuniorSubmit["<b>Dr. Dheeraj</b> (Junior)<br/>Reviews findings, clicks 'Submit'"]:::junior
+    consultantSubmit["<b>Dr. Dheeraj</b> (consultant)<br/>Reviews findings, clicks 'Submit'"]:::consultant
     SeniorReviewState{"State: <b>senior_review</b>"}
 
     SeniorForward["<b>Senior Consultant</b> (Dr. Kritika)<br/>Forwards to Board, or Returns for rework"]:::senior
@@ -106,27 +106,29 @@ flowchart TD
     FinalOrder["<b>Secretariat</b> reviews auto-drafted Final Order<br/>Clicks 'Dispatch'"]:::senior
     ClosedState([State: <b>closed</b>]):::terminal
 
-    ComplianceLedger["<b>Dr. Dheeraj</b> (Junior)<br/>Logs manual penalties & tracks payments"]:::junior
+    ComplianceLedger["<b>Dr. Dheeraj</b> (Consultant)<br/>Logs manual penalties (policy-derived ₹ rate) & tracks payments"]:::consultant
     CompliedState([Compliance: <b>complied</b>]):::terminal
 
     %% Intake to processing to maker-checker
     Start --> VisitorUploader
     VisitorUploader --> UploadedState
-    UploadedState -->|Dr. Dheeraj owns case| JuniorProcess
-    JuniorProcess --> AsyncPipeline
+    UploadedState -->|Dr. Dheeraj owns case| consultantProcess
+    consultantProcess --> AsyncPipeline
     Reporter --> ProcessedState
-    ProcessedState --> JuniorSubmit
-    JuniorSubmit --> SeniorReviewState
+    ProcessedState --> consultantSubmit
+    consultantSubmit --> SeniorReviewState
     SeniorReviewState -->|Dr. Kritika reviews| SeniorForward
     SeniorForward -->|Forward to Board| BoardReviewState
     SeniorForward -->|Return for rework| UnderValidationState
-    UnderValidationState -->|Junior resubmits| JuniorSubmit
+    UnderValidationState -->|consultant resubmits| consultantSubmit
 
     %% Board action: Request Clarification
     BoardReviewState -->|"Request Clarification<br/>(Auto-drafts Clarification Letter)"| ClarifyState
     ClarifyState --> CollegeRespond
     CollegeRespond --> ResponseSubmitted
-    ResponseSubmitted -->|Returns to Dr. Dheeraj| JuniorSubmit
+    ResponseSubmitted -->|"Consultant reviews (remarks + verdict)"| ClarReviewed{"State: <b>clarification_reviewed</b>"}
+    ClarReviewed -->|Accepted → submit| consultantSubmit
+    ClarReviewed -->|Requires revision R1| ClarifyState
 
     %% Board action: Request Hearing
     BoardReviewState -->|Request Hearing| HearingReq
@@ -137,7 +139,7 @@ flowchart TD
 
     %% Board action: Reject
     BoardReviewState -->|Reject| RejectedState
-    RejectedState -->|Junior revises| UnderValidationState
+    RejectedState -->|consultant revises| UnderValidationState
 
     %% Board action: Approve
     BoardReviewState -->|"Approve (structured outcome)"| BoardApprove
@@ -146,7 +148,7 @@ flowchart TD
     %% Dispatch + compliance
     ApprovedState -->|Auto-derives seat reductions| SecretariatMeeting
     SecretariatMeeting --> FinalOrder
-    FinalOrder -->|Dispatches Final Order Letter| ClosedState
+    FinalOrder -->|"Dispatches Final Order (only if compliance=complied)"| ClosedState
 
     ApprovedState -->|Initiates Compliance Monitoring| ComplianceLedger
     ComplianceLedger -->|All penalties paid/waived| CompliedState
@@ -163,46 +165,48 @@ flowchart TD
 
 ### 3.1 Regulatory-Report Receipt (`uploaded` State)
 
-* **Source of the report:** the 20–50-page Regulatory Report is **generated externally by TCS** (TCS conducts the visitation). This platform does not author it.
-* **Production intake (intended):** TCS delivers the report to the platform via its API; the case is created on receipt.
-* **Interim intake (current workaround):** Actor = Visitor (`visitor@ncism.local`) — selects `AYU0038`, enters basic parameters (visitation dates, intake = `60`), and **manually uploads the TCS-generated PDF report** because the TCS API is not yet available. This manual upload is temporary, not the production design.
-* **Output:** Case is created in the database under `applications` with `status = 'uploaded'`. Downstream processing (§3.2) is unchanged.
+- **Source of the report:** the 20–50-page Regulatory Report is **generated externally by TCS** (TCS conducts the visitation). This platform does not author it.
+- **Production intake (intended):** TCS delivers the report to the platform via its API; the case is created on receipt.
+- **Interim intake (current workaround):** Actor = Visitor (`visitor@ncism.local`) — selects `AYU0038`, enters basic parameters (visitation dates, intake = `60`), and **manually uploads the TCS-generated PDF report** because the TCS API is not yet available. This manual upload is temporary, not the production design.
+- **Output:** Case is created in the database under `applications` with `status = 'uploaded'`. Downstream processing (§3.2) is unchanged.
 
 ### 3.2 Automated Document Parsing & Rule Processing (`processed` State)
 
-* **Actor:** Junior Consultant (**Dr. Dheeraj**).
-* **Action:** Opens the case from their queue (routed because Haryana is in their allotments) and triggers **Process**.
-* **System Engine Steps (Async pg-boss Queue):**
+- **Actor:** Consultant (**Dr. Dheeraj**).
+- **Action:** Opens the case from their queue (routed because Haryana is in their allotments) and triggers **Process**.
+- **System Engine Steps (Async pg-boss Queue):**
   1. **OpenDataLoader CLI:** Runs extraction on the PDF to create a structured JSON.
   2. **Canonical Document Model (CDM):** Organizes elements, stitches cross-page tables, and flattens column/row spans.
   3. **Rule Evaluator:** Resolves the **active ruleset** for the case's `(system, level)` from the ruleset registry (Admin → Rulesets) — for `AYU0038` (Ayurveda, UG) that is `mesar-ug-ayurveda-2024/v1` — then computes teacher-student ratios, bed occupancy thresholds, and department requirements. Six rulesets are active (UG Ayurveda/Unani/Sowa-Rigpa + PG Ayurveda/Unani/Siddha); each case is assessed against its own system's ruleset, not a hardcoded one.
   4. **Punitive Engine:** Maps any deficiencies (e.g. ghost faculty, lack of AEBAS biometric compliance) to specific punitive outcomes (e.g. 5% seat reduction per missing faculty, or complete denial).
-* **Output:** An immutable **Assessment Report JSON** is generated and stored. Case status becomes `processed`.
+- **Output:** An immutable **Assessment Report JSON** is generated and stored. Case status becomes `processed`.
 
 ### 3.3 Maker-Checker Submission (`senior_review` State)
 
-* **Actor:** Junior Consultant (**Dr. Dheeraj**).
-* **Action:** Reviews the generated Assessment Report findings, logs notes, and clicks **Submit for Review**.
-* **Output:** Case status changes to `senior_review`.
+- **Actor:** Consultant (**Dr. Dheeraj**).
+- **Action:** Reviews the generated Assessment Report findings, logs notes, and clicks **Submit for Review**.
+- **Output:** Case status changes to `senior_review`.
 
 ### 3.4 Supervisor Verification (`board_review` State)
 
-* **Actor:** Senior Consultant (**Dr. Kritika**).
-* **Action:** Reviews Dr. Dheeraj's submission.
-  * If changes are needed, she **Returns** it to Dr. Dheeraj (`under_validation`); he reworks and resubmits, re-entering `senior_review`.
-  * If clean, she clicks **Forward to Board**.
-* **Output:** Case status changes to `board_review`.
+- **Actor:** Senior Consultant (**Dr. Kritika**).
+- **Action:** Reviews Dr. Dheeraj's submission.
+  - If changes are needed, she **Returns** it to Dr. Dheeraj (`under_validation`); he reworks and resubmits, re-entering `senior_review`.
+  - If clean, she clicks **Forward to Board**.
+- **Output:** Case status changes to `board_review`.
 
 ### 3.5 Board Review & Intervention Cycles
 
 The Board Member (**Dr. Sushrut Kanaujia**) reviews the case findings and has **four** actions available: **Approve**, **Reject**, **Request Clarification**, and **Request Hearing**.
 
-#### Request Clarification (`clarification_open` → `clarification_responded`)
+#### Request Clarification (`clarification_open` → `clarification_responded` → `clarification_reviewed`)
 
 1. **Board Member** clicks **Request Clarification**. The system automatically generates a formatted **Clarification Letter** containing the assessment shortcomings.
 2. The case moves to `clarification_open`.
-3. **College User** (`college.ayu0038@ncism.local`) sees the case in their queue, inputs a response text, attaches evidentiary PDFs, and clicks **Submit**.
-4. The case moves to `clarification_responded` and returns to **Dr. Dheeraj** to start review again.
+3. **College User** (`college.ayu0038@ncism.local`) sees the case in their queue, inputs a response text, attaches evidentiary PDFs, and clicks **Submit** → `clarification_responded`.
+4. **Dr. Dheeraj** (the **Consultant**) opens a **Clarification Review** panel: reads the submitted text, previews/downloads the attached PDF, records **review remarks + a verdict** → `clarification_reviewed`.
+   - **Accepted** → **Submit** re-enters the maker-checker chain (`senior_review`).
+   - **Requires revision (R1)** → the case returns to `clarification_open` with the remarks so the college edits and resubmits. All review actions are recorded in the audit trail.
 
 #### Request Hearing (`hearing_requested` → `hearing_scheduled` → `board_review`)
 
@@ -217,24 +221,24 @@ The Board Member (**Dr. Sushrut Kanaujia**) reviews the case findings and has **
 
 ### 3.6 Structured Board Decision (`approved` State)
 
-* **Actor:** Board Member (**Dr. Sushrut Kanaujia**).
-* **Action:** Clicks **Approve (decide)**. The system pre-fills the dialog with the auto-derived outcome from the punitive engine (e.g., `reduce-intake` to `50` seats due to teacher deficiencies). The Board confirms/edits this decision.
-* **Output:** Status changes to `approved`. Auto-derived penalties (seat reductions) are written to the database, and compliance monitoring is initialized.
+- **Actor:** Board Member (**Dr. Sushrut Kanaujia**).
+- **Action:** Clicks **Approve (decide)**. The system pre-fills the dialog with the auto-derived outcome from the punitive engine (e.g., `reduce-intake` to `50` seats due to teacher deficiencies). The Board confirms/edits this decision.
+- **Output:** Status changes to `approved`. Auto-derived penalties (seat reductions) are written to the database, and compliance monitoring is initialized.
 
 ### 3.7 Board Meeting & Final Dispatch (`closed` State)
 
-* **Actor:** Secretariat (`secretariat@ncism.local`).
-* **Action:**
+- **Actor:** Secretariat (`secretariat@ncism.local`).
+- **Action:**
   1. Schedules a Board Meeting (e.g. `MARB/2026/08`) and adds `AYU0038` to the agenda.
-  2. Opens `AYU0038` and reviews the **Final Order Letter**, which is auto-drafted containing the board's decision, shortcomings, and applicable regulations.
-  3. Clicks **Dispatch Final Order**.
-* **Output:** Case status reaches its terminal state: `closed`. The college can now read the official Final Order.
+  2. Opens `AYU0038` and reviews the **Final Order Letter**, which is auto-drafted containing the board's decision, shortcomings, and applicable regulations. The addressee block renders in proper stacked government-letter format (screen + PDF + Word alike).
+  3. Clicks **Dispatch Final Order** — **only available once `compliance = complied`**; while penalties are pending the action is blocked (button hidden + a banner explains why, and a forced call returns `COMPLIANCE_INCOMPLETE`).
+- **Output:** Case status reaches its terminal state: `closed`. The college can now read the official Final Order.
 
 ### 3.8 Penalty Enforcement & Compliance
 
-* **Actor:** Junior Consultant (**Dr. Dheeraj**).
-* **Action:** Manages the penalties ledger for the case. He reviews auto-derived seat reductions and adds any manual penalties (such as monetary fines for ghost faculty or teacher code revocations). He updates payment/compliance status.
-* **Output:** When all penalties are resolved, the case compliance header automatically updates to `complied`.
+- **Actor:** Consultant (**Dr. Dheeraj**).
+- **Action:** Manages the penalties ledger for the case. He reviews auto-derived seat reductions and adds any manual penalties (such as monetary fines for ghost faculty or teacher code revocations). He updates payment/compliance status.
+- **Output:** When all penalties are resolved, the case compliance header automatically updates to `complied`.
 
 ---
 
@@ -242,11 +246,11 @@ The Board Member (**Dr. Sushrut Kanaujia**) reviews the case findings and has **
 
 The system contains an automated **Letter Template Engine** (`letter.service.js`) that produces official NCISM-formatted PDF drafts. These drafts populate automatically from case data:
 
-| Document Type | Triggers on State / Action | Source Data Included |
-|---|---|---|
-| **Clarification Letter** | Board requests clarification (`clarification_open`) | List of shortcomings extracted from the report, signatory info, and college contact details. |
-| **Hearing Notice** | President schedules hearing (`hearing_scheduled`) | Shortcomings list, hearing committee panel, date/time, and instructions. |
-| **Final Order** | Secretariat dispatches order (`closed`) | Board's final outcome decision, approved seats count, applied penalties, and relevant regulations. |
+| Document Type            | Triggers on State / Action                          | Source Data Included                                                                               |
+| ------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Clarification Letter** | Board requests clarification (`clarification_open`) | List of shortcomings extracted from the report, signatory info, and college contact details.       |
+| **Hearing Notice**       | President schedules hearing (`hearing_scheduled`)   | Shortcomings list, hearing committee panel, date/time, and instructions.                           |
+| **Final Order**          | Secretariat dispatches order (`closed`)             | Board's final outcome decision, approved seats count, applied penalties, and relevant regulations. |
 
 Every issued letter, the **Assessment Report**, and confirmed **meeting minutes** are **downloadable as Markdown, PDF, or Word (.docx)** (generated client-side from the stored markdown). The uploaded visitation report is served back for an in-app **PDF viewer** (case → **Documents** tab) and a one-click **Visitor Report** download via `GET /applications/:id/source.pdf` (`application:read`).
 
